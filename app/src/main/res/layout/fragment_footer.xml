@@ -5,7 +5,8 @@
     android:layout_width="1024dp"
     android:layout_height="76dp"
     android:background="@color/black"
-    tools:context=".pages.FooterFragment">
+    tools:context=".pages.FooterFragment"
+    tools:ignore="Overdraw">
 
     <ImageButton
         android:id="@+id/btnLogo"
@@ -84,16 +85,6 @@
         android:textColor="@color/white"
         app:layout_constraintEnd_toStartOf="@id/textViewChargerId"
         app:layout_constraintBottom_toBottomOf="@id/textViewChargerIdValue" />
-
-<!--    <TextView-->
-<!--        android:id="@+id/textViewVersion"-->
-<!--        android:layout_width="wrap_content"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:text=" | VER: "-->
-<!--        android:textSize="20sp"-->
-<!--        android:textColor="@color/white"-->
-<!--        app:layout_constraintEnd_toStartOf="@id/textViewVersionValue"-->
-<!--        app:layout_constraintBottom_toBottomOf="@id/textViewChargerIdValue" />-->
 
     <TextView
         android:id="@+id/textViewTime"

@@ -27,7 +27,8 @@
         android:background="@drawable/member"
         app:layout_constraintTop_toBottomOf="@id/textViewMemberWaitMessage"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:ignore="contentDescription"/>
 
     <com.wang.avi.AVLoadingIndicatorView
         android:id="@+id/aviMemberCheck"

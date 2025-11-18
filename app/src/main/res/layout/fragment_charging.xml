@@ -29,7 +29,8 @@
         android:background="@drawable/battery0"
         app:layout_constraintTop_toTopOf="@id/textViewSocValue"
         app:layout_constraintBottom_toBottomOf="@id/textViewSocValue"
-        app:layout_constraintEnd_toStartOf="@id/textViewSocValue" />
+        app:layout_constraintEnd_toStartOf="@id/textViewSocValue"
+        tools:ignore="contentDescription"/>
 
     <ImageView
         android:id="@+id/imageViewBatteryValue"
@@ -39,7 +40,8 @@
         app:layout_constraintTop_toTopOf="@id/imageViewBattery"
         app:layout_constraintStart_toStartOf="@id/imageViewBattery"
         app:layout_constraintEnd_toEndOf="@id/imageViewBattery"
-        app:layout_constraintBottom_toBottomOf="@id/imageViewBattery" />
+        app:layout_constraintBottom_toBottomOf="@id/imageViewBattery"
+        tools:ignore="contentDescription"/>
 
     <androidx.cardview.widget.CardView
         android:id="@+id/cardView"

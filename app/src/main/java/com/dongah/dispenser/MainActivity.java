@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -42,13 +43,17 @@ public class MainActivity extends AppCompatActivity {
     @SuppressLint("StaticFieldLeak")
     public static Context mContext;
 
-    TextView textViewTime, textViewVersionValue, textViewChargerIdValue;
-    ImageView imageViewNetwork;
-    ImageButton btnLogo;
-    int clickedCnt = 0;
+    // screen saver
+    private static final long INACTIVITY_TIMEOUT = 1 * 60 * 1000L;  // 2분 (ms 단위)
+    private final Handler inactivityHandler = new Handler(Looper.getMainLooper());
+    private final Runnable inactivityRunnable = new Runnable() {
+        @Override
+        public void run() {
+            int channel = 0;
+            getFragmentChange().onFragmentChange(channel, UiSeq.SCREEN_SAVER, "SCREEN_SAVER", null);
+        }
+    };
 
-
-//    int mChannel;
 
     Handler handler = new Handler();
     Runnable runnable;
@@ -62,14 +67,6 @@ public class MainActivity extends AppCompatActivity {
     FragmentCurrent fragmentCurrent;
 
 
-
-//    public void setChannel(int channel) {
-//        this.mChannel = channel;
-//    }
-//
-//    public int getChannel() {
-//        return mChannel;
-//    }
 
     public UiSeq getFragmentSeq(int ch)  {
         return fragmentSeq[ch];
@@ -118,39 +115,15 @@ public class MainActivity extends AppCompatActivity {
 
         hideNavigationBar();
 
+        // 앱 켜질 때 타이머 시작
+        resetInactivityTimer();
+
         mContext = this;
 
         /* 슬립 모드 방지*/
         super.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         /* 세로 고정 */
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
-
-//        imageViewNetwork = findViewById(R.id.imageViewNetwork);
-//        textViewVersionValue = findViewById(R.id.textViewVersionValue);
-//        textViewVersionValue.setText(" | VER: " + GlobalVariables.VERSION);
-//        textViewTime = findViewById(R.id.textViewTime);
-//        textViewChargerIdValue = findViewById(R.id.textViewChargerIdValue);
-//        btnLogo = findViewById(R.id.btnLogo);
-//        btnLogo.setOnClickListener(v -> {
-//            if (clickedCnt > 8) {
-//                try {
-//                    boolean chkUiSeq = ((MainActivity) MainActivity.mContext).getClassUiProcess(0).getUiSeq() == UiSeq.INIT &&
-//                            ((MainActivity) MainActivity.mContext).getClassUiProcess(1).getUiSeq() == UiSeq.INIT;
-//                    if (chkUiSeq) {
-//                        ((MainActivity) MainActivity.mContext).runOnUiThread(new Runnable() {
-//                            @Override
-//                            public void run() {
-//                                ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.ADMIN_PASS);
-//                                ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel,UiSeq.ADMIN_PASS,"ADMIN_PASS",null);
-//                            }
-//                        });
-//                    }
-//                } catch (Exception e) {
-//                    logger.error("btnLogo error: {}", e.getMessage());
-//                }
-//            }
-//            clickedCnt++;
-//        });
 
         // fragment current
         fragmentCurrent = new FragmentCurrent();
@@ -208,7 +181,6 @@ public class MainActivity extends AppCompatActivity {
         runnable = new Runnable() {
             @Override
             public void run() {
-                updateTime();
                 // 1초마다 실행
                 handler.postDelayed(this, 1000);
 
@@ -218,17 +190,21 @@ public class MainActivity extends AppCompatActivity {
         runnable.run();
     }
 
-    private void updateTime() {
-        try {
-            if (textViewTime != null) {
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
-                sdf.setTimeZone(TimeZone.getTimeZone("Asia/Seoul"));
-                String currentTime = sdf.format(new Date());
-                textViewTime.setText(currentTime);
-            }
-        } catch (Exception e) {
-            logger.error("updateTime error: {}", e.getMessage());
-        }
+    // 타이머 리셋 메서드 (외부에서 호출 가능)
+    public void resetInactivityTimer() {
+        inactivityHandler.removeCallbacks(inactivityRunnable);
+        inactivityHandler.postDelayed(inactivityRunnable, INACTIVITY_TIMEOUT);
     }
 
+    @Override
+    public void onUserInteraction() {
+        super.onUserInteraction();
+        resetInactivityTimer();  // 입력 있을 때마다 타이머 리셋
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        inactivityHandler.removeCallbacks(inactivityRunnable);
+    }
 }

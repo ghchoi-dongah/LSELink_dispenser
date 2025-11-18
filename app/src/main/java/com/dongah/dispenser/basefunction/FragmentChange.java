@@ -24,6 +24,7 @@ import com.dongah.dispenser.pages.MemberCardNoMacFragment;
 import com.dongah.dispenser.pages.MemberCheckFailedFragment;
 import com.dongah.dispenser.pages.MemberCheckWaitFragment;
 import com.dongah.dispenser.pages.OperationStopFragment;
+import com.dongah.dispenser.pages.ScreenSaverFragment;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -201,6 +202,17 @@ public class FragmentChange {
                     transaction.commit();
                 } catch (Exception e) {
                     logger.error("onFragmentChange error : CONFIG_SETTING {}", e.getMessage());
+                }
+                break;
+            case SCREEN_SAVER:
+                try {
+                    onFrameLayoutChange(true);
+                    ScreenSaverFragment screenSaverFragment = new ScreenSaverFragment();
+                    screenSaverFragment.setArguments(bundle);
+                    transaction.replace(R.id.frameFull, screenSaverFragment, "SCREEN_SAVER");
+                    transaction.commit();
+                } catch (Exception e) {
+                    logger.error("onFragmentChange error : SCREEN_SAVER {}", e.getMessage());
                 }
                 break;
             default:

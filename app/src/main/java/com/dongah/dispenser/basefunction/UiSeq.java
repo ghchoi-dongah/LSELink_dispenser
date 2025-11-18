@@ -36,7 +36,8 @@ public enum UiSeq {
     MEMBER_CHECK_FAILED(32),
     CHARGING_WAIT(33),
     SEQUENTIAL_CHARGING(34),
-    OP_STOP(35);
+    OP_STOP(35),
+    SCREEN_SAVER(36);
 
     private final int value;
 

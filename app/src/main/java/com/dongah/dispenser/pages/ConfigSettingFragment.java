@@ -2,13 +2,17 @@ package com.dongah.dispenser.pages;
 
 import android.os.Bundle;
 
+import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 
+import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.R;
+import com.dongah.dispenser.basefunction.UiSeq;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -27,6 +31,9 @@ public class ConfigSettingFragment extends Fragment {
     private String mParam1;
     private String mParam2;
     private int mChannel;
+
+    Button btnExit, btnSave, btnRebooting;
+
 
     public ConfigSettingFragment() {
         // Required empty public constructor
@@ -64,6 +71,20 @@ public class ConfigSettingFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_config_setting, container, false);
+        btnExit = view.findViewById(R.id.btnExit);
+        btnSave = view.findViewById(R.id.btnSave);
+
+        btnExit.setOnClickListener(v -> {
+            ActivityCompat.finishAffinity((MainActivity) MainActivity.mContext);
+            System.exit(0);
+        });
+
+        btnSave.setOnClickListener(v -> {
+            if (!isAdded()) return;
+            System.out.println("ConfigSettingFragment btnSave mChannel: " + mChannel);
+            ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.INIT);
+            ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.INIT, "INIT", null);
+        });
         return view;
     }
 }

@@ -109,19 +109,45 @@ public class FooterFragment extends Fragment {
         textViewTime = view.findViewById(R.id.textViewTime);
         btnLogo = view.findViewById(R.id.btnLogo);
         btnLogo.setOnClickListener(v -> {
+            System.out.println("btnLogo click: " + clickedCnt);
+
+//            logger.info("FooterFragment btnLogo click clickedCnt: {}", clickedCnt);
             if (clickedCnt > 8) {
                 try {
-                    boolean chkUiSeq = ((MainActivity) MainActivity.mContext).getClassUiProcess(0).getUiSeq() == UiSeq.INIT &&
-                            ((MainActivity) MainActivity.mContext).getClassUiProcess(1).getUiSeq() == UiSeq.INIT;
+//                    boolean chkUiSeq = ((MainActivity) MainActivity.mContext).getClassUiProcess(0).getUiSeq() == UiSeq.INIT &&
+//                            ((MainActivity) MainActivity.mContext).getClassUiProcess(1).getUiSeq() == UiSeq.INIT;
+
+                    MainActivity activity = (MainActivity) MainActivity.mContext;
+                    if (activity == null) {
+                        logger.error("btnLogo error: MainActivity.mContext is null");
+                        return;
+                    }
+
+                    UiSeq ui0 = activity.getClassUiProcess(0) != null
+                            ? activity.getClassUiProcess(0).getUiSeq()
+                            : null;
+                    UiSeq ui1 = activity.getClassUiProcess(1) != null
+                            ? activity.getClassUiProcess(1).getUiSeq()
+                            : null;
+
+                    boolean chkUiSeq = ui0 == UiSeq.INIT && ui1 == UiSeq.INIT;
+
+//                    logger.info("btnLogo clickedCnt: {}, ui0: {}, ui1: {}, chkUiSeq: {}",
+//                            clickedCnt, ui0, ui1, chkUiSeq);
+
+                    System.out.println("clickedCnt > 8, ui0: " + ui0 + ", ui1: " + ui1 + ", chkUiSeq: " + chkUiSeq + ", mChannel:" + mChannel);
+
+
                     if (chkUiSeq) {
                         ((MainActivity) MainActivity.mContext).runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
                                 ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.ADMIN_PASS);
-                                ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel,UiSeq.ADMIN_PASS,"ADMIN_PASS",null);
+                                ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.ADMIN_PASS,"ADMIN_PASS",null);
                             }
                         });
                     }
+                    clickedCnt = 0;
                 } catch (Exception e) {
                     logger.error("btnLogo error: {}", e.getMessage());
                 }

@@ -1,5 +1,7 @@
 package com.dongah.dispenser.pages;
 
+import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
@@ -7,8 +9,12 @@ import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AccelerateDecelerateInterpolator;
+import android.widget.TextView;
 
+import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.R;
+import com.dongah.dispenser.basefunction.UiSeq;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -27,6 +33,9 @@ public class ScreenSaverFragment extends Fragment {
     private String mParam1;
     private String mParam2;
     private int mChannel;
+
+    TextView textViewScreenSaverMessage;
+    ObjectAnimator fadeAnimator;
 
     public ScreenSaverFragment() {
         // Required empty public constructor
@@ -64,6 +73,22 @@ public class ScreenSaverFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_screen_saver, container, false);
+        textViewScreenSaverMessage = view.findViewById(R.id.textViewScreenSaverMessage);
+
+        // textViewScreenSaverMessage animation
+        fadeAnimator = ObjectAnimator.ofFloat(textViewScreenSaverMessage, "alpha", 1f, 0.4f);
+        fadeAnimator.setDuration(1500);
+        fadeAnimator.setRepeatCount(ValueAnimator.INFINITE);
+        fadeAnimator.setRepeatMode(ValueAnimator.REVERSE);
+        fadeAnimator.setInterpolator(new AccelerateDecelerateInterpolator());
+        fadeAnimator.start();
+
+        view.setOnClickListener(v -> {
+            if (!isAdded()) return;
+            System.out.println("ScreenSaverFragment mChannel: " + mChannel);
+            ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.INIT);
+            ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.INIT, "INIT", null);
+        });
         return view;
     }
 }
