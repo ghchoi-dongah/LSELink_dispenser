@@ -230,7 +230,7 @@ public class MainActivity extends AppCompatActivity {
         settings.socLimit = "80";
         settings.availability = "Operative";
 
-        // 공통 insert() 실행
+        // insert
         long rowId = helper.insert(settings);
 
         System.out.println("INSERT RESULT1 = " + rowId);
@@ -243,9 +243,74 @@ public class MainActivity extends AppCompatActivity {
         settings.socLimit = "80";
         settings.availability = "Operative";
 
-        // 공통 insert() 실행
+        // insert
         long rowId2 = helper.insert(settings);
 
         System.out.println("INSERT RESULT2 = " + rowId2);
+
+        // select all
+        Cursor cursor = helper.selectAll(settings.getTableName());
+        while (cursor.moveToNext()) {
+            System.out.println("SELECT RESULT = " +
+                    "ID: " + cursor.getInt(cursor.getColumnIndexOrThrow("ID")) +
+                    ", STATION_ID: " + cursor.getString(cursor.getColumnIndexOrThrow("STATION_ID")) +
+                    ", CHARGER_ID: " + cursor.getString(cursor.getColumnIndexOrThrow("CHARGER_ID")) +
+                    ", MODEL_NM: " + cursor.getString(cursor.getColumnIndexOrThrow("MODEL_NM")) +
+                    ", VENDOR_NM: " + cursor.getString(cursor.getColumnIndexOrThrow("VENDOR_NM")) +
+                    ", FW_VERSION: " + cursor.getString(cursor.getColumnIndexOrThrow("FW_VERSION")) +
+                    ", SOC_LIMIT: " + cursor.getString(cursor.getColumnIndexOrThrow("SOC_LIMIT")) +
+                    ", AVAILABILITY: " + cursor.getString(cursor.getColumnIndexOrThrow("AVAILABILITY"))
+            );
+        }
+        cursor.close();
+
+        // update
+        ContentValues updateValues = new ContentValues();
+        updateValues.put("MODEL_NM", "MD99");
+        int updated = helper.update(settings.getTableName(), updateValues, "ID=?", new String[]{"2"});
+        System.out.println("UPDATE RESULT = " + updated);
+
+        // select all
+        Cursor cursor2 = helper.selectAll(settings.getTableName());
+        while (cursor2.moveToNext()) {
+            System.out.println("SELECT2 RESULT = " +
+                    "ID: " + cursor2.getInt(cursor2.getColumnIndexOrThrow("ID")) +
+                    ", STATION_ID: " + cursor2.getString(cursor2.getColumnIndexOrThrow("STATION_ID")) +
+                    ", CHARGER_ID: " + cursor2.getString(cursor2.getColumnIndexOrThrow("CHARGER_ID")) +
+                    ", MODEL_NM: " + cursor2.getString(cursor2.getColumnIndexOrThrow("MODEL_NM")) +
+                    ", VENDOR_NM: " + cursor2.getString(cursor2.getColumnIndexOrThrow("VENDOR_NM")) +
+                    ", FW_VERSION: " + cursor2.getString(cursor2.getColumnIndexOrThrow("FW_VERSION")) +
+                    ", SOC_LIMIT: " + cursor2.getString(cursor2.getColumnIndexOrThrow("SOC_LIMIT")) +
+                    ", AVAILABILITY: " + cursor2.getString(cursor2.getColumnIndexOrThrow("AVAILABILITY"))
+            );
+        }
+        cursor2.close();
+
+        // delete
+        int deleted = helper.delete(settings.getTableName(), "ID=?", new String[]{"2"});
+        System.out.println("DELETE RESULT = " + deleted);
+
+        // select with where
+        Cursor cursor3 = helper.select(settings.getTableName(), "ID=?", new String[]{"1"});
+        while (cursor3.moveToNext()) {
+            System.out.println("SELECT3 RESULT = " +
+                    "ID: " + cursor3.getInt(cursor3.getColumnIndexOrThrow("ID")) +
+                    ", STATION_ID: " + cursor3.getString(cursor3.getColumnIndexOrThrow("STATION_ID")) +
+                    ", CHARGER_ID: " + cursor3.getString(cursor3.getColumnIndexOrThrow("CHARGER_ID")) +
+                    ", MODEL_NM: " + cursor3.getString(cursor3.getColumnIndexOrThrow("MODEL_NM")) +
+                    ", VENDOR_NM: " + cursor3.getString(cursor3.getColumnIndexOrThrow("VENDOR_NM")) +
+                    ", FW_VERSION: " + cursor3.getString(cursor3.getColumnIndexOrThrow("FW_VERSION")) +
+                    ", SOC_LIMIT: " + cursor3.getString(cursor3.getColumnIndexOrThrow("SOC_LIMIT")) +
+                    ", AVAILABILITY: " + cursor3.getString(cursor3.getColumnIndexOrThrow("AVAILABILITY"))
+            );
+        }
+        cursor3.close();
+
+        // delete all(테이블 삭제x)
+        int deletedAll = helper.deleteAll(settings.getTableName());
+        System.out.println("DELETE ALL RESULT = " + deletedAll);
+
+        // delete table
+        helper.dropTable(helper.getWritableDatabase(), settings.getTableName());
     }
 }

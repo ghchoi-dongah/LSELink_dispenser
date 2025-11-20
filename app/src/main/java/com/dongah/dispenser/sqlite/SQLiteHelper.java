@@ -1,6 +1,8 @@
 package com.dongah.dispenser.sqlite;
 
+import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
@@ -55,7 +57,7 @@ public class SQLiteHelper extends SQLiteOpenHelper {
         onCreate(sqLiteDatabase);
     }
 
-    // 공통 insert
+    // insert
     public long insert(DbEntity entity) {
         SQLiteDatabase db = getWritableDatabase();
         return db.insert(entity.getTableName(), null, entity.toContentValues());
@@ -78,5 +80,50 @@ public class SQLiteHelper extends SQLiteOpenHelper {
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + tableName);
     }
 
+    // update
+    public int update(String tableName, ContentValues values, String where, String[] whereArgs) {
+        SQLiteDatabase db = getWritableDatabase();
+        return db.update(tableName, values, where, whereArgs);
+    }
 
+
+    // delete with where
+    public int delete(String tableName, String where, String[] whereArgs) {
+        SQLiteDatabase db = getWritableDatabase();
+        return db.delete(tableName, where, whereArgs);
+    }
+
+    // delete all (테이블의 모든 데이터 삭제, 테이블 삭제X)
+    public int deleteAll(String tableName) {
+        SQLiteDatabase db = getWritableDatabase();
+        return db.delete(tableName, null, null);
+    }
+
+    // select (전체 조회)
+    public Cursor selectAll(String tableName) {
+        SQLiteDatabase db = getReadableDatabase();
+        return db.query(
+                tableName,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+        );
+    }
+
+    // select with where
+    public Cursor select(String tableName, String where, String[] whereArgs) {
+        SQLiteDatabase db = getReadableDatabase();
+        return db.query(
+                tableName,
+                null,
+                where,
+                whereArgs,
+                null,
+                null,
+                null
+        );
+    }
 }
