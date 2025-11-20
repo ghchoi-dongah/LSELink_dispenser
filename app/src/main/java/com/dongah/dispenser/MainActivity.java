@@ -1,17 +1,19 @@
 package com.dongah.dispenser;
 
 import android.annotation.SuppressLint;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.nfc.Tag;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.ImageButton;
-import android.widget.ImageView;
-import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -22,18 +24,15 @@ import androidx.core.view.WindowInsetsCompat;
 import com.dongah.dispenser.basefunction.ChargerConfiguration;
 import com.dongah.dispenser.basefunction.ClassUiProcess;
 import com.dongah.dispenser.basefunction.ConfigurationKeyRead;
+import com.dongah.dispenser.sqlite.SQLiteHelper;
 import com.dongah.dispenser.basefunction.FragmentChange;
 import com.dongah.dispenser.basefunction.FragmentCurrent;
 import com.dongah.dispenser.basefunction.GlobalVariables;
 import com.dongah.dispenser.basefunction.UiSeq;
+import com.dongah.dispenser.sqlite.dto.CpSettings;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
-import java.util.TimeZone;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -57,6 +56,9 @@ public class MainActivity extends AppCompatActivity {
 
     Handler handler = new Handler();
     Runnable runnable;
+
+    SQLiteHelper sqLiteHelper;
+    SQLiteDatabase sqLiteDatabase;
 
 
     UiSeq[] fragmentSeq;
@@ -124,6 +126,13 @@ public class MainActivity extends AppCompatActivity {
         super.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         /* 세로 고정 */
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
+
+        // SQLite DB
+        sqLiteHelper = new SQLiteHelper(this);
+        sqLiteDatabase = sqLiteHelper.getWritableDatabase();
+        sqLiteHelper.deleteAllTables(sqLiteDatabase);   // delete all tables
+        sqLiteHelper.onCreate(sqLiteDatabase);          // create all tables
+        testCrud(); // test data insert
 
         // fragment current
         fragmentCurrent = new FragmentCurrent();
@@ -206,5 +215,37 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         inactivityHandler.removeCallbacks(inactivityRunnable);
+    }
+
+    private void testCrud() {
+        SQLiteHelper helper = SQLiteHelper.getInstance(this);
+
+        // DTO 생성
+        CpSettings settings = new CpSettings();
+        settings.stationId = "ST01";
+        settings.chargerId = "CH01";
+        settings.modelNm = "MD01";
+        settings.vendorNm = "DONGAH";
+        settings.fwVersion = "1.0.0";
+        settings.socLimit = "80";
+        settings.availability = "Operative";
+
+        // 공통 insert() 실행
+        long rowId = helper.insert(settings);
+
+        System.out.println("INSERT RESULT1 = " + rowId);
+
+        settings.stationId = "ST02";
+        settings.chargerId = "CH02";
+        settings.modelNm = "MD02";
+        settings.vendorNm = "DONGAH";
+        settings.fwVersion = "1.0.1";
+        settings.socLimit = "80";
+        settings.availability = "Operative";
+
+        // 공통 insert() 실행
+        long rowId2 = helper.insert(settings);
+
+        System.out.println("INSERT RESULT2 = " + rowId2);
     }
 }
