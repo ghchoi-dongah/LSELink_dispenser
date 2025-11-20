@@ -62,7 +62,7 @@ public class SQLiteHelper extends SQLiteOpenHelper {
     }
 
     // delete all tables
-    public void deleteAllTables(SQLiteDatabase sqLiteDatabase) {
+    public void dropAllTables(SQLiteDatabase sqLiteDatabase) {
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + new CpSettings().getTableName());
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + new CpOcppConfigKeys().getTableName());
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + new CpUnitPrice().getTableName());
@@ -71,4 +71,12 @@ public class SQLiteHelper extends SQLiteOpenHelper {
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + new CpNonTransmit().getTableName());
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + new CpChargingHist().getTableName());
     }
+
+    // delete table
+    public void dropTable(SQLiteDatabase sqLiteDatabase, String tableName) {
+        if (tableName == null || tableName.trim().isEmpty()) return;
+        sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + tableName);
+    }
+
+
 }

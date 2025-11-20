@@ -130,7 +130,7 @@ public class MainActivity extends AppCompatActivity {
         // SQLite DB
         sqLiteHelper = new SQLiteHelper(this);
         sqLiteDatabase = sqLiteHelper.getWritableDatabase();
-        sqLiteHelper.deleteAllTables(sqLiteDatabase);   // delete all tables
+        sqLiteHelper.dropAllTables(sqLiteDatabase);   // delete all tables
         sqLiteHelper.onCreate(sqLiteDatabase);          // create all tables
         testCrud(); // test data insert
 
