@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="1024dp"
+    android:layout_height="76dp"
+    android:background="@color/black"
+    tools:context=".pages.FooterFragment"
+    tools:ignore="Overdraw">
+
+    <ImageButton
+        android:id="@+id/btnLogo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:src="@drawable/logo"
+        android:background="@android:color/transparent"
+        app:layout_constraintTop_toTopOf="@id/textViewCallCenter"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toBottomOf="@id/textViewChargerIdValue"
+        tools:ignore="contentDescription"/>
+
+    <ImageView
+        android:id="@+id/imageViewNetwork"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:background="@drawable/network"
+        android:layout_marginEnd="10dp"
+        android:importantForAccessibility="no"
+        app:layout_constraintTop_toTopOf="@id/textViewTime"
+        app:layout_constraintBottom_toBottomOf="@id/textViewTime"
+        app:layout_constraintEnd_toStartOf="@id/textViewTime" />
+
+    <TextView
+        android:id="@+id/textViewCallCenter"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="고객센터: "
+        android:textSize="20sp"
+        android:textColor="@color/white"
+        android:layout_marginStart="10dp"
+        app:layout_constraintEnd_toStartOf="@id/textViewCallCenterValue"
+        app:layout_constraintTop_toTopOf="@id/textViewCallCenterValue" />
+
+    <TextView
+        android:id="@+id/textViewCallCenterValue"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="031) 330 - 5500"
+        android:textSize="20sp"
+        android:textColor="@color/white"
+        android:layout_marginStart="10dp"
+        app:layout_constraintEnd_toEndOf="@id/textViewChargerIdValue"
+        app:layout_constraintBottom_toTopOf="@id/textViewChargerIdValue" />
+
+    <TextView
+        android:id="@+id/textViewChargerIdValue"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:text="DEVD000101"
+        android:textSize="20sp"
+        android:textColor="@color/white"
+        android:layout_marginEnd="10dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+    <TextView
+        android:id="@+id/textViewChargerId"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text=" | ID: "
+        android:textSize="20sp"
+        android:textColor="@color/white"
+        app:layout_constraintEnd_toStartOf="@id/textViewChargerIdValue"
+        app:layout_constraintBottom_toBottomOf="@id/textViewChargerIdValue" />
+
+
+    <TextView
+        android:id="@+id/textViewVersionValue"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text=" | VER: DEVD 1.0.0"
+        android:textSize="20sp"
+        android:textColor="@color/white"
+        app:layout_constraintEnd_toStartOf="@id/textViewChargerId"
+        app:layout_constraintBottom_toBottomOf="@id/textViewChargerIdValue" />
+
+    <TextView
+        android:id="@+id/textViewTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="2025-10-13 08:26:34"
+        android:textSize="20sp"
+        android:textColor="@color/white"
+        app:layout_constraintEnd_toStartOf="@id/textViewVersionValue"
+        app:layout_constraintBottom_toBottomOf="@id/textViewChargerIdValue" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

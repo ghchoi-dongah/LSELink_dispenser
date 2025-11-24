@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="1024dp"
+    android:layout_height="768dp"
+    android:orientation="horizontal"
+    tools:context=".MainActivity">
+
+    <FrameLayout
+        android:id="@+id/ch0"
+        android:layout_width="512dp"
+        android:layout_height="692dp"
+        android:visibility="visible"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <FrameLayout
+        android:id="@+id/ch1"
+        android:layout_width="512dp"
+        android:layout_height="692dp"
+        android:visibility="visible"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toEndOf="@id/ch0" />
+
+    <View
+        android:id="@+id/viewLine"
+        android:layout_width="4dp"
+        android:layout_height="620dp"
+        android:background="#EDEDED"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/frameFooter"/>
+
+
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/frameFooter"
+        android:layout_width="match_parent"
+        android:layout_height="76dp"
+        android:tag="frameFooter"
+        tools:layout="@layout/fragment_footer"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent" />
+
+
+<!--    <LinearLayout-->
+<!--        android:id="@+id/linearLayoutFooter"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="76dp"-->
+<!--        android:background="@color/black"-->
+<!--        android:orientation="horizontal"-->
+<!--        app:layout_constraintBottom_toBottomOf="parent"/>-->
+
+<!--    <ImageButton-->
+<!--        android:id="@+id/btnLogo"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_marginStart="10dp"-->
+<!--        android:src="@drawable/logo"-->
+<!--        android:background="@android:color/transparent"-->
+<!--        app:layout_constraintTop_toTopOf="@id/textViewCallCenter"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintBottom_toBottomOf="@id/textViewChargerIdValue"-->
+<!--        tools:ignore="contentDescription"/>-->
+
+<!--    <ImageView-->
+<!--        android:id="@+id/imageViewNetwork"-->
+<!--        android:layout_width="20dp"-->
+<!--        android:layout_height="20dp"-->
+<!--        android:background="@drawable/network"-->
+<!--        android:layout_marginEnd="10dp"-->
+<!--        android:importantForAccessibility="no"-->
+<!--        app:layout_constraintTop_toTopOf="@id/textViewTime"-->
+<!--        app:layout_constraintBottom_toBottomOf="@id/textViewTime"-->
+<!--        app:layout_constraintEnd_toStartOf="@id/textViewTime" />-->
+
+<!--    <TextView-->
+<!--        android:id="@+id/textViewCallCenter"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:text="고객센터: "-->
+<!--        android:textSize="20sp"-->
+<!--        android:textColor="@color/white"-->
+<!--        android:layout_marginStart="10dp"-->
+<!--        app:layout_constraintEnd_toStartOf="@id/textViewCallCenterValue"-->
+<!--        app:layout_constraintTop_toTopOf="@id/textViewCallCenterValue" />-->
+
+<!--    <TextView-->
+<!--        android:id="@+id/textViewCallCenterValue"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:text="031) 330 - 5500"-->
+<!--        android:textSize="20sp"-->
+<!--        android:textColor="@color/white"-->
+<!--        android:layout_marginStart="10dp"-->
+<!--        app:layout_constraintEnd_toEndOf="@id/textViewChargerIdValue"-->
+<!--        app:layout_constraintBottom_toTopOf="@id/textViewChargerIdValue" />-->
+
+<!--    <TextView-->
+<!--        android:id="@+id/textViewChargerIdValue"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_marginBottom="10dp"-->
+<!--        android:text="DEVD000101"-->
+<!--        android:textSize="20sp"-->
+<!--        android:textColor="@color/white"-->
+<!--        android:layout_marginEnd="10dp"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        app:layout_constraintBottom_toBottomOf="parent" />-->
+
+<!--    <TextView-->
+<!--        android:id="@+id/textViewChargerId"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:text=" | ID: "-->
+<!--        android:textSize="20sp"-->
+<!--        android:textColor="@color/white"-->
+<!--        app:layout_constraintEnd_toStartOf="@id/textViewChargerIdValue"-->
+<!--        app:layout_constraintBottom_toBottomOf="@id/textViewChargerIdValue" />-->
+
+
+<!--    <TextView-->
+<!--        android:id="@+id/textViewVersionValue"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:text=" | VER: DEVD 1.0.0"-->
+<!--        android:textSize="20sp"-->
+<!--        android:textColor="@color/white"-->
+<!--        app:layout_constraintEnd_toStartOf="@id/textViewChargerId"-->
+<!--        app:layout_constraintBottom_toBottomOf="@id/textViewChargerIdValue" />-->
+
+<!--&lt;!&ndash;    <TextView&ndash;&gt;-->
+<!--&lt;!&ndash;        android:id="@+id/textViewVersion"&ndash;&gt;-->
+<!--&lt;!&ndash;        android:layout_width="wrap_content"&ndash;&gt;-->
+<!--&lt;!&ndash;        android:layout_height="wrap_content"&ndash;&gt;-->
+<!--&lt;!&ndash;        android:text=" | VER: "&ndash;&gt;-->
+<!--&lt;!&ndash;        android:textSize="20sp"&ndash;&gt;-->
+<!--&lt;!&ndash;        android:textColor="@color/white"&ndash;&gt;-->
+<!--&lt;!&ndash;        app:layout_constraintEnd_toStartOf="@id/textViewVersionValue"&ndash;&gt;-->
+<!--&lt;!&ndash;        app:layout_constraintBottom_toBottomOf="@id/textViewChargerIdValue" />&ndash;&gt;-->
+
+<!--    <TextView-->
+<!--        android:id="@+id/textViewTime"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:text="2025-10-13 08:26:34"-->
+<!--        android:textSize="20sp"-->
+<!--        android:textColor="@color/white"-->
+<!--        app:layout_constraintEnd_toStartOf="@id/textViewVersionValue"-->
+<!--        app:layout_constraintBottom_toBottomOf="@id/textViewChargerIdValue" />-->
+
+    <FrameLayout
+        android:id="@+id/frameFull"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="invisible"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

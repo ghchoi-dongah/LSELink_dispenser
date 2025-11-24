@@ -1,0 +1,314 @@
+package com.dongah.dispenser;
+
+import android.annotation.SuppressLint;
+import android.content.ContentValues;
+import android.content.Context;
+import android.content.pm.ActivityInfo;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
+
+import androidx.activity.EdgeToEdge;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+
+import com.dongah.dispenser.basefunction.ChargerConfiguration;
+import com.dongah.dispenser.basefunction.ClassUiProcess;
+import com.dongah.dispenser.basefunction.ConfigurationKeyRead;
+import com.dongah.dispenser.sqlite.SQLiteHelper;
+import com.dongah.dispenser.basefunction.FragmentChange;
+import com.dongah.dispenser.basefunction.FragmentCurrent;
+import com.dongah.dispenser.basefunction.GlobalVariables;
+import com.dongah.dispenser.basefunction.UiSeq;
+import com.dongah.dispenser.sqlite.dto.CpSettings;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
+public class MainActivity extends AppCompatActivity {
+
+    public static final Logger logger = LoggerFactory.getLogger(MainActivity.class);
+
+    @SuppressLint("StaticFieldLeak")
+    public static Context mContext;
+
+    // screen saver
+    private static final long INACTIVITY_TIMEOUT = 1 * 60 * 1000L;  // 2분 (ms 단위)
+    private final Handler inactivityHandler = new Handler(Looper.getMainLooper());
+    private final Runnable inactivityRunnable = new Runnable() {
+        @Override
+        public void run() {
+            int channel = 0;
+            getFragmentChange().onFragmentChange(channel, UiSeq.SCREEN_SAVER, "SCREEN_SAVER", null);
+        }
+    };
+
+
+    Handler handler = new Handler();
+    Runnable runnable;
+
+    SQLiteHelper sqLiteHelper;
+    SQLiteDatabase sqLiteDatabase;
+
+
+    UiSeq[] fragmentSeq;
+    ClassUiProcess[] classUiProcess;
+    ConfigurationKeyRead configurationKeyRead;
+    ChargerConfiguration chargerConfiguration;
+    FragmentChange fragmentChange;
+    FragmentCurrent fragmentCurrent;
+
+
+
+    public UiSeq getFragmentSeq(int ch)  {
+        return fragmentSeq[ch];
+    }
+
+    public void setFragmentSeq(int ch, UiSeq fragmentSeq) {
+        this.fragmentSeq[ch] = fragmentSeq;
+    }
+
+    public ClassUiProcess[] getClassUiProcess() {
+        return classUiProcess;
+    }
+
+    public ClassUiProcess getClassUiProcess(int ch) {
+        return classUiProcess[ch];
+    }
+
+
+    public ConfigurationKeyRead getConfigurationKeyRead() {
+        return configurationKeyRead;
+    }
+
+    public ChargerConfiguration getChargerConfiguration() {
+        return chargerConfiguration;
+    }
+
+    public FragmentChange getFragmentChange() {
+        return fragmentChange;
+    }
+
+    @SuppressLint("SetTextI18n")
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        EdgeToEdge.enable(this);
+
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
+
+        setContentView(R.layout.activity_main);
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return insets;
+        });
+
+        hideNavigationBar();
+
+        // 앱 켜질 때 타이머 시작
+        resetInactivityTimer();
+
+        mContext = this;
+
+        /* 슬립 모드 방지*/
+        super.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        /* 세로 고정 */
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
+
+        // SQLite DB
+        sqLiteHelper = new SQLiteHelper(this);
+        sqLiteDatabase = sqLiteHelper.getWritableDatabase();
+        sqLiteHelper.dropAllTables(sqLiteDatabase);   // delete all tables
+        sqLiteHelper.onCreate(sqLiteDatabase);          // create all tables
+        testCrud(); // test data insert
+
+        // fragment current
+        fragmentCurrent = new FragmentCurrent();
+
+        // ConfigurationKey read
+        configurationKeyRead = new ConfigurationKeyRead();
+        configurationKeyRead.onRead();
+
+        // 1. charger configuration, ConfigurationKey read
+        chargerConfiguration = new ChargerConfiguration();
+        chargerConfiguration.onLoadConfiguration();
+
+        // 2. fragment change management
+        fragmentChange = new FragmentChange();
+        fragmentSeq = new UiSeq[GlobalVariables.maxChannel];
+        for (int i = 0; i < GlobalVariables.maxChannel; i++) {
+            fragmentChange.onFragmentChange(i, UiSeq.INIT, "INIT", "");
+            fragmentChange.onFragmentFooterChange(i, "Footer");
+        }
+
+        // 3. control board
+        // 4. rf card reader : MID = terminal ID
+        // 5. web socket
+
+        // modem data
+
+        // server mode
+        // 6. classUrProcess
+        classUiProcess = new ClassUiProcess[GlobalVariables.maxChannel];
+        for (int i = 0; i < GlobalVariables.maxChannel; i++) {
+            classUiProcess[i] = new ClassUiProcess(i);
+            classUiProcess[i].setUiSeq(UiSeq.INIT);
+        }
+
+        // 7. PLC modem
+        // 8. ChargerOperate read
+    }
+
+    private void hideNavigationBar() {
+        View decorView = getWindow().getDecorView();
+        decorView.setSystemUiVisibility(
+                View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                        | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                        | View.SYSTEM_UI_FLAG_FULLSCREEN
+                        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                        | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+        );
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        runnable = new Runnable() {
+            @Override
+            public void run() {
+                // 1초마다 실행
+                handler.postDelayed(this, 1000);
+
+                // TODO: network connection check
+            }
+        };
+        runnable.run();
+    }
+
+    // 타이머 리셋 메서드 (외부에서 호출 가능)
+    public void resetInactivityTimer() {
+        inactivityHandler.removeCallbacks(inactivityRunnable);
+        inactivityHandler.postDelayed(inactivityRunnable, INACTIVITY_TIMEOUT);
+    }
+
+    @Override
+    public void onUserInteraction() {
+        super.onUserInteraction();
+        resetInactivityTimer();  // 입력 있을 때마다 타이머 리셋
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        inactivityHandler.removeCallbacks(inactivityRunnable);
+    }
+
+    private void testCrud() {
+        SQLiteHelper helper = SQLiteHelper.getInstance(this);
+
+        // DTO 생성
+        CpSettings settings = new CpSettings();
+        settings.stationId = "ST01";
+        settings.chargerId = "CH01";
+        settings.modelNm = "MD01";
+        settings.vendorNm = "DONGAH";
+        settings.fwVersion = "1.0.0";
+        settings.socLimit = "80";
+        settings.availability = "Operative";
+
+        // insert
+        long rowId = helper.insert(settings);
+
+        System.out.println("INSERT RESULT1 = " + rowId);
+
+        settings.stationId = "ST02";
+        settings.chargerId = "CH02";
+        settings.modelNm = "MD02";
+        settings.vendorNm = "DONGAH";
+        settings.fwVersion = "1.0.1";
+        settings.socLimit = "80";
+        settings.availability = "Operative";
+
+        // insert
+        long rowId2 = helper.insert(settings);
+
+        System.out.println("INSERT RESULT2 = " + rowId2);
+
+        // select all
+        Cursor cursor = helper.selectAll(settings.getTableName());
+        while (cursor.moveToNext()) {
+            System.out.println("SELECT RESULT = " +
+                    "ID: " + cursor.getInt(cursor.getColumnIndexOrThrow("ID")) +
+                    ", STATION_ID: " + cursor.getString(cursor.getColumnIndexOrThrow("STATION_ID")) +
+                    ", CHARGER_ID: " + cursor.getString(cursor.getColumnIndexOrThrow("CHARGER_ID")) +
+                    ", MODEL_NM: " + cursor.getString(cursor.getColumnIndexOrThrow("MODEL_NM")) +
+                    ", VENDOR_NM: " + cursor.getString(cursor.getColumnIndexOrThrow("VENDOR_NM")) +
+                    ", FW_VERSION: " + cursor.getString(cursor.getColumnIndexOrThrow("FW_VERSION")) +
+                    ", SOC_LIMIT: " + cursor.getString(cursor.getColumnIndexOrThrow("SOC_LIMIT")) +
+                    ", AVAILABILITY: " + cursor.getString(cursor.getColumnIndexOrThrow("AVAILABILITY"))
+            );
+        }
+        cursor.close();
+
+        // update
+        ContentValues updateValues = new ContentValues();
+        updateValues.put("MODEL_NM", "MD99");
+        int updated = helper.update(settings.getTableName(), updateValues, "ID=?", new String[]{"2"});
+        System.out.println("UPDATE RESULT = " + updated);
+
+        // select all
+        Cursor cursor2 = helper.selectAll(settings.getTableName());
+        while (cursor2.moveToNext()) {
+            System.out.println("SELECT2 RESULT = " +
+                    "ID: " + cursor2.getInt(cursor2.getColumnIndexOrThrow("ID")) +
+                    ", STATION_ID: " + cursor2.getString(cursor2.getColumnIndexOrThrow("STATION_ID")) +
+                    ", CHARGER_ID: " + cursor2.getString(cursor2.getColumnIndexOrThrow("CHARGER_ID")) +
+                    ", MODEL_NM: " + cursor2.getString(cursor2.getColumnIndexOrThrow("MODEL_NM")) +
+                    ", VENDOR_NM: " + cursor2.getString(cursor2.getColumnIndexOrThrow("VENDOR_NM")) +
+                    ", FW_VERSION: " + cursor2.getString(cursor2.getColumnIndexOrThrow("FW_VERSION")) +
+                    ", SOC_LIMIT: " + cursor2.getString(cursor2.getColumnIndexOrThrow("SOC_LIMIT")) +
+                    ", AVAILABILITY: " + cursor2.getString(cursor2.getColumnIndexOrThrow("AVAILABILITY"))
+            );
+        }
+        cursor2.close();
+
+        // delete
+        int deleted = helper.delete(settings.getTableName(), "ID=?", new String[]{"2"});
+        System.out.println("DELETE RESULT = " + deleted);
+
+        // select with where
+        Cursor cursor3 = helper.select(settings.getTableName(), "ID=?", new String[]{"1"});
+        while (cursor3.moveToNext()) {
+            System.out.println("SELECT3 RESULT = " +
+                    "ID: " + cursor3.getInt(cursor3.getColumnIndexOrThrow("ID")) +
+                    ", STATION_ID: " + cursor3.getString(cursor3.getColumnIndexOrThrow("STATION_ID")) +
+                    ", CHARGER_ID: " + cursor3.getString(cursor3.getColumnIndexOrThrow("CHARGER_ID")) +
+                    ", MODEL_NM: " + cursor3.getString(cursor3.getColumnIndexOrThrow("MODEL_NM")) +
+                    ", VENDOR_NM: " + cursor3.getString(cursor3.getColumnIndexOrThrow("VENDOR_NM")) +
+                    ", FW_VERSION: " + cursor3.getString(cursor3.getColumnIndexOrThrow("FW_VERSION")) +
+                    ", SOC_LIMIT: " + cursor3.getString(cursor3.getColumnIndexOrThrow("SOC_LIMIT")) +
+                    ", AVAILABILITY: " + cursor3.getString(cursor3.getColumnIndexOrThrow("AVAILABILITY"))
+            );
+        }
+        cursor3.close();
+
+        // delete all(테이블 삭제x)
+        int deletedAll = helper.deleteAll(settings.getTableName());
+        System.out.println("DELETE ALL RESULT = " + deletedAll);
+
+        // delete table
+        helper.dropTable(helper.getWritableDatabase(), settings.getTableName());
+    }
+}
