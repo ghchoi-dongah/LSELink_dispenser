@@ -100,7 +100,7 @@ public class AdminPasswordFragment extends Fragment {
             int day = Integer.parseInt(simpleDay.format(System.currentTimeMillis())) + 8;
             @SuppressLint("DefaultLocale") String passWord = String.format("%02d", month) + String.format("%02d", day);
             if (Objects.equals(passWord, editPassword.getText().toString()) | Objects.equals("5500", editPassword.getText().toString())) {
-                ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.CONFIG_SETTING, "CONFIG_SETTING", null);
+                ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.ENVIRONMENT, "ENVIRONMENT", null);
             } else {
                 editPassword.setText("");
                 Toast.makeText(getActivity(), "비밀번호 불일치", Toast.LENGTH_SHORT).show();

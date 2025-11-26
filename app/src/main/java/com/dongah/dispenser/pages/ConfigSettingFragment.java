@@ -75,15 +75,12 @@ public class ConfigSettingFragment extends Fragment {
         btnSave = view.findViewById(R.id.btnSave);
 
         btnExit.setOnClickListener(v -> {
-            ActivityCompat.finishAffinity((MainActivity) MainActivity.mContext);
-            System.exit(0);
+            ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.ENVIRONMENT, "ENVIRONMENT", null);
         });
 
         btnSave.setOnClickListener(v -> {
             if (!isAdded()) return;
             System.out.println("ConfigSettingFragment btnSave mChannel: " + mChannel);
-            ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.INIT);
-            ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.INIT, "INIT", null);
         });
         return view;
     }

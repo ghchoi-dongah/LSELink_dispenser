@@ -17,6 +17,8 @@ import com.dongah.dispenser.pages.ChargingSequentialFragment;
 import com.dongah.dispenser.pages.ChargingWaitFragment;
 import com.dongah.dispenser.pages.ConfigSettingFragment;
 import com.dongah.dispenser.pages.ConnectionFailedFragment;
+import com.dongah.dispenser.pages.ControlDebugFragment;
+import com.dongah.dispenser.pages.EnvironmentFragment;
 import com.dongah.dispenser.pages.FaultFragment;
 import com.dongah.dispenser.pages.FooterFragment;
 import com.dongah.dispenser.pages.InitFragment;
@@ -193,6 +195,17 @@ public class FragmentChange {
                     logger.error("onFragmentChange error : ADMIN_PASS {}", e.getMessage());
                 }
                 break;
+            case ENVIRONMENT:
+                try {
+                    onFrameLayoutChange(true);
+                    EnvironmentFragment environmentFragment = new EnvironmentFragment();
+                    environmentFragment.setArguments(bundle);
+                    transaction.replace(R.id.frameFull, environmentFragment, "ENVIRONMENT");
+                    transaction.commit();
+                } catch (Exception e) {
+                    logger.error("onFragmentChange error : ENVIRONMENT {}", e.getMessage());
+                }
+                break;
             case CONFIG_SETTING:
                 try {
                     onFrameLayoutChange(true);
@@ -202,6 +215,17 @@ public class FragmentChange {
                     transaction.commit();
                 } catch (Exception e) {
                     logger.error("onFragmentChange error : CONFIG_SETTING {}", e.getMessage());
+                }
+                break;
+            case CONTROL_BOARD_DEBUGGING:
+                try {
+                    onFrameLayoutChange(true);
+                    ControlDebugFragment controlDebugFragment = new ControlDebugFragment();
+                    controlDebugFragment.setArguments(bundle);
+                    transaction.replace(R.id.frameFull, controlDebugFragment, "CONTROL");
+                    transaction.commit();
+                } catch (Exception e) {
+                    logger.error("onFragmentChange error : CONTROL_BOARD_DEBUGGING {}", e.getMessage());
                 }
                 break;
             case SCREEN_SAVER:
