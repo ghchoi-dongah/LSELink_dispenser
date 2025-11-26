@@ -74,4 +74,11 @@
     <string name="exit">EXIT</string>
     <string name="save">저장</string>
     <string name="rebooting">리부팅</string>
+
+    <string name="channelSelect">[채널 선택]</string>
+    <string name="channel1">1번 채널</string>
+    <string name="channel2">2번 채널</string>
+    <string name="rx">RX</string>
+    <string name="itemTitle">item title</string>
+    <string name="trueText">true</string>
 </resources>
