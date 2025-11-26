@@ -75,6 +75,14 @@
     <string name="save">저장</string>
     <string name="rebooting">리부팅</string>
 
+    <!-- environment   -->
+    <string name="configButton">환경설정</string>
+    <string name="webSocketButton">Web Socket</string>
+    <string name="controlButton">Control Board</string>
+    <string name="userInfoButton">회원등록</string>
+    <string name="uiButton">화면전환</string>
+
+    <!-- control board -->
     <string name="channelSelect">[채널 선택]</string>
     <string name="channel1">1번 채널</string>
     <string name="channel2">2번 채널</string>

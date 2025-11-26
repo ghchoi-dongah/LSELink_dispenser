@@ -58,7 +58,7 @@
         android:background="@drawable/selector_edit_text"
         app:layout_constraintTop_toTopOf="@id/rgSelectChannel"
         app:layout_constraintEnd_toEndOf="parent" />
-    
+
     <ImageView
         android:id="@+id/imgRx"
         android:layout_width="512dp"
