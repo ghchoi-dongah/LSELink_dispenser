@@ -89,4 +89,7 @@
     <string name="rx">RX</string>
     <string name="itemTitle">item title</string>
     <string name="trueText">true</string>
+
+    <!-- web socket -->
+    <string name="logDel">로그삭제</string>
 </resources>

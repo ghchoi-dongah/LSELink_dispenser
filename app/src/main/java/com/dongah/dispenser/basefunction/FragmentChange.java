@@ -27,6 +27,7 @@ import com.dongah.dispenser.pages.MemberCheckFailedFragment;
 import com.dongah.dispenser.pages.MemberCheckWaitFragment;
 import com.dongah.dispenser.pages.OperationStopFragment;
 import com.dongah.dispenser.pages.ScreenSaverFragment;
+import com.dongah.dispenser.pages.WebSocketDebugFragment;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -222,10 +223,21 @@ public class FragmentChange {
                     onFrameLayoutChange(true);
                     ControlDebugFragment controlDebugFragment = new ControlDebugFragment();
                     controlDebugFragment.setArguments(bundle);
-                    transaction.replace(R.id.frameFull, controlDebugFragment, "CONTROL");
+                    transaction.replace(R.id.frameFull, controlDebugFragment, "CONTROL_BOARD_DEBUGGING");
                     transaction.commit();
                 } catch (Exception e) {
                     logger.error("onFragmentChange error : CONTROL_BOARD_DEBUGGING {}", e.getMessage());
+                }
+                break;
+            case WEB_SOCKET:
+                try {
+                    onFrameLayoutChange(true);
+                    WebSocketDebugFragment webSocketDebugFragment = new WebSocketDebugFragment();
+                    webSocketDebugFragment.setArguments(bundle);
+                    transaction.replace(R.id.frameFull, webSocketDebugFragment, "WEB_SOCKET");
+                    transaction.commit();
+                } catch (Exception e) {
+                    logger.error("onFragmentChange error : WEB_SOCKET {}", e.getMessage());
                 }
                 break;
             case SCREEN_SAVER:

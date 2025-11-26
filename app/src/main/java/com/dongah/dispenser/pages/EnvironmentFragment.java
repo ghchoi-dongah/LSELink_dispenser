@@ -91,7 +91,7 @@ public class EnvironmentFragment extends Fragment implements View.OnClickListene
         if (Objects.equals(getId, R.id.btnConfig)) {
             ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.CONFIG_SETTING, "CONFIG_SETTING", null);
         } else if (Objects.equals(getId, R.id.btnWebSocket)) {
-
+            ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel,UiSeq.WEB_SOCKET, "WEB_SOCKET", null);
         } else if (Objects.equals(getId, R.id.btnControl)) {
             ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel,UiSeq.CONTROL_BOARD_DEBUGGING, "CONTROL_BOARD_DEBUGGING", null);
         } else if (Objects.equals(getId, R.id.btnUi)) {
