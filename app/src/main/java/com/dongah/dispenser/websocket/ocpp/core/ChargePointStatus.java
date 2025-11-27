@@ -9,5 +9,7 @@ public enum ChargePointStatus {
     Finishing,
     Reserved,
     Unavailable,
-    Faulted;
+    Faulted,
+    Pause,
+    Maintenance;
 }
