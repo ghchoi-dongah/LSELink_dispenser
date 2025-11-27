@@ -12,9 +12,9 @@ public class CpChgElecmode implements DbEntity {
     public static final String CREATE_SQL =
             "CREATE TABLE IF NOT EXISTS " + tableName + " (" +
                     ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
+                    CONNECTOR_ID + " INTEGER NOT NULL," +
                     TIME + " TEXT NOT NULL," +
                     RECHG_ELEC + " TEXT NOT NULL," +
-                    CONNECTOR_ID + " INTEGER NOT NULL," +
                     REG_DT  + " TEXT NOT NULL" +
                     ");";
 

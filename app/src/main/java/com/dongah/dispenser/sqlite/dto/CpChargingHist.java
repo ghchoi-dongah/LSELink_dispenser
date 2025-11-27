@@ -7,9 +7,9 @@ public class CpChargingHist implements DbEntity {
     private static final String ID = "ID";
     private static final String STATION_ID = "STATION_ID";
     private static final String CHARGER_ID = "CHARGER_ID";
+    private static final String CONNECTOR_ID = "CONNECTOR_ID";
     private static final String CHG_START_TIME = "CHG_START_TIME";
     private static final String CHG_END_TIME = "CHG_END_TIME";
-    private static final String CONNECTOR_ID = "CONNECTOR_ID";
     private static final String IDTAG = "IDTAG";
     private static final String SOC = "SOC";
     private static final String APPLY_UNITPRICE_ID = "APPLY_UNITPRICE_ID";
@@ -23,27 +23,27 @@ public class CpChargingHist implements DbEntity {
                     ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
                     STATION_ID + " TEXT NOT NULL," +
                     CHARGER_ID + " TEXT NOT NULL," +
-                    CHG_START_TIME + " TEXT NOT NULL," +
-                    CHG_END_TIME + " TEXT NOT NULL," +
-                    CONNECTOR_ID + " INTEGER NOT NULL," +
+                    CONNECTOR_ID + " INTEGER," +
+                    CHG_START_TIME + " TEXT," +
+                    CHG_END_TIME + " TEXT," +
                     IDTAG + " TEXT NOT NULL," +
-                    SOC + " TEXT NOT NULL," +
+                    SOC + " TEXT," +
                     APPLY_UNITPRICE_ID + " INTEGER NOT NULL," +
-                    START_METER + " INTEGER NOT NULL," +
-                    END_METER + " INTEGER NOT NULL," +
+                    START_METER + " INTEGER," +
+                    END_METER + " INTEGER," +
                     CHG_AMOUNT + " INTEGER NOT NULL," +
-                    TRANSACTION_ID + " INTEGER NOT NULL," +
+                    TRANSACTION_ID + " INTEGER," +
                     REG_DT  + " TEXT NOT NULL" +
                     ");";
 
     public String stationId;
     public String chargerId;
-    public String chgstartTime;
-    public String chgEndTime;
     public Integer connectorId;
-    public String idtag;
+    public String chgStartTime;
+    public String chgEndTime;
+    public String idTag;
     public String soc;
-    public Integer applyUnitpriceId;
+    public Integer applyUnitPriceId;
     public Integer startMeter;
     public Integer endMeter;
     public Integer chgAmount;
@@ -62,12 +62,12 @@ public class CpChargingHist implements DbEntity {
         ContentValues values = new ContentValues();
         values.put(STATION_ID, stationId);
         values.put(CHARGER_ID, chargerId);
-        values.put(CHG_START_TIME, chgstartTime);
-        values.put(CHG_END_TIME, chgEndTime);
         values.put(CONNECTOR_ID, connectorId);
-        values.put(IDTAG, idtag);
+        values.put(CHG_START_TIME, chgStartTime);
+        values.put(CHG_END_TIME, chgEndTime);
+        values.put(IDTAG, idTag);
         values.put(SOC, soc);
-        values.put(APPLY_UNITPRICE_ID, applyUnitpriceId);
+        values.put(APPLY_UNITPRICE_ID, applyUnitPriceId);
         values.put(START_METER, startMeter);
         values.put(END_METER, endMeter);
         values.put(CHG_AMOUNT, chgAmount);

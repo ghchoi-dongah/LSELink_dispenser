@@ -13,10 +13,10 @@ public class CpUnitPrice implements DbEntity {
     public static final String CREATE_SQL =
             "CREATE TABLE IF NOT EXISTS " + tableName + " (" +
                     ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
-                    UNIT_PRICE + " REAL NOT NULL," +
-                    USER_TYPE_CD + " TEXT NOT NULL," +
-                    CRTR_UNIT_PRICE + " REAL NOT NULL," +
+                    USER_TYPE_CD + " TEXT NOT NULL UNIQUE," +
                     RE_CHG_TYPE + " TEXT NOT NULL," +
+                    UNIT_PRICE + " REAL NOT NULL," +
+                    CRTR_UNIT_PRICE + " REAL NOT NULL," +
                     REG_DT + " TEXT NOT NULL" +
                     ");";
 

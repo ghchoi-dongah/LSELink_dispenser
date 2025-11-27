@@ -20,7 +20,7 @@ public class CpSettings implements DbEntity {
                     MODEL_NM + " TEXT NOT NULL," +
                     VENDOR_NM + " TEXT NOT NULL," +
                     FW_VERSION + " TEXT NOT NULL," +
-                    SOC_LIMIT + " TEXT NOT NULL," +
+                    SOC_LIMIT + " TEXT," +
                     AVAILABILITY + " TEXT NOT NULL" +
                     ");";
 

@@ -5,25 +5,22 @@ import android.content.ContentValues;
 public class CpNonTransmit implements DbEntity {
     private static final String tableName = "CP_NON_TRANSMIT";
     private static final String ID = "ID";
-    private static final String UUID = "UUID";
-    private static final String ACTIONS = "ACTIONS";
-    private static final String PAYLOAD = "PAYLOAD";
+    private static final String MESSAGE = "MESSAGE";
     private static final String REG_DT = "REG_DT";
+    private static final String SEND_DT = "SEND_DT";
     private static final String RETRANSMITT_YN = "RETRANSMITT_YN";
     public static final String CREATE_SQL =
             "CREATE TABLE IF NOT EXISTS " + tableName + " (" +
                     ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
-                    UUID + " TEXT NOT NULL," +
-                    ACTIONS + " TEXT NOT NULL," +
-                    PAYLOAD + " TEXT NOT NULL," +
-                    REG_DT + " TEXT NOT NULL," +
-                    RETRANSMITT_YN  + " TEXT NOT NULL" +
+                    MESSAGE + " MESSAGE NOT NULL," +
+                    REG_DT + " TEXT," +
+                    SEND_DT + " TEXT," +
+                    RETRANSMITT_YN  + " TEXT NOT NULL DEFAULT 'N'" +
                     ");";
 
-    public String uuid;
-    public String actions;
-    public String payload;
+    public String message;
     public String regDt;
+    public String sendDt;
     public String retransmitYn;
 
     public CpNonTransmit() {}
@@ -36,10 +33,9 @@ public class CpNonTransmit implements DbEntity {
     @Override
     public ContentValues toContentValues() {
         ContentValues values = new ContentValues();
-        values.put(UUID, uuid);
-        values.put(ACTIONS, actions);
-        values.put(PAYLOAD, payload);
+        values.put(message, MESSAGE);
         values.put(REG_DT, regDt);
+        values.put(sendDt, SEND_DT);
         values.put(RETRANSMITT_YN, retransmitYn);
         return values;
     }

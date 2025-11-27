@@ -12,9 +12,9 @@ public class CpChangeMode implements DbEntity {
     public static final String CREATE_SQL =
             "CREATE TABLE IF NOT EXISTS " + tableName + " (" +
                     ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
-                    CHARGER_MODE + " TEXT NOT NULL," +
-                    TIME + " TEXT NOT NULL," +
                     CONNECTOR_ID + " INTEGER NOT NULL," +
+                    CHARGER_MODE + " TEXT," +
+                    TIME + " TEXT NOT NULL," +
                     REG_DT  + " TEXT NOT NULL" +
                     ");";
 
