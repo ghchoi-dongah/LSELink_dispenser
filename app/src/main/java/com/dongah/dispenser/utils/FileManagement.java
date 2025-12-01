@@ -26,7 +26,6 @@ import java.util.List;
 import java.util.Scanner;
 
 public class FileManagement {
-
     private static final Logger logger = LoggerFactory.getLogger(FileManagement.class);
 
     public boolean stringToFileSave(String filePath, String fileName, String data, boolean append) {
@@ -165,7 +164,6 @@ public class FileManagement {
         inputStream.close();
         outputStream.close();
     }
-
 
     public int countFileRows(File file) throws IOException {
         int rowCount = 0;

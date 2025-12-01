@@ -9,28 +9,36 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.PowerManager;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.dongah.dispenser.TECH3800.TLS3800;
 import com.dongah.dispenser.basefunction.ChargerConfiguration;
+import com.dongah.dispenser.basefunction.ChargingCurrentData;
 import com.dongah.dispenser.basefunction.ClassUiProcess;
 import com.dongah.dispenser.basefunction.ConfigurationKeyRead;
+import com.dongah.dispenser.controlboard.ControlBoard;
 import com.dongah.dispenser.sqlite.SQLiteHelper;
 import com.dongah.dispenser.basefunction.FragmentChange;
 import com.dongah.dispenser.basefunction.FragmentCurrent;
 import com.dongah.dispenser.basefunction.GlobalVariables;
 import com.dongah.dispenser.basefunction.UiSeq;
 import com.dongah.dispenser.sqlite.dto.CpSettings;
+import com.dongah.dispenser.websocket.socket.SocketReceiveMessage;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Objects;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -61,10 +69,15 @@ public class MainActivity extends AppCompatActivity {
 
     UiSeq[] fragmentSeq;
     ClassUiProcess[] classUiProcess;
+    ChargingCurrentData[] chargingCurrentData;
     ConfigurationKeyRead configurationKeyRead;
     ChargerConfiguration chargerConfiguration;
+    SocketReceiveMessage socketReceiveMessage;
     FragmentChange fragmentChange;
     FragmentCurrent fragmentCurrent;
+
+    ControlBoard controlBoard;
+    TLS3800 tls3800;
 
 
 
@@ -84,6 +97,9 @@ public class MainActivity extends AppCompatActivity {
         return classUiProcess[ch];
     }
 
+    public ChargingCurrentData getChargingCurrentData(int ch) {
+        return chargingCurrentData[ch];
+    }
 
     public ConfigurationKeyRead getConfigurationKeyRead() {
         return configurationKeyRead;
@@ -91,6 +107,18 @@ public class MainActivity extends AppCompatActivity {
 
     public ChargerConfiguration getChargerConfiguration() {
         return chargerConfiguration;
+    }
+
+    public SocketReceiveMessage getSocketReceiveMessage() {
+        return socketReceiveMessage;
+    }
+
+    public ControlBoard getControlBoard() {
+        return controlBoard;
+    }
+
+    public TLS3800 getTls3800() {
+        return tls3800;
     }
 
     public FragmentChange getFragmentChange() {
@@ -158,7 +186,13 @@ public class MainActivity extends AppCompatActivity {
         // modem data
 
         // server mode
-        // 6. classUrProcess
+        // 6. classUiProcess
+        chargingCurrentData = new ChargingCurrentData[GlobalVariables.maxChannel];
+        for (int i = 0; i < GlobalVariables.maxChannel; i++) {
+            chargingCurrentData[i] = new ChargingCurrentData();
+            chargingCurrentData[i].onCurrentDataClear();
+        }
+
         classUiProcess = new ClassUiProcess[GlobalVariables.maxChannel];
         for (int i = 0; i < GlobalVariables.maxChannel; i++) {
             classUiProcess[i] = new ClassUiProcess(i);
@@ -209,6 +243,21 @@ public class MainActivity extends AppCompatActivity {
         resetInactivityTimer();  // 입력 있을 때마다 타이머 리셋
     }
 
+    @SuppressLint("ConstantConditions")
+    public void onRebooting(String type) {
+        try {
+            ((MainActivity) MainActivity.mContext).getSocketReceiveMessage().getSocket().disconnect();
+            if (Objects.equals(type, "Soft")) {
+                ActivityCompat.finishAffinity(((MainActivity) MainActivity.mContext));
+                System.exit(0);
+            } else {
+                PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
+                powerManager.reboot("reboot");
+            }
+        } catch (Exception e) {
+            logger.error("onRebooting : {}", e.getMessage());
+        }
+    }
     @Override
     protected void onDestroy() {
         super.onDestroy();
