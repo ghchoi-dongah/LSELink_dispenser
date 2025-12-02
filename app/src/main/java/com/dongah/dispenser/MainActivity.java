@@ -10,9 +10,11 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.PowerManager;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -170,6 +172,7 @@ public class MainActivity extends AppCompatActivity {
         // 1. charger configuration, ConfigurationKey read
         chargerConfiguration = new ChargerConfiguration();
         chargerConfiguration.onLoadConfiguration();
+        System.out.printf("chargerConfiguration.chargerId >> %s\n", chargerConfiguration.getChargerId());
 
         // 2. fragment change management
         fragmentChange = new FragmentChange();
@@ -187,11 +190,11 @@ public class MainActivity extends AppCompatActivity {
 
         // server mode
         // 6. classUiProcess
-        chargingCurrentData = new ChargingCurrentData[GlobalVariables.maxChannel];
-        for (int i = 0; i < GlobalVariables.maxChannel; i++) {
-            chargingCurrentData[i] = new ChargingCurrentData();
-            chargingCurrentData[i].onCurrentDataClear();
-        }
+//        chargingCurrentData = new ChargingCurrentData[GlobalVariables.maxChannel];
+//        for (int i = 0; i < GlobalVariables.maxChannel; i++) {
+//            chargingCurrentData[i] = new ChargingCurrentData();
+//            chargingCurrentData[i].onCurrentDataClear();
+//        }
 
         classUiProcess = new ClassUiProcess[GlobalVariables.maxChannel];
         for (int i = 0; i < GlobalVariables.maxChannel; i++) {
@@ -359,5 +362,31 @@ public class MainActivity extends AppCompatActivity {
 
         // delete table
         helper.dropTable(helper.getWritableDatabase(), settings.getTableName());
+    }
+
+    // 키보드 내리기
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+        View view = getCurrentFocus();
+
+        if (view != null) {
+            int[] scrcoords = new int[2];
+            view.getLocationOnScreen(scrcoords);
+            float x = ev.getRawX() + view.getLeft() - scrcoords[0];
+            float y = ev.getRawY() + view.getTop() - scrcoords[1];
+
+            if (ev.getAction() == MotionEvent.ACTION_UP &&
+                    (x < view.getLeft() || x >= view.getRight() ||
+                            y < view.getTop() || y > view.getBottom())) {
+
+                // 키보드 내리기
+                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+
+                // EditText 포커스 제거
+                view.clearFocus();
+            }
+        }
+        return super.dispatchTouchEvent(ev);
     }
 }

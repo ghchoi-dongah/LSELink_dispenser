@@ -141,7 +141,7 @@ public class TLS3800 extends TLS3800Reader implements Runnable {
                 case CMD_TX_RESET:
                     PacketHeader packetHeader = new PacketHeader();
                     packetHeader.setSTX((byte) 0x02);
-                    packetHeader.setTerminalID(convertDataType.padRightChar(chargerConfiguration.getMID(), 16, (char) 0x00));
+//                    packetHeader.setTerminalID(convertDataType.padRightChar(chargerConfiguration.getMID(), 16, (char) 0x00));
                     packetHeader.setDateTime((sdf.format(new Date())).toCharArray());
                     packetHeader.setJobCode((char) cmd);
                     packetHeader.setDataLength((short) 0);
@@ -151,7 +151,7 @@ public class TLS3800 extends TLS3800Reader implements Runnable {
 //                    chargingCurrentData = ((MainActivity) MainActivity.mContext).getClassUiProcess(getCh()).getChargingCurrentData();
                     chargingCurrentData = ((MainActivity) MainActivity.mContext).getChargingCurrentData(getCh());
                     PacketPay packetPay = new PacketPay();
-                    packetPay.setTerminalID(convertDataType.padRightChar(chargerConfiguration.getMID(), 16, (char) 0x00));
+//                    packetPay.setTerminalID(convertDataType.padRightChar(chargerConfiguration.getMID(), 16, (char) 0x00));
                     packetPay.setDateTime((sdf.format(new Date())).toCharArray());
                     packetPay.setJobCode((char) cmd);
                     packetPay.setDataLength((short) 30);
@@ -168,7 +168,7 @@ public class TLS3800 extends TLS3800Reader implements Runnable {
                     chargingCurrentData = ((MainActivity) MainActivity.mContext).getChargingCurrentData(getCh());
                     PacketPayCancel packetPayCancel = new PacketPayCancel(cancelType);
                     packetPayCancel.setSTX(STX);
-                    packetPayCancel.setTerminalID(convertDataType.padRightChar(chargerConfiguration.getMID(), 16, (char) 0x00));
+//                    packetPayCancel.setTerminalID(convertDataType.padRightChar(chargerConfiguration.getMID(), 16, (char) 0x00));
                     packetPayCancel.setDateTime((sdf.format(new Date())).toCharArray());
                     packetPayCancel.setJobCode((char) cmd);
                     switch (getCancelType()) {
@@ -203,7 +203,7 @@ public class TLS3800 extends TLS3800Reader implements Runnable {
                     chargingCurrentData = ((MainActivity) MainActivity.mContext).getChargingCurrentData(getCh());
                     PacketPayG packetPayG = new PacketPayG();
                     packetPayG.setSTX((byte) 0x02);
-                    packetPayG.setTerminalID(convertDataType.padRightChar(chargerConfiguration.getMID(), 16, (char) 0x00));
+//                    packetPayG.setTerminalID(convertDataType.padRightChar(chargerConfiguration.getMID(), 16, (char) 0x00));
                     packetPayG.setDateTime((sdf.format(new Date())).toCharArray());
                     packetPayG.setJobCode((char) cmd);
                     packetPayG.setDataLength((short) 339);

@@ -19,18 +19,15 @@ public class ChargerConfiguration {
 
     private static final Logger logger = LoggerFactory.getLogger(ChargerConfiguration.class);
 
-    public static final String CONFIG_FILE_NAME = "config";
+    public static final String CONFIG_FILE_NAME = "config2";
     FileManagement fileManagement;
 
     public String rootPath = "";
 
     public String MID = "KIOSK1114915545";      // 결제MID
-
+    
     /** MAX Channel Count */
     public int maxChannel = 2;
-
-    /** 충전기ID, 충전기NO */
-    public String chargerId = "";
 
     /**
      * server connection string
@@ -47,8 +44,8 @@ public class ChargerConfiguration {
      * 1: member
      * 2: mac + member
      * */
-    public String selectAuth = "2";
-    public int selectAuthId;
+    public String authMode = "2";
+    public int authModeId;
 
     /** 운영모드
      * 0: test
@@ -58,26 +55,25 @@ public class ChargerConfiguration {
     public int opModeId;
 
     /** device serial port */
-    public String controlCom = "/dev/tty20";
-    public String rfCom = "/dev/ttyS5";
-    public String creditCom = "/dev/ttyS2";
-
-    /** test price */
-    public String testPrice = "313.0";
+    public String controlCom = "/dev/ttyS0";
+    public String rfCom = "/dev/ttyS2";
+    public String creditCom = "/dev/ttyS3";
 
     /** charging point configuration setting */
-    public int chargerPointType = 0;                    // 충전기 타입
-    public String chargePointVendor = "DONGAH";         // 제조사 코드
+    public int chargerPointType = 0;                    // 커플러 타입
     public String chargerPointModel = "DEVD240";        // 충전기 모델ID
-    public String chargePointModelName = "";            // 충전기모델명
+    public int chargerPointModelCode = 0;
     public String chargeBoxSerialNumber = "";           // 충전소ID
+    public String chargerId = "";                       // 충전기ID
     public String chargePointSerialNumber = "";         // 충전기 시리얼 번호
+    public String chargePointVendor = "DONGAH";         // 충전기 vendor(제조사 코드)
     public String firmwareVersion = "";                 // 펌웨어 버전
     public String iccid = "";                           // 모뎀 SIM 카드의 ICCID
     public String imsi = "";                            // 모뎀 SIM 카드의 IMSI
     public String meterSerialNumber = "";               // 충전기의 주전력량계의 시리얼 번호
     public String meterType = "";                       // 충전기의 주전력량계의 타입 포함
-
+    public int connectorPriority = 0;                   // 1구 제어 우선순위
+    public String testPrice = "313.0";                  // 테스트 단가
 
     public boolean StopConfirm;
     public boolean signed = true ;
@@ -101,10 +97,34 @@ public class ChargerConfiguration {
             configurationString = fileManagement.getStringFromFile(GlobalVariables.ROOT_PATH  + File.separator + CONFIG_FILE_NAME);
             if (!TextUtils.isEmpty(configurationString)) {
                 JSONObject obj = new JSONObject(configurationString);
-
-                // TODO
+                setChargerId(obj.getString("CHARGER_ID"));
+                setServerConnectingString(obj.getString("SERVER_CONNECTING_STRING"));
+                setServerPort(obj.getInt("SERVER_PORT"));
+                setAuthMode(obj.getString("AUTH_MODE"));
+                setAuthModeId(obj.getInt("AUTH_MODE_ID"));
+                setOpMode(obj.getString("OP_MODE"));
+                setOpModeId(obj.getInt("OP_MODE_ID"));
+                setControlCom(obj.getString("CONTROL_COM"));
+                setRfCom(obj.getString("RF_COM"));
+                setCreditCom(obj.getString("CREDIT_COM"));
+                setTestPrice(obj.getString("TEST_PRICE"));
+                setChargerPointType(obj.getInt("CHARGER_POINT_TYPE"));
+                setChargePointVendor(obj.getString("CHARGE_POINT_VENDOR"));
+                setChargerPointModel(obj.getString("CHARGER_POINT_MODEL"));
+                setChargerPointModelCode(obj.getInt("CHARGER_POINT_MODEL_CODE"));
+                setChargeBoxSerialNumber(obj.getString("CHARGE_BOX_SERIAL_NUMBER"));
+                setChargePointSerialNumber(obj.getString("CHARGE_POINT_SERIAL_NUMBER"));
+                setFirmwareVersion(obj.getString("FIRMWARE_VERSION"));
+                setIccid(obj.getString("ICCID"));
+                setImsi(obj.getString("IMSI"));
+                setMeterSerialNumber(obj.getString("METER_SERIAL_NUMBER"));
+                setMeterType(obj.getString("METER_TYPE"));
+                setConnectorPriority(obj.getInt("CONNECTOR_PRIORITY"));
+                setStopConfirm(obj.getBoolean("STOP_CONFIRM"));
+//                setSigned(obj.getBoolean("SIGNED"));
             }
         } catch (Exception e) {
+            e.printStackTrace();
             logger.error("configuration load fail: {}", e.getMessage());
         }
     }
@@ -112,7 +132,32 @@ public class ChargerConfiguration {
     public void onSaveConfiguration() {
         try {
             JSONObject obj = new JSONObject();
-            // TODO
+            obj.put("CHARGER_ID", getChargerId());
+            obj.put("SERVER_CONNECTING_STRING", getServerConnectingString());
+            obj.put("SERVER_PORT", getServerPort());
+            obj.put("AUTH_MODE", getAuthMode());
+            obj.put("AUTH_MODE_ID", getAuthModeId());
+            obj.put("OP_MODE", getOpMode());
+            obj.put("OP_MODE_ID", getOpModeId());
+            obj.put("CONTROL_COM", getControlCom());
+            obj.put("RF_COM", getRfCom());
+            obj.put("CREDIT_COM", getCreditCom());
+            obj.put("TEST_PRICE", getTestPrice());
+            obj.put("CHARGER_POINT_TYPE", getChargerPointType());
+            obj.put("CHARGER_POINT_VENDOR", getChargePointVendor());
+            obj.put("CHARGER_POINT_MODEL", getChargerPointModel());
+            obj.put("CHARGER_POINT_MODEL_CODE", getChargerPointModelCode());
+            obj.put("CHARGE_BOX_SERIAL_NUMBER", getChargeBoxSerialNumber());
+            obj.put("CHARGE_POINT_SERIAL_NUMBER", getChargePointSerialNumber());
+            obj.put("FIRMWARE_VERSION", getFirmwareVersion());
+            obj.put("ICCID", getIccid());
+            obj.put("IMSI", getImsi());
+            obj.put("METER_SERIAL_NUMBER", getMeterSerialNumber());
+            obj.put("METER_TYPE", getMeterType());
+            obj.put("CONNECTOR_PRIORITY", getConnectorPriority());
+            obj.put("STOP_CONFIRM", isStopConfirm());
+//            obj.put("SIGNED", isSigned());
+            fileManagement.stringToFileSave(rootPath, CONFIG_FILE_NAME, obj.toString(), false);
         } catch (Exception e) {
             logger.error("configuration save fail: {}", e.getMessage());
         }
@@ -166,20 +211,20 @@ public class ChargerConfiguration {
         this.serverPort = serverPort;
     }
 
-    public String getSelectAuth() {
-        return selectAuth;
+    public String getAuthMode() {
+        return authMode;
     }
 
-    public void setSelectAuth(String selectAuth) {
-        this.selectAuth = selectAuth;
+    public void setAuthMode(String authMode) {
+        this.authMode = authMode;
     }
 
-    public int getSelectAuthId() {
-        return selectAuthId;
+    public int getAuthModeId() {
+        return authModeId;
     }
 
-    public void setSelectAuthId(int selectAuthId) {
-        this.selectAuthId = selectAuthId;
+    public void setAuthModeId(int authModeId) {
+        this.authModeId = authModeId;
     }
 
     public String getOpMode() {
@@ -222,14 +267,6 @@ public class ChargerConfiguration {
         this.creditCom = creditCom;
     }
 
-    public String getTestPrice() {
-        return testPrice;
-    }
-
-    public void setTestPrice(String testPrice) {
-        this.testPrice = testPrice;
-    }
-
     public int getChargerPointType() {
         return chargerPointType;
     }
@@ -254,12 +291,12 @@ public class ChargerConfiguration {
         this.chargerPointModel = chargerPointModel;
     }
 
-    public String getChargePointModelName() {
-        return chargePointModelName;
+    public int getChargerPointModelCode() {
+        return chargerPointModelCode;
     }
 
-    public void setChargePointModelName(String chargePointModelName) {
-        this.chargePointModelName = chargePointModelName;
+    public void setChargerPointModelCode(int chargerPointModelCode) {
+        this.chargerPointModelCode = chargerPointModelCode;
     }
 
     public String getChargeBoxSerialNumber() {
@@ -318,12 +355,36 @@ public class ChargerConfiguration {
         this.meterType = meterType;
     }
 
+    public int getConnectorPriority() {
+        return connectorPriority;
+    }
+
+    public void setConnectorPriority(int connectorPriority) {
+        this.connectorPriority = connectorPriority;
+    }
+
+    public String getTestPrice() {
+        return testPrice;
+    }
+
+    public void setTestPrice(String testPrice) {
+        this.testPrice = testPrice;
+    }
+
     public boolean isStopConfirm() {
         return StopConfirm;
     }
 
     public void setStopConfirm(boolean stopConfirm) {
         this.StopConfirm = stopConfirm;
+    }
+
+    public boolean isSigned() {
+        return signed;
+    }
+
+    public void setSigned(boolean signed) {
+        this.signed = signed;
     }
 
     public FirmwareStatus getFirmwareStatus() {

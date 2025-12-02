@@ -28,7 +28,7 @@ import java.util.Objects;
  * Use the {@link AdminPasswordFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class AdminPasswordFragment extends Fragment {
+public class AdminPasswordFragment extends Fragment implements View.OnClickListener {
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -82,18 +82,21 @@ public class AdminPasswordFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_admin_password, container, false);
         editPassword = view.findViewById(R.id.editPassword);
         btnCancel = view.findViewById(R.id.btnCancel);
+        btnCancel.setOnClickListener(this);
         btnCheck = view.findViewById(R.id.btnCheck);
+        btnCheck.setOnClickListener(this);
 
         new Handler(Looper.getMainLooper()).postDelayed(() -> {
             showKeyboard((MainActivity.mContext), editPassword);
         }, 200);
 
-        btnCancel.setOnClickListener(v -> {
-            if (!isAdded()) return;
-            ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).onHome();
-        });
+        return view;
+    }
 
-        btnCheck.setOnClickListener(v -> {
+    @Override
+    public void onClick(View v) {
+        int getId = v.getId();
+        if (Objects.equals(getId, R.id.btnCheck)) {
             @SuppressLint("SimpleDateFormat") SimpleDateFormat simpleMonth = new SimpleDateFormat("MM");
             @SuppressLint("SimpleDateFormat") SimpleDateFormat simpleDay = new SimpleDateFormat("dd");
             int month = Integer.parseInt(simpleMonth.format(System.currentTimeMillis())) + 8;
@@ -105,8 +108,9 @@ public class AdminPasswordFragment extends Fragment {
                 editPassword.setText("");
                 Toast.makeText(getActivity(), "비밀번호 불일치", Toast.LENGTH_SHORT).show();
             }
-        });
-        return view;
+        } else if (Objects.equals(getId, R.id.btnCancel)) {
+            ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).onHome();
+        }
     }
 
     public void showKeyboard(Context context, EditText editText) {
@@ -115,5 +119,9 @@ public class AdminPasswordFragment extends Fragment {
         if (imm != null) {
             imm.showSoftInput(editText, InputMethodManager.SHOW_IMPLICIT);
         }
+    }
+
+    public void onDetach() {
+        super.onDetach();
     }
 }
