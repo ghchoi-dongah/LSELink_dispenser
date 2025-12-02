@@ -52,14 +52,14 @@ public class MainActivity extends AppCompatActivity {
 
     // screen saver
     private static final long INACTIVITY_TIMEOUT = 1 * 60 * 1000L;  // 2분 (ms 단위)
-    private final Handler inactivityHandler = new Handler(Looper.getMainLooper());
-    private final Runnable inactivityRunnable = new Runnable() {
-        @Override
-        public void run() {
-            int channel = 0;
-            getFragmentChange().onFragmentChange(channel, UiSeq.SCREEN_SAVER, "SCREEN_SAVER", null);
-        }
-    };
+//    private final Handler inactivityHandler = new Handler(Looper.getMainLooper());
+//    private final Runnable inactivityRunnable = new Runnable() {
+//        @Override
+//        public void run() {
+//            int channel = 0;
+//            getFragmentChange().onFragmentChange(channel, UiSeq.SCREEN_SAVER, "SCREEN_SAVER", null);
+//        }
+//    };
 
 
     Handler handler = new Handler();
@@ -236,8 +236,8 @@ public class MainActivity extends AppCompatActivity {
 
     // 타이머 리셋 메서드 (외부에서 호출 가능)
     public void resetInactivityTimer() {
-        inactivityHandler.removeCallbacks(inactivityRunnable);
-        inactivityHandler.postDelayed(inactivityRunnable, INACTIVITY_TIMEOUT);
+//        inactivityHandler.removeCallbacks(inactivityRunnable);
+//        inactivityHandler.postDelayed(inactivityRunnable, INACTIVITY_TIMEOUT);
     }
 
     @Override
@@ -264,7 +264,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        inactivityHandler.removeCallbacks(inactivityRunnable);
+//        inactivityHandler.removeCallbacks(inactivityRunnable);
     }
 
     private void testCrud() {
