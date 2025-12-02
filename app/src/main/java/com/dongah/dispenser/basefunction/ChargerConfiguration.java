@@ -144,7 +144,7 @@ public class ChargerConfiguration {
             obj.put("CREDIT_COM", getCreditCom());
             obj.put("TEST_PRICE", getTestPrice());
             obj.put("CHARGER_POINT_TYPE", getChargerPointType());
-            obj.put("CHARGER_POINT_VENDOR", getChargePointVendor());
+            obj.put("CHARGE_POINT_VENDOR", getChargePointVendor());
             obj.put("CHARGER_POINT_MODEL", getChargerPointModel());
             obj.put("CHARGER_POINT_MODEL_CODE", getChargerPointModelCode());
             obj.put("CHARGE_BOX_SERIAL_NUMBER", getChargeBoxSerialNumber());

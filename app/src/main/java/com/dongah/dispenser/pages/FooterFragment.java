@@ -110,8 +110,6 @@ public class FooterFragment extends Fragment {
         btnLogo = view.findViewById(R.id.btnLogo);
         btnLogo.setOnClickListener(v -> {
             System.out.println("btnLogo click: " + clickedCnt);
-
-//            logger.info("FooterFragment btnLogo click clickedCnt: {}", clickedCnt);
             if (clickedCnt > 8) {
                 try {
 //                    boolean chkUiSeq = ((MainActivity) MainActivity.mContext).getClassUiProcess(0).getUiSeq() == UiSeq.INIT &&

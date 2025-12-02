@@ -12,6 +12,7 @@ import android.widget.Button;
 
 import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.R;
+import com.dongah.dispenser.basefunction.GlobalVariables;
 import com.dongah.dispenser.basefunction.UiSeq;
 
 import java.util.Objects;
@@ -106,7 +107,11 @@ public class EnvironmentFragment extends Fragment implements View.OnClickListene
                     ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel,UiSeq.FAULT, "FAULT", null);
                     break;
                 default:
-                    ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.INIT);
+                    MainActivity activity = (MainActivity) MainActivity.mContext;
+                    for (int ch = 0; ch < GlobalVariables.maxChannel; ch++) {
+                        activity.getClassUiProcess(ch).setUiSeq(UiSeq.INIT);
+                    }
+//                    ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.INIT);
                     ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel,UiSeq.INIT, "INIT", null);
                     break;
             }

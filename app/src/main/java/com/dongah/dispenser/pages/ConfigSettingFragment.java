@@ -13,6 +13,7 @@ import androidx.lifecycle.ViewModelProvider;
 
 import android.os.Handler;
 import android.os.Looper;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -35,6 +36,7 @@ import com.dongah.dispenser.basefunction.UiSeq;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.security.Key;
 import java.util.Objects;
 
 /**
@@ -196,8 +198,63 @@ public class ConfigSettingFragment extends Fragment implements View.OnClickListe
                 logger.error("fragment change fail : {}", e.getMessage());
             }
         } else if (Objects.equals(v.getId(), R.id.btnSave)) {
-            if (!isAdded()) return;
-//            System.out.println("ConfigSettingFragment btnSave mChannel: " + mChannel);
+            // 필수값 확인
+            if (TextUtils.isEmpty(editServerUrl.getText().toString())) {
+                editServerUrl.setFocusableInTouchMode(true);
+                editServerUrl.requestFocus();
+                Toast.makeText(((MainActivity) getActivity()), R.string.configRequired, Toast.LENGTH_LONG).show();
+                return;
+            } else if (TextUtils.isEmpty(editServerPort.getText().toString())) {
+                editServerPort.setFocusableInTouchMode(true);
+                editServerPort.requestFocus();
+                Toast.makeText(((MainActivity) getActivity()), R.string.configRequired, Toast.LENGTH_LONG).show();
+                return;
+            } else if (TextUtils.isEmpty(editControlPort.getText().toString())) {
+                editControlPort.setFocusableInTouchMode(true);
+                editControlPort.requestFocus();
+                Toast.makeText(((MainActivity) getActivity()), R.string.configRequired, Toast.LENGTH_LONG).show();
+                return;
+            } else if (TextUtils.isEmpty(editRfPort.getText().toString())) {
+                editRfPort.setFocusableInTouchMode(true);
+                editRfPort.requestFocus();
+                Toast.makeText(((MainActivity) getActivity()), R.string.configRequired, Toast.LENGTH_LONG).show();
+                return;
+            } else if (TextUtils.isEmpty(editCreditCardPort.getText().toString())) {
+                editCreditCardPort.setFocusableInTouchMode(true);
+                editCreditCardPort.requestFocus();
+                Toast.makeText(((MainActivity) getActivity()), R.string.configRequired, Toast.LENGTH_LONG).show();
+                return;
+            } else if (TextUtils.isEmpty(editTestPrice.getText().toString())) {
+                editTestPrice.setFocusableInTouchMode(true);
+                editTestPrice.requestFocus();
+                Toast.makeText(((MainActivity) getActivity()), R.string.configRequired, Toast.LENGTH_LONG).show();
+                return;
+            } else if (TextUtils.isEmpty(editConnectorPriority.getText().toString())) {
+                editConnectorPriority.setFocusableInTouchMode(true);
+                editConnectorPriority.requestFocus();
+                Toast.makeText(((MainActivity) getActivity()), R.string.configRequired, Toast.LENGTH_LONG).show();
+                return;
+            } else if (TextUtils.isEmpty(editChargePointSerialNumber.getText().toString())) {
+                editChargePointSerialNumber.setFocusableInTouchMode(true);
+                editChargePointSerialNumber.requestFocus();
+                Toast.makeText(((MainActivity) getActivity()), R.string.configRequired, Toast.LENGTH_LONG).show();
+                return;
+            } else if (TextUtils.isEmpty(editChargePointVendor.getText().toString())) {
+                editChargePointVendor.setFocusableInTouchMode(true);
+                editChargePointVendor.requestFocus();
+                Toast.makeText(((MainActivity) getActivity()), R.string.configRequired, Toast.LENGTH_LONG).show();
+                return;
+            } else if (TextUtils.isEmpty(editMid.getText().toString())) {
+                editMid.setFocusableInTouchMode(true);
+                editMid.requestFocus();
+                Toast.makeText(((MainActivity) getActivity()), R.string.configRequired, Toast.LENGTH_LONG).show();
+                return;
+            } else if (TextUtils.isEmpty(editFirmwareVersion.getText().toString())) {
+                editFirmwareVersion.setFocusableInTouchMode(true);
+                editFirmwareVersion.requestFocus();
+                Toast.makeText(((MainActivity) getActivity()), R.string.configRequired, Toast.LENGTH_LONG).show();
+                return;
+            }
 
             new AlertDialog.Builder(getActivity())
                     .setTitle(R.string.configSaveTitle)
@@ -224,7 +281,15 @@ public class ConfigSettingFragment extends Fragment implements View.OnClickListe
         } else if (Objects.equals(v.getId(), R.id.btnRebooting)) {
 
         } else if (Objects.equals(v.getId(), R.id.btnKeyboardControl)) {
-
+            try {
+                View view = ((MainActivity) MainActivity.mContext).getCurrentFocus();
+                if (view instanceof EditText) {
+                    EditText editText = (EditText) ((MainActivity) MainActivity.mContext).getCurrentFocus();
+                    imm.hideSoftInputFromWindow(editText.getWindowToken(), 0);
+                }
+            } catch (Exception e) {
+                logger.error("config - onClick {}", e.getMessage());
+            }
         } else if (Objects.equals(v.getId(), R.id.radioBtnMac)) {
             chargerConfiguration.setAuthMode("0");
         } else if (Objects.equals(v.getId(), R.id.radioBtnMemberCard)) {

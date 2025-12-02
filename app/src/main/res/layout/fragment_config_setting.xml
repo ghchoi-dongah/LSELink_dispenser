@@ -264,7 +264,7 @@
         android:layout_width="260dp"
         android:layout_height="80dp"
         android:layout_marginEnd="68dp"
-        android:text="@string/on"
+        android:text="@string/hidden"
         android:textSize="30sp"
         android:background="@drawable/shape_btn_sky"
         app:layout_constraintTop_toTopOf="@id/textViewChargePointType"

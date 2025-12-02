@@ -70,7 +70,7 @@
     <string name="test"><font color="#000">테스트</font></string>
     <string name="server"><font color="#000">서버</font></string>
     <string name="keyboardControl"><font color="#000">키보드 제어</font></string>
-    <string name="on"><font color="#000">ON</font></string>
+    <string name="hidden"><font color="#000">HIDDEN</font></string>
     <string name="off"><font color="#000">OFF</font></string>
     <string name="exit">EXIT</string>
     <string name="save">저장</string>
@@ -79,6 +79,7 @@
     <string name="configSaveSuccess">수정 내용 저장 성공</string>
     <string name="configSaveYesNo">수정하신 내용을 저장하시겠습니까?</string>
     <string name="configSaveCancel">수정 내용 취소</string>
+    <string name="configRequired">필수 입력 값입니다</string>
 
     <!-- environment   -->
     <string name="configButton">환경설정</string>

@@ -172,7 +172,6 @@ public class MainActivity extends AppCompatActivity {
         // 1. charger configuration, ConfigurationKey read
         chargerConfiguration = new ChargerConfiguration();
         chargerConfiguration.onLoadConfiguration();
-        System.out.printf("chargerConfiguration.chargerId >> %s\n", chargerConfiguration.getChargerId());
 
         // 2. fragment change management
         fragmentChange = new FragmentChange();
