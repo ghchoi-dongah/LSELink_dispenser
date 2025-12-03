@@ -22,6 +22,7 @@ import com.dongah.dispenser.pages.EnvironmentFragment;
 import com.dongah.dispenser.pages.FaultFragment;
 import com.dongah.dispenser.pages.FooterFragment;
 import com.dongah.dispenser.pages.InitFragment;
+import com.dongah.dispenser.pages.MemberCardFragment;
 import com.dongah.dispenser.pages.MemberCardNoMacFragment;
 import com.dongah.dispenser.pages.MemberCheckFailedFragment;
 import com.dongah.dispenser.pages.MemberCheckWaitFragment;
@@ -86,6 +87,16 @@ public class FragmentChange {
                     logger.error("onFragmentChange error : CONNECTION_FAILED {}", e.getMessage());
                 }
                 break;
+            case MEMBER_CARD:
+                try {
+                    onFrameLayoutChange(false);
+                    MemberCardFragment memberCardFragment = new MemberCardFragment();
+                    memberCardFragment.setArguments(bundle);
+                    transaction.replace(frameLayoutId, memberCardFragment, "MEMBER_CARD");
+                    transaction.commit();
+                } catch (Exception e) {
+                    logger.error("onFragmentChange error : MEMBER_CARD {}", e.getMessage());
+                }
             case MEMBER_CARD_NO_MAC:
                 try {
                     onFrameLayoutChange(false);
