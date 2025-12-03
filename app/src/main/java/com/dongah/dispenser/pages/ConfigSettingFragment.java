@@ -191,7 +191,7 @@ public class ConfigSettingFragment extends Fragment implements View.OnClickListe
                 transaction.commit();
             } catch (Exception e) {
                 Log.e("ConfigSettingFragment", "fragment change fail", e);
-                logger.error("fragment change fail : {}", e.getMessage());
+                logger.error("ConfigSettingFragment fragment change fail : {}", e.getMessage());
             }
         } else if (Objects.equals(v.getId(), R.id.btnSave)) {
             // 필수값 확인
@@ -404,7 +404,8 @@ public class ConfigSettingFragment extends Fragment implements View.OnClickListe
             chargerConfiguration.onSaveConfiguration();
             chargerConfiguration.onLoadConfiguration();
         } catch (Exception e) {
-            Log.e("ConfigSettingFragment", e.toString());
+            Log.e("ConfigSettingFragment", "onSaveConfiguration error", e);
+            logger.error("ConfigSettingFragment onSaveConfiguration error : {}",  e.getMessage());
         }
     }
 
@@ -456,8 +457,8 @@ public class ConfigSettingFragment extends Fragment implements View.OnClickListe
                 chargerConfiguration.setOpMode("1");
             }
         } catch (Exception e) {
-            Log.e("ConfigSettingFragment", "onSaveConfiguration error", e);
-            logger.error("ConfigSettingFragment onSaveConfiguration error : {}",  e.getMessage());
+            Log.e("ConfigSettingFragment", "onConfigurationUpdate error", e);
+            logger.error("ConfigSettingFragment onConfigurationUpdate error : {}",  e.getMessage());
         }
     }
 

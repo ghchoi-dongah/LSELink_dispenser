@@ -7,6 +7,7 @@ import androidx.fragment.app.Fragment;
 
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,6 +17,7 @@ import android.widget.TextView;
 
 import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.R;
+import com.dongah.dispenser.basefunction.ChargerConfiguration;
 import com.dongah.dispenser.basefunction.GlobalVariables;
 import com.dongah.dispenser.basefunction.UiSeq;
 
@@ -25,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.TimeZone;
 
 /**
@@ -32,7 +35,7 @@ import java.util.TimeZone;
  * Use the {@link FooterFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class FooterFragment extends Fragment {
+public class FooterFragment extends Fragment implements View.OnClickListener {
 
     private static final Logger logger = LoggerFactory.getLogger(FooterFragment.class);
 
@@ -40,7 +43,6 @@ public class FooterFragment extends Fragment {
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
-    private static final String CHANNEL = "CHANNEL";
 
     // TODO: Rename and change types of parameters
     private String mParam1;
@@ -54,6 +56,7 @@ public class FooterFragment extends Fragment {
     ImageView imageViewNetwork;
     TextView textViewTime, textViewChargerIdValue, textViewVersionValue;
 
+    ChargerConfiguration chargerConfiguration;
     Runnable runnable;
 
     // 1초마다 실행되는 Runnable
@@ -93,7 +96,6 @@ public class FooterFragment extends Fragment {
         if (getArguments() != null) {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
-            mChannel = getArguments().getInt(CHANNEL);
         }
     }
 
@@ -104,11 +106,26 @@ public class FooterFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_footer, container, false);
         imageViewNetwork = view.findViewById(R.id.imageViewNetwork);
         textViewVersionValue = view.findViewById(R.id.textViewVersionValue);
-        textViewVersionValue.setText(" | VER: " + GlobalVariables.VERSION);
         textViewChargerIdValue = view.findViewById(R.id.textViewChargerIdValue);
         textViewTime = view.findViewById(R.id.textViewTime);
         btnLogo = view.findViewById(R.id.btnLogo);
-        btnLogo.setOnClickListener(v -> {
+        btnLogo.setOnClickListener(this);
+
+        try {
+            chargerConfiguration = ((MainActivity) MainActivity.mContext).getChargerConfiguration();
+            textViewVersionValue.setText(" | VER: " + chargerConfiguration.getFirmwareVersion());
+            textViewChargerIdValue.setText(chargerConfiguration.getChargerId());
+        } catch (Exception e) {
+            textViewVersionValue.setText(" | VER: " + GlobalVariables.VERSION);
+            Log.e("FooterFragment", "onCreateView error", e);
+            logger.error("FooterFragment onCreateView error : {}", e.getMessage());
+        }
+        return view;
+    }
+
+    @Override
+    public void onClick(View v) {
+        if (Objects.equals(v.getId(), R.id.btnLogo)) {
             System.out.println("btnLogo click: " + clickedCnt);
             if (clickedCnt > 8) {
                 try {
@@ -117,7 +134,7 @@ public class FooterFragment extends Fragment {
 
                     MainActivity activity = (MainActivity) MainActivity.mContext;
                     if (activity == null) {
-                        logger.error("btnLogo error: MainActivity.mContext is null");
+                        System.out.println("btnLogo error: MainActivity.mContext is null");
                         return;
                     }
 
@@ -129,13 +146,7 @@ public class FooterFragment extends Fragment {
                             : null;
 
                     boolean chkUiSeq = ui0 == UiSeq.INIT && ui1 == UiSeq.INIT;
-
-//                    logger.info("btnLogo clickedCnt: {}, ui0: {}, ui1: {}, chkUiSeq: {}",
-//                            clickedCnt, ui0, ui1, chkUiSeq);
-
                     System.out.println("clickedCnt > 8, ui0: " + ui0 + ", ui1: " + ui1 + ", chkUiSeq: " + chkUiSeq + ", mChannel:" + mChannel);
-
-
                     if (chkUiSeq) {
                         ((MainActivity) MainActivity.mContext).runOnUiThread(new Runnable() {
                             @Override
@@ -147,12 +158,12 @@ public class FooterFragment extends Fragment {
                     }
                     clickedCnt = 0;
                 } catch (Exception e) {
-                    logger.error("btnLogo error: {}", e.getMessage());
+                    Log.e("FooterFragment", "btnLogo error", e);
+                    logger.error("FooterFragment btnLogo error : {}", e.getMessage());
                 }
             }
             clickedCnt++;
-        });
-        return view;
+        }
     }
 
     @Override
@@ -176,7 +187,8 @@ public class FooterFragment extends Fragment {
                 textViewTime.setText(currentTime);
             }
         } catch (Exception e) {
-            logger.error("updateTime error: {}", e.getMessage());
+            Log.e("FooterFragment", "updateTime error", e);
+            logger.error("FooterFragment updateTime error : {}", e.getMessage());
         }
     }
 }
