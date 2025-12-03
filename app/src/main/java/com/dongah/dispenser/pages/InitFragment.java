@@ -7,6 +7,7 @@ import android.os.Bundle;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,14 +17,22 @@ import android.widget.TextView;
 
 import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.R;
+import com.dongah.dispenser.basefunction.ChargerConfiguration;
+import com.dongah.dispenser.basefunction.ChargingCurrentData;
 import com.dongah.dispenser.basefunction.UiSeq;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Objects;
 
 /**
  * A simple {@link Fragment} subclass.
  * Use the {@link InitFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class InitFragment extends Fragment {
+public class InitFragment extends Fragment implements View.OnClickListener {
+    private static final Logger logger = LoggerFactory.getLogger(InitFragment.class);
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -39,6 +48,9 @@ public class InitFragment extends Fragment {
     TextView textViewInitMessage;
     ImageView imageViewConnector, imageViewConnectorBg;
     ObjectAnimator fadeAnimator;
+
+    ChargerConfiguration chargerConfiguration;
+    ChargingCurrentData chargingCurrentData;
 
     public InitFragment() {
         // Required empty public constructor
@@ -76,6 +88,9 @@ public class InitFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_init, container, false);
+        view.setOnClickListener(this);
+
+        chargerConfiguration = ((MainActivity) MainActivity.mContext).getChargerConfiguration();
         textViewInitMessage = view.findViewById(R.id.textViewInitMessage);
         imageViewConnector = view.findViewById(R.id.imageViewConnector);
         imageViewConnectorBg = view.findViewById(R.id.imageViewConnectorBg);
@@ -96,11 +111,39 @@ public class InitFragment extends Fragment {
         fadeAnimator.setInterpolator(new AccelerateDecelerateInterpolator());
         fadeAnimator.start();
 
-        view.setOnClickListener(v -> {
-            if (!isAdded()) return;
-
-            ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.MEMBER_CHECK_WAIT, "MEMBER_CHECK_WAIT", null);
-        });
         return view;
+    }
+
+    @Override
+    public void onClick(View v) {
+        try {
+            chargingCurrentData.onCurrentDataClear();   // clear
+
+            if (!isAdded()) return;
+            ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.MEMBER_CHECK_WAIT, "MEMBER_CHECK_WAIT", null);
+
+        } catch (Exception e) {
+            Log.e("InitFragment", "onClick error", e);
+            logger.error("InitFragment onClick error : {}", e.getMessage());
+        }
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        try {
+            if (fadeAnimator != null) {
+                fadeAnimator.cancel();  // animation stop
+                fadeAnimator.removeAllListeners();  // listener remove
+                fadeAnimator = null;
+            }
+
+            if (imageViewConnectorBg != null) {
+                imageViewConnectorBg.clearAnimation();
+            }
+        } catch (Exception e) {
+            Log.e("InitFragment", "onDetach error", e);
+            logger.error("InitFragment onDetach error : {}", e.getMessage());
+        }
     }
 }
