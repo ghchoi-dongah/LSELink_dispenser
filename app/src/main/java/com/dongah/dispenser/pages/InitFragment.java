@@ -95,21 +95,27 @@ public class InitFragment extends Fragment implements View.OnClickListener {
         imageViewConnector = view.findViewById(R.id.imageViewConnector);
         imageViewConnectorBg = view.findViewById(R.id.imageViewConnectorBg);
 
-        if (mChannel == 0) {
-            imageViewConnector.setScaleX(-1f);
-            imageViewConnectorBg.setScaleX(-1f);
-        } else {
-            imageViewConnector.setScaleX(1f);
-            imageViewConnectorBg.setScaleX(1f);
-        }
+        try {
+            // ch0, ch1 구분 => 이미지 위치 조절
+            if (mChannel == 0) {
+                imageViewConnector.setScaleX(-1f);
+                imageViewConnectorBg.setScaleX(-1f);
+            } else {
+                imageViewConnector.setScaleX(1f);
+                imageViewConnectorBg.setScaleX(1f);
+            }
 
-        // imageViewConnectorBg animation
-        fadeAnimator = ObjectAnimator.ofFloat(imageViewConnectorBg, "alpha", 1f, 0.2f);
-        fadeAnimator.setDuration(1000);
-        fadeAnimator.setRepeatCount(ValueAnimator.INFINITE);
-        fadeAnimator.setRepeatMode(ValueAnimator.REVERSE);
-        fadeAnimator.setInterpolator(new AccelerateDecelerateInterpolator());
-        fadeAnimator.start();
+            // imageViewConnectorBg animation
+            fadeAnimator = ObjectAnimator.ofFloat(imageViewConnectorBg, "alpha", 1f, 0.2f);
+            fadeAnimator.setDuration(1000);
+            fadeAnimator.setRepeatCount(ValueAnimator.INFINITE);
+            fadeAnimator.setRepeatMode(ValueAnimator.REVERSE);
+            fadeAnimator.setInterpolator(new AccelerateDecelerateInterpolator());
+            fadeAnimator.start();
+        } catch (Exception e) {
+            Log.e("InitFragment", "onCreateView error", e);
+            logger.error("InitFragment onCreateView error : {}", e.getMessage());
+        }
 
         return view;
     }
