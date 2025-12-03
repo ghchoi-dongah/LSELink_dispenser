@@ -5,6 +5,7 @@ import android.os.Bundle;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,12 +15,17 @@ import com.dongah.dispenser.R;
 import com.dongah.dispenser.basefunction.UiSeq;
 import com.wang.avi.AVLoadingIndicatorView;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * A simple {@link Fragment} subclass.
  * Use the {@link MemberCheckWaitFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class MemberCheckWaitFragment extends Fragment {
+public class MemberCheckWaitFragment extends Fragment implements View.OnClickListener {
+
+    private static final Logger logger = LoggerFactory.getLogger(MemberCheckWaitFragment.class);
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -70,10 +76,17 @@ public class MemberCheckWaitFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_member_check_wait, container, false);
+        view.setOnClickListener(this);
+
         aviMemberCheck = view.findViewById(R.id.aviMemberCheck);
         startAviAnim();
 
-        view.setOnClickListener(v -> {
+        return view;
+    }
+
+    @Override
+    public void onClick(View v) {
+        try {
             if (!isAdded()) return;
             stopAviAnim();
 
@@ -82,10 +95,11 @@ public class MemberCheckWaitFragment extends Fragment {
             } else {
                 ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.CONNECTION_FAILED, "CONNECTION_FAILED", null);
             }
-        });
-        return view;
+        } catch (Exception e) {
+            Log.e("MemberCheckWaitFragment", "onClick error", e);
+            logger.error("MemberCheckWaitFragment onClick error : {}", e.getMessage());
+        }
     }
-
     void startAviAnim() {
         aviMemberCheck.show();
     }

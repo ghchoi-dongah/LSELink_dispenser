@@ -123,7 +123,7 @@ public class InitFragment extends Fragment implements View.OnClickListener {
     @Override
     public void onClick(View v) {
         try {
-            chargingCurrentData.onCurrentDataClear();   // clear
+            // chargingCurrentData.onCurrentDataClear();   // clear
 
             if (!isAdded()) return;
             ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.MEMBER_CHECK_WAIT, "MEMBER_CHECK_WAIT", null);
