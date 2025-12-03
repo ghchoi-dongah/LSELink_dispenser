@@ -2,6 +2,7 @@ package com.dongah.dispenser.basefunction;
 
 import android.os.Environment;
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.dongah.dispenser.utils.FileManagement;
 import com.dongah.dispenser.websocket.ocpp.firmware.DiagnosticsStatus;
@@ -124,7 +125,8 @@ public class ChargerConfiguration {
 //                setSigned(obj.getBoolean("SIGNED"));
             }
         } catch (Exception e) {
-            e.printStackTrace();
+//            e.printStackTrace();
+//            Log.d(" {}", e.getMessage());
             logger.error("configuration load fail: {}", e.getMessage());
         }
     }

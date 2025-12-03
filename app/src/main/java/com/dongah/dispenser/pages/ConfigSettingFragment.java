@@ -6,10 +6,8 @@ import android.content.DialogInterface;
 import android.content.res.Resources;
 import android.os.Bundle;
 
-import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
-import androidx.lifecycle.ViewModelProvider;
 
 import android.os.Handler;
 import android.os.Looper;
@@ -31,12 +29,10 @@ import android.widget.Toast;
 import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.R;
 import com.dongah.dispenser.basefunction.ChargerConfiguration;
-import com.dongah.dispenser.basefunction.UiSeq;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.security.Key;
 import java.util.Objects;
 
 /**
@@ -178,7 +174,7 @@ public class ConfigSettingFragment extends Fragment implements View.OnClickListe
             InitializationComponents(view);
 
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e("ConfigSettingFragment", "onCreateView error", e);
             logger.error("ConfigSettingFragment onCreateView error : {}", e.getMessage());
         }
         return view;
@@ -194,65 +190,76 @@ public class ConfigSettingFragment extends Fragment implements View.OnClickListe
                 transaction.replace(R.id.frameFull, environmentFragment);
                 transaction.commit();
             } catch (Exception e) {
-                e.printStackTrace();
+                Log.e("ConfigSettingFragment", "fragment change fail", e);
                 logger.error("fragment change fail : {}", e.getMessage());
             }
         } else if (Objects.equals(v.getId(), R.id.btnSave)) {
             // 필수값 확인
-            if (TextUtils.isEmpty(editServerUrl.getText().toString())) {
+            if (TextUtils.isEmpty(editChargeBoxSerialNumber.getText().toString())) {
+                editChargeBoxSerialNumber.setFocusableInTouchMode(true);
+                editChargeBoxSerialNumber.requestFocus();
+                Toast.makeText(requireContext(), R.string.configRequired, Toast.LENGTH_SHORT).show();
+                return;
+            } else if (TextUtils.isEmpty(editChargerId.getText().toString())) {
+                editChargerId.setFocusableInTouchMode(true);
+                editChargerId.requestFocus();
+                Toast.makeText(requireContext(), R.string.configRequired, Toast.LENGTH_SHORT).show();
+                return;
+            } else if (TextUtils.isEmpty(editServerUrl.getText().toString())) {
                 editServerUrl.setFocusableInTouchMode(true);
                 editServerUrl.requestFocus();
-                Toast.makeText(((MainActivity) getActivity()), R.string.configRequired, Toast.LENGTH_LONG).show();
+                Toast.makeText(requireContext(), R.string.configRequired, Toast.LENGTH_SHORT).show();
                 return;
             } else if (TextUtils.isEmpty(editServerPort.getText().toString())) {
                 editServerPort.setFocusableInTouchMode(true);
                 editServerPort.requestFocus();
-                Toast.makeText(((MainActivity) getActivity()), R.string.configRequired, Toast.LENGTH_LONG).show();
+                Toast.makeText(requireContext(), R.string.configRequired, Toast.LENGTH_SHORT).show();
                 return;
             } else if (TextUtils.isEmpty(editControlPort.getText().toString())) {
                 editControlPort.setFocusableInTouchMode(true);
                 editControlPort.requestFocus();
-                Toast.makeText(((MainActivity) getActivity()), R.string.configRequired, Toast.LENGTH_LONG).show();
+                Toast.makeText(requireContext(), R.string.configRequired, Toast.LENGTH_SHORT).show();
                 return;
+
             } else if (TextUtils.isEmpty(editRfPort.getText().toString())) {
                 editRfPort.setFocusableInTouchMode(true);
                 editRfPort.requestFocus();
-                Toast.makeText(((MainActivity) getActivity()), R.string.configRequired, Toast.LENGTH_LONG).show();
+                Toast.makeText(requireContext(), R.string.configRequired, Toast.LENGTH_SHORT).show();
                 return;
             } else if (TextUtils.isEmpty(editCreditCardPort.getText().toString())) {
                 editCreditCardPort.setFocusableInTouchMode(true);
                 editCreditCardPort.requestFocus();
-                Toast.makeText(((MainActivity) getActivity()), R.string.configRequired, Toast.LENGTH_LONG).show();
+                Toast.makeText(requireContext(), R.string.configRequired, Toast.LENGTH_SHORT).show();
                 return;
             } else if (TextUtils.isEmpty(editTestPrice.getText().toString())) {
                 editTestPrice.setFocusableInTouchMode(true);
                 editTestPrice.requestFocus();
-                Toast.makeText(((MainActivity) getActivity()), R.string.configRequired, Toast.LENGTH_LONG).show();
+                Toast.makeText(requireContext(), R.string.configRequired, Toast.LENGTH_SHORT).show();
                 return;
             } else if (TextUtils.isEmpty(editConnectorPriority.getText().toString())) {
                 editConnectorPriority.setFocusableInTouchMode(true);
                 editConnectorPriority.requestFocus();
-                Toast.makeText(((MainActivity) getActivity()), R.string.configRequired, Toast.LENGTH_LONG).show();
+                Toast.makeText(requireContext(), R.string.configRequired, Toast.LENGTH_SHORT).show();
                 return;
             } else if (TextUtils.isEmpty(editChargePointSerialNumber.getText().toString())) {
                 editChargePointSerialNumber.setFocusableInTouchMode(true);
                 editChargePointSerialNumber.requestFocus();
-                Toast.makeText(((MainActivity) getActivity()), R.string.configRequired, Toast.LENGTH_LONG).show();
+                Toast.makeText(requireContext(), R.string.configRequired, Toast.LENGTH_SHORT).show();
                 return;
             } else if (TextUtils.isEmpty(editChargePointVendor.getText().toString())) {
                 editChargePointVendor.setFocusableInTouchMode(true);
                 editChargePointVendor.requestFocus();
-                Toast.makeText(((MainActivity) getActivity()), R.string.configRequired, Toast.LENGTH_LONG).show();
+                Toast.makeText(requireContext(), R.string.configRequired, Toast.LENGTH_SHORT).show();
                 return;
             } else if (TextUtils.isEmpty(editMid.getText().toString())) {
                 editMid.setFocusableInTouchMode(true);
                 editMid.requestFocus();
-                Toast.makeText(((MainActivity) getActivity()), R.string.configRequired, Toast.LENGTH_LONG).show();
+                Toast.makeText(requireContext(), R.string.configRequired, Toast.LENGTH_SHORT).show();
                 return;
             } else if (TextUtils.isEmpty(editFirmwareVersion.getText().toString())) {
                 editFirmwareVersion.setFocusableInTouchMode(true);
                 editFirmwareVersion.requestFocus();
-                Toast.makeText(((MainActivity) getActivity()), R.string.configRequired, Toast.LENGTH_LONG).show();
+                Toast.makeText(requireContext(), R.string.configRequired, Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -275,7 +282,7 @@ public class ConfigSettingFragment extends Fragment implements View.OnClickListe
                         @Override
                         public void onClick(DialogInterface dialogInterface, int i) {
                             InitializationComponents(getView());
-                            Toast.makeText(((MainActivity) getActivity()), R.string.configSaveCancel, Toast.LENGTH_SHORT).show();
+                            Toast.makeText(requireContext(), R.string.configSaveCancel, Toast.LENGTH_SHORT).show();
                         }
                     }).show();
         } else if (Objects.equals(v.getId(), R.id.btnRebooting)) {
@@ -347,7 +354,7 @@ public class ConfigSettingFragment extends Fragment implements View.OnClickListe
             radioGrpOp = v.findViewById(R.id.radioGrpOp);
 
             try {
-                /** 회원 인증 모드
+                /* 회원 인증 모드
                  * 0: mac
                  * 1: member
                  * 2: mac + member
@@ -366,7 +373,7 @@ public class ConfigSettingFragment extends Fragment implements View.OnClickListe
                         break;
                 }
 
-                /** 운영모드
+                /* 운영모드
                  * 0: test
                  * 1: server
                  * */
@@ -381,12 +388,12 @@ public class ConfigSettingFragment extends Fragment implements View.OnClickListe
                         break;
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                Log.e("ConfigSettingFragment", "InitializationComponents try-catch fail", e);
                 logger.error("ConfigSettingFragment InitializationComponents try-catch fail : {}",  e.getMessage());
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e("ConfigSettingFragment", "InitializationComponents error", e);
             logger.error("ConfigSettingFragment InitializationComponents error : {}",  e.getMessage());
         }
     }
@@ -426,7 +433,7 @@ public class ConfigSettingFragment extends Fragment implements View.OnClickListe
             chargerConfiguration.setMeterSerialNumber(editMeterSerialNumber.getText().toString());
             chargerConfiguration.setMeterType(editMeterType.getText().toString());
 
-            /** 회원 인증 모드
+            /* 회원 인증 모드
              * 0: mac
              * 1: member
              * 2: mac + member
@@ -439,7 +446,7 @@ public class ConfigSettingFragment extends Fragment implements View.OnClickListe
                 chargerConfiguration.setAuthMode("2");
             }
 
-            /** 운영모드
+            /* 운영모드
              * 0: test
              * 1: server
              * */
@@ -449,7 +456,7 @@ public class ConfigSettingFragment extends Fragment implements View.OnClickListe
                 chargerConfiguration.setOpMode("1");
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e("ConfigSettingFragment", "onSaveConfiguration error", e);
             logger.error("ConfigSettingFragment onSaveConfiguration error : {}",  e.getMessage());
         }
     }

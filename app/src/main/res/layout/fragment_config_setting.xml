@@ -19,11 +19,13 @@
 
     <Spinner
         android:id="@+id/spinnerChargePointType"
-        android:layout_width="280dp"
+        android:layout_width="320dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="10dp"
         android:dropDownWidth="300dp"
         android:spinnerMode="dropdown"
+        android:theme="@style/SpinnerTheme"
+        android:background="@drawable/spinner_background"
         app:layout_constraintTop_toTopOf="@id/textViewChargePointType"
         app:layout_constraintStart_toEndOf="@id/textViewChargePointType" />
 
@@ -39,10 +41,12 @@
 
     <Spinner
         android:id="@+id/spinnerChargePointModel"
-        android:layout_width="280dp"
+        android:layout_width="320dp"
         android:layout_height="wrap_content"
         android:dropDownWidth="300dp"
         android:spinnerMode="dropdown"
+        android:theme="@style/SpinnerTheme"
+        android:background="@drawable/spinner_background"
         app:layout_constraintTop_toTopOf="@id/textViewChargePointModel"
         app:layout_constraintStart_toStartOf="@id/spinnerChargePointType" />
 
@@ -63,9 +67,7 @@
         android:background="@drawable/selector_edit_text_disabled"
         android:textSize="24sp"
         android:textColor="#000"
-        android:inputType="none"
-        android:focusable="false"
-        android:clickable="false"
+        android:inputType="text"
         app:layout_constraintTop_toTopOf="@id/textViewChargeBoxSerialNumber"
         app:layout_constraintStart_toStartOf="@id/spinnerChargePointType"
         tools:ignore="Autofill,LabelFor,TextFields" />
@@ -87,9 +89,7 @@
         android:background="@drawable/selector_edit_text_disabled"
         android:textSize="24sp"
         android:textColor="#000"
-        android:inputType="none"
-        android:focusable="false"
-        android:clickable="false"
+        android:inputType="text"
         app:layout_constraintTop_toTopOf="@id/textViewChargerId"
         app:layout_constraintStart_toStartOf="@id/spinnerChargePointType"
         tools:ignore="Autofill,LabelFor,TextFields" />
@@ -106,7 +106,7 @@
 
     <EditText
         android:id="@+id/editServerUrl"
-        android:layout_width="748dp"
+        android:layout_width="768dp"
         android:layout_height="wrap_content"
         android:background="@drawable/selector_edit_text_required"
         android:textSize="24sp"
@@ -249,57 +249,37 @@
         tools:ignore="Autofill,LabelFor,TextFields" />
 
     <TextView
-        android:id="@+id/textViewKeyboardControl"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="10dp"
-        android:text="@string/keyboardControl"
-        android:textSize="24sp"
-        app:layout_constraintEnd_toStartOf="@id/btnKeyboardControl"
-        app:layout_constraintTop_toTopOf="@id/textViewChargePointType"
-        app:layout_constraintBottom_toBottomOf="@id/textViewChargePointModel" />
-
-    <Button
-        android:id="@+id/btnKeyboardControl"
-        android:layout_width="260dp"
-        android:layout_height="80dp"
-        android:layout_marginEnd="68dp"
-        android:text="@string/hidden"
-        android:textSize="30sp"
-        android:background="@drawable/shape_btn_sky"
-        app:layout_constraintTop_toTopOf="@id/textViewChargePointType"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <TextView
         android:id="@+id/textViewChargePointSerialNumber"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginEnd="10dp"
         android:text="@string/chargePointSerialNumber"
         android:textSize="24sp"
-        app:layout_constraintEnd_toEndOf="@id/textViewKeyboardControl"
-        app:layout_constraintTop_toTopOf="@id/textViewChargeBoxSerialNumber" />
+        app:layout_constraintEnd_toStartOf="@id/editChargePointSerialNumber"
+        app:layout_constraintTop_toTopOf="@id/textViewChargePointType" />
 
     <EditText
         android:id="@+id/editChargePointSerialNumber"
         android:layout_width="260dp"
         android:layout_height="wrap_content"
+        android:layout_marginEnd="50dp"
         android:background="@drawable/selector_edit_text_required"
         android:textSize="24sp"
         android:textColor="#000"
         android:inputType="text"
         app:layout_constraintTop_toTopOf="@id/textViewChargePointSerialNumber"
-        app:layout_constraintStart_toStartOf="@id/btnKeyboardControl"
+        app:layout_constraintEnd_toEndOf="parent"
         tools:ignore="Autofill,LabelFor,TextFields" />
-
 
     <TextView
         android:id="@+id/textViewChargePointVendor"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
+        android:layout_marginEnd="10dp"
         android:text="@string/chargePointVendor"
         android:textSize="24sp"
-        app:layout_constraintEnd_toEndOf="@id/textViewKeyboardControl"
+        app:layout_constraintEnd_toStartOf="@id/editChargePointVendor"
         app:layout_constraintTop_toBottomOf="@id/textViewChargePointSerialNumber" />
 
     <EditText
@@ -311,17 +291,18 @@
         android:textColor="#000"
         android:inputType="text"
         app:layout_constraintTop_toTopOf="@id/textViewChargePointVendor"
-        app:layout_constraintStart_toStartOf="@id/btnKeyboardControl"
+        app:layout_constraintStart_toStartOf="@id/editChargePointSerialNumber"
         tools:ignore="Autofill,LabelFor,TextFields" />
 
     <TextView
         android:id="@+id/textViewMid"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginEnd="10dp"
         android:text="@string/mid"
         android:textSize="24sp"
-        app:layout_constraintEnd_toEndOf="@id/textViewKeyboardControl"
-        app:layout_constraintTop_toTopOf="@id/textViewServerPort" />
+        app:layout_constraintEnd_toStartOf="@id/editMid"
+        app:layout_constraintTop_toTopOf="@id/textViewChargeBoxSerialNumber" />
 
     <EditText
         android:id="@+id/editMid"
@@ -332,7 +313,7 @@
         android:textColor="#000"
         android:inputType="text"
         app:layout_constraintTop_toTopOf="@id/textViewMid"
-        app:layout_constraintStart_toStartOf="@id/btnKeyboardControl"
+        app:layout_constraintStart_toStartOf="@id/editChargePointSerialNumber"
         tools:ignore="Autofill,LabelFor,TextFields" />
 
     <TextView
@@ -340,9 +321,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
+        android:layout_marginEnd="10dp"
         android:text="@string/firmwareVersion"
         android:textSize="24sp"
-        app:layout_constraintEnd_toEndOf="@id/textViewKeyboardControl"
+        app:layout_constraintEnd_toStartOf="@id/editFirmwareVersion"
         app:layout_constraintTop_toBottomOf="@id/textViewMid" />
 
     <EditText
@@ -354,18 +336,39 @@
         android:textColor="#000"
         android:inputType="text"
         app:layout_constraintTop_toTopOf="@id/textViewFirmwareVersion"
-        app:layout_constraintStart_toStartOf="@id/btnKeyboardControl"
+        app:layout_constraintStart_toStartOf="@id/editChargePointSerialNumber"
         tools:ignore="Autofill,LabelFor,TextFields" />
+
+    <TextView
+        android:id="@+id/textViewKeyboardControl"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="10dp"
+        android:text="@string/keyboardControl"
+        android:textSize="24sp"
+        app:layout_constraintEnd_toStartOf="@id/btnKeyboardControl"
+        app:layout_constraintTop_toTopOf="@id/btnKeyboardControl"
+        app:layout_constraintBottom_toBottomOf="@id/btnKeyboardControl" />
+
+    <Button
+        android:id="@+id/btnKeyboardControl"
+        android:layout_width="260dp"
+        android:layout_height="80dp"
+        android:text="@string/hidden"
+        android:textSize="30sp"
+        android:background="@drawable/shape_btn_sky"
+        app:layout_constraintTop_toTopOf="@id/editServerPort"
+        app:layout_constraintStart_toStartOf="@id/editChargePointSerialNumber" />
 
     <TextView
         android:id="@+id/textViewIccid"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
+        android:layout_marginEnd="10dp"
         android:text="@string/iccid"
         android:textSize="24sp"
-        app:layout_constraintEnd_toEndOf="@id/textViewKeyboardControl"
-        app:layout_constraintTop_toBottomOf="@id/textViewFirmwareVersion" />
+        app:layout_constraintEnd_toStartOf="@id/editIccid"
+        app:layout_constraintTop_toTopOf="@id/editRfPort" />
 
     <EditText
         android:id="@+id/editIccid"
@@ -376,7 +379,7 @@
         android:textColor="#000"
         android:inputType="text"
         app:layout_constraintTop_toTopOf="@id/textViewIccid"
-        app:layout_constraintStart_toStartOf="@id/btnKeyboardControl"
+        app:layout_constraintStart_toStartOf="@id/editChargePointSerialNumber"
         tools:ignore="Autofill,LabelFor,TextFields" />
 
     <TextView
@@ -384,9 +387,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
+        android:layout_marginEnd="10dp"
         android:text="@string/imsi"
         android:textSize="24sp"
-        app:layout_constraintEnd_toEndOf="@id/textViewKeyboardControl"
+        app:layout_constraintEnd_toStartOf="@id/editImsi"
         app:layout_constraintTop_toBottomOf="@id/textViewIccid" />
 
     <EditText
@@ -398,7 +402,7 @@
         android:textColor="#000"
         android:inputType="text"
         app:layout_constraintTop_toTopOf="@id/textViewImsi"
-        app:layout_constraintStart_toStartOf="@id/btnKeyboardControl"
+        app:layout_constraintStart_toStartOf="@id/editChargePointSerialNumber"
         tools:ignore="Autofill,LabelFor,TextFields" />
 
     <TextView
@@ -406,9 +410,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
+        android:layout_marginEnd="10dp"
         android:text="@string/meterSerialNumber"
         android:textSize="24sp"
-        app:layout_constraintEnd_toEndOf="@id/textViewKeyboardControl"
+        app:layout_constraintEnd_toStartOf="@id/editMeterSerialNumber"
         app:layout_constraintTop_toBottomOf="@id/textViewImsi" />
 
     <EditText
@@ -420,7 +425,7 @@
         android:textColor="#000"
         android:inputType="text"
         app:layout_constraintTop_toTopOf="@id/textViewMeterSerialNumber"
-        app:layout_constraintStart_toStartOf="@id/btnKeyboardControl"
+        app:layout_constraintStart_toStartOf="@id/editChargePointSerialNumber"
         tools:ignore="Autofill,LabelFor,TextFields" />
 
     <TextView
@@ -428,9 +433,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
+        android:layout_marginEnd="10dp"
         android:text="@string/meterType"
         android:textSize="24sp"
-        app:layout_constraintEnd_toEndOf="@id/textViewKeyboardControl"
+        app:layout_constraintEnd_toStartOf="@id/editMeterType"
         app:layout_constraintTop_toBottomOf="@id/textViewMeterSerialNumber" />
 
     <EditText
@@ -442,7 +448,7 @@
         android:textColor="#000"
         android:inputType="text"
         app:layout_constraintTop_toTopOf="@id/textViewMeterType"
-        app:layout_constraintStart_toStartOf="@id/btnKeyboardControl"
+        app:layout_constraintStart_toStartOf="@id/editChargePointSerialNumber"
         tools:ignore="Autofill,LabelFor,TextFields" />
 
     <RadioGroup
