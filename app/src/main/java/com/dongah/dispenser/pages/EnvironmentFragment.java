@@ -35,7 +35,7 @@ public class EnvironmentFragment extends Fragment implements View.OnClickListene
     private String mParam2;
     private int mChannel;
 
-    Button btnConfig, btnWebSocket, btnControl, btnUi, btnExit;
+    Button btnConfig, btnWebSocket, btnControl, btnDbControl, btnUi, btnSystemExit;
 
     public EnvironmentFragment() {
         // Required empty public constructor
@@ -74,15 +74,17 @@ public class EnvironmentFragment extends Fragment implements View.OnClickListene
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_environment, container, false);
         btnConfig = view.findViewById(R.id.btnConfig);
-        btnWebSocket = view.findViewById(R.id.btnWebSocket);
-        btnControl = view.findViewById(R.id.btnControl);
-        btnUi = view.findViewById(R.id.btnUi);
-        btnExit = view.findViewById(R.id.btnExit);
         btnConfig.setOnClickListener(this);
+        btnWebSocket = view.findViewById(R.id.btnWebSocket);
         btnWebSocket.setOnClickListener(this);
+        btnControl = view.findViewById(R.id.btnControl);
         btnControl.setOnClickListener(this);
+        btnDbControl = view.findViewById(R.id.btnDbControl);
+        btnDbControl.setOnClickListener(this);
+        btnUi = view.findViewById(R.id.btnUi);
         btnUi.setOnClickListener(this);
-        btnExit.setOnClickListener(this);
+        btnSystemExit = view.findViewById(R.id.btnSystemExit);
+        btnSystemExit.setOnClickListener(this);
         return  view;
     }
 
@@ -95,6 +97,8 @@ public class EnvironmentFragment extends Fragment implements View.OnClickListene
             ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel,UiSeq.WEB_SOCKET, "WEB_SOCKET", null);
         } else if (Objects.equals(getId, R.id.btnControl)) {
             ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel,UiSeq.CONTROL_BOARD_DEBUGGING, "CONTROL_BOARD_DEBUGGING", null);
+        } else if (Objects.equals(getId, R.id.btnDbControl)) {
+            // TODO: database control fragment change
         } else if (Objects.equals(getId, R.id.btnUi)) {
             UiSeq uiSeq = ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).getUiSeq();
             switch (uiSeq) {
@@ -115,7 +119,7 @@ public class EnvironmentFragment extends Fragment implements View.OnClickListene
                     ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel,UiSeq.INIT, "INIT", null);
                     break;
             }
-        } else if (Objects.equals(getId, R.id.btnExit)) {
+        } else if (Objects.equals(getId, R.id.btnSystemExit)) {
             ActivityCompat.finishAffinity((MainActivity) MainActivity.mContext);
             System.exit(0);
         }

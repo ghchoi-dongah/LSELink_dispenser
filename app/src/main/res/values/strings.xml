@@ -85,8 +85,9 @@
     <string name="configButton">환경설정</string>
     <string name="webSocketButton">Web Socket</string>
     <string name="controlButton">Control Board</string>
-    <string name="userInfoButton">회원등록</string>
+    <string name="dbControl">DB 제어</string>
     <string name="uiButton">화면전환</string>
+    <string name="systemExit">시스템 종료</string>
 
     <!-- control board -->
     <string name="channelSelect">[채널 선택]</string>

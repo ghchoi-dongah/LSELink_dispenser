@@ -49,11 +49,11 @@
         app:layout_constraintBottom_toTopOf="@id/btnUi"/>
 
     <Button
-        android:id="@+id/btnMember"
+        android:id="@+id/btnDbControl"
         android:layout_width="420dp"
         android:layout_height="140dp"
         android:background="@drawable/shape_btn_blue"
-        android:text="@string/userInfoButton"
+        android:text="@string/dbControl"
         android:textSize="42sp"
         android:textColor="@color/white"
         app:backgroundTint="@null"
@@ -74,16 +74,16 @@
         app:layout_constraintBottom_toBottomOf="parent" />
 
     <Button
-        android:id="@+id/btnExit"
+        android:id="@+id/btnSystemExit"
         android:layout_width="420dp"
         android:layout_height="140dp"
         android:background="@drawable/shape_btn_blue"
-        android:text="@string/exit"
+        android:text="@string/systemExit"
         android:textStyle="bold"
         android:textSize="42sp"
         android:textColor="@color/white"
         app:backgroundTint="@null"
-        app:layout_constraintLeft_toLeftOf="@id/btnMember"
+        app:layout_constraintLeft_toLeftOf="@id/btnDbControl"
         app:layout_constraintTop_toTopOf="@id/btnUi" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
