@@ -21,7 +21,7 @@ import com.dongah.dispenser.basefunction.UiSeq;
  * Use the {@link OperationStopFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class OperationStopFragment extends Fragment {
+public class OperationStopFragment extends Fragment implements View.OnClickListener {
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -73,6 +73,7 @@ public class OperationStopFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_operation_stop, container, false);
+        view.setOnClickListener(this);
         imageViewOpStop = view.findViewById(R.id.imageViewOpStop);
 
         // imageViewOpStop animation
@@ -83,9 +84,13 @@ public class OperationStopFragment extends Fragment {
         fadeAnimator.setInterpolator(new AccelerateDecelerateInterpolator());
         fadeAnimator.start();
 
-        view.setOnClickListener(v -> {
-            ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.FAULT, "FAULT", null);;
-        });
         return view;
+    }
+
+    @Override
+    public void onClick(View v) {
+        if (!isAdded()) return;
+        ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.FAULT);
+        ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.FAULT, "FAULT", null);
     }
 }
