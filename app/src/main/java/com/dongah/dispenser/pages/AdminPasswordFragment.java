@@ -20,6 +20,9 @@ import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.R;
 import com.dongah.dispenser.basefunction.UiSeq;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.text.SimpleDateFormat;
 import java.util.Objects;
 
@@ -29,6 +32,7 @@ import java.util.Objects;
  * create an instance of this fragment.
  */
 public class AdminPasswordFragment extends Fragment implements View.OnClickListener {
+    private static final Logger logger = LoggerFactory.getLogger(AdminPasswordFragment.class);
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER

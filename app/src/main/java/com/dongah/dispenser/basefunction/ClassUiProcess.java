@@ -1,5 +1,7 @@
 package com.dongah.dispenser.basefunction;
 
+import android.util.Log;
+
 import androidx.fragment.app.Fragment;
 
 import com.dongah.dispenser.MainActivity;
@@ -77,8 +79,12 @@ public class ClassUiProcess  {
     }
 
     public void onHome() {
-        setUiSeq(UiSeq.INIT);
-        fragmentChange.onFragmentChange(getCh(), UiSeq.INIT, "INIT", null);
+        try {
+            setUiSeq(UiSeq.INIT);
+            fragmentChange.onFragmentChange(getCh(), UiSeq.INIT, "INIT", null);
+        } catch (Exception e) {
+            Log.e("ClassUiProcess", "onHome error ", e);
+        }
     }
 
 

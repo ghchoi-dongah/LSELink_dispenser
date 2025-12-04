@@ -16,12 +16,16 @@ import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.R;
 import com.dongah.dispenser.basefunction.UiSeq;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * A simple {@link Fragment} subclass.
  * Use the {@link ScreenSaverFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class ScreenSaverFragment extends Fragment {
+public class ScreenSaverFragment extends Fragment implements View.OnClickListener {
+    private static final Logger logger = LoggerFactory.getLogger(ScreenSaverFragment.class);
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -73,6 +77,7 @@ public class ScreenSaverFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_screen_saver, container, false);
+        view.setOnClickListener(this);
         textViewScreenSaverMessage = view.findViewById(R.id.textViewScreenSaverMessage);
 
         // textViewScreenSaverMessage animation
@@ -83,12 +88,14 @@ public class ScreenSaverFragment extends Fragment {
         fadeAnimator.setInterpolator(new AccelerateDecelerateInterpolator());
         fadeAnimator.start();
 
-        view.setOnClickListener(v -> {
-            if (!isAdded()) return;
-            System.out.println("ScreenSaverFragment mChannel: " + mChannel);
-            ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.INIT);
-            ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.INIT, "INIT", null);
-        });
         return view;
+    }
+
+    @Override
+    public void onClick(View v) {
+        if (!isAdded()) return;
+        System.out.println("ScreenSaverFragment mChannel: " + mChannel);
+        ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.INIT);
+        ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.INIT, "INIT", null);
     }
 }
