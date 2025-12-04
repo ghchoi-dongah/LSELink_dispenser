@@ -16,12 +16,16 @@ import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.R;
 import com.dongah.dispenser.basefunction.UiSeq;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * A simple {@link Fragment} subclass.
  * Use the {@link ConnectionFailedFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class ConnectionFailedFragment extends Fragment {
+public class ConnectionFailedFragment extends Fragment implements View.OnClickListener {
+    private static final Logger logger = LoggerFactory.getLogger(ConnectionFailedFragment.class);
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -73,6 +77,7 @@ public class ConnectionFailedFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_connection_failed, container, false);
+        view.setOnClickListener(this);
         imageViewConnectionFailed = view.findViewById(R.id.imageViewConnectionFailed);
 
         // imageViewConnectionFailed animation
@@ -83,11 +88,13 @@ public class ConnectionFailedFragment extends Fragment {
         fadeAnimator.setInterpolator(new AccelerateDecelerateInterpolator());
         fadeAnimator.start();
 
-        view.setOnClickListener(v -> {
-            if (!isAdded()) return;
-
-            ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.MEMBER_CARD_NO_MAC, "MEMBER_CARD_NO_MAC", null);
-        });
         return view;
+    }
+
+    @Override
+    public void onClick(View v) {
+        if (!isAdded()) return;
+        ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.MEMBER_CARD_NO_MAC);
+        ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.MEMBER_CARD_NO_MAC, "MEMBER_CARD_NO_MAC", null);
     }
 }
