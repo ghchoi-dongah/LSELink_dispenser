@@ -17,12 +17,18 @@ import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.R;
 import com.dongah.dispenser.basefunction.UiSeq;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Objects;
+
 /**
  * A simple {@link Fragment} subclass.
  * Use the {@link ChargingFinishFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class ChargingFinishFragment extends Fragment {
+public class ChargingFinishFragment extends Fragment implements View.OnClickListener {
+    private static final Logger logger = LoggerFactory.getLogger(ChargingFinishFragment.class);
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -74,10 +80,17 @@ public class ChargingFinishFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_charging_finish, container, false);
         btnCheck = view.findViewById(R.id.btnCheck);
-        btnCheck.setOnClickListener(v -> {
+        btnCheck.setOnClickListener(this);
+        return view;
+    }
+
+    @Override
+    public void onClick(View v) {
+        if (!isAdded()) return;
+
+        if (Objects.equals(v.getId(), R.id.btnCheck)) {
             ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.INIT);
             ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.INIT, "INIT", null);
-        });
-        return view;
+        }
     }
 }
