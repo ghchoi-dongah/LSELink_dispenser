@@ -97,6 +97,7 @@ public class FragmentChange {
                 } catch (Exception e) {
                     logger.error("onFragmentChange error : MEMBER_CARD {}", e.getMessage());
                 }
+                break;
             case MEMBER_CARD_NO_MAC:
                 try {
                     onFrameLayoutChange(false);
