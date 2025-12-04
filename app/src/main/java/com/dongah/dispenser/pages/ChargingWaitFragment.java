@@ -20,12 +20,16 @@ import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.R;
 import com.dongah.dispenser.basefunction.UiSeq;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * A simple {@link Fragment} subclass.
  * Use the {@link ChargingWaitFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class ChargingWaitFragment extends Fragment {
+public class ChargingWaitFragment extends Fragment implements View.OnClickListener {
+    private static final Logger logger = LoggerFactory.getLogger(ChargingWaitFragment.class);
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -87,6 +91,7 @@ public class ChargingWaitFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_charging_wait, container, false);
+        view.setOnClickListener(this);
         linearLayoutLoadingContainer = view.findViewById(R.id.linearLayoutLoadingContainer);
         handler = new Handler(Looper.getMainLooper());
 
@@ -103,17 +108,16 @@ public class ChargingWaitFragment extends Fragment {
             dotDrawables[i] = gd;
         }
 
-        // 화면 전체 클릭 시 다음 프래그먼트로 전환
-        view.setOnClickListener(v -> {
-            if (!isAdded()) return;
-
-            // 애니메이션 중지
-            stopDotLoop();
-            ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.CHARGING);
-            ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.CHARGING, "CHARGING", null);
-        });
-
         return view;
+    }
+
+    @Override
+    public void onClick(View v) {
+        if (!isAdded()) return;
+
+        stopDotLoop(); // 애니메이션 중지
+        ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.CHARGING);
+        ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.CHARGING, "CHARGING", null);
     }
 
     private final Runnable loop = new Runnable() {
