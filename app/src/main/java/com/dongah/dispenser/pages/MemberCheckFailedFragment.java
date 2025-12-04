@@ -21,7 +21,7 @@ import com.dongah.dispenser.basefunction.UiSeq;
  * Use the {@link MemberCheckFailedFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class MemberCheckFailedFragment extends Fragment {
+public class MemberCheckFailedFragment extends Fragment implements View.OnClickListener {
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -73,6 +73,7 @@ public class MemberCheckFailedFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_member_check_failed, container, false);
+        view.setOnClickListener(this);
         textViewFailed = view.findViewById(R.id.textViewFailed);
 
         // textViewFailed animation
@@ -83,11 +84,13 @@ public class MemberCheckFailedFragment extends Fragment {
         fadeAnimator.setInterpolator(new AccelerateDecelerateInterpolator());
         fadeAnimator.start();
 
-        view.setOnClickListener(v -> {
-            if (!isAdded()) return;
-
-            ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.SEQUENTIAL_CHARGING, "SEQUENTIAL_CHARGING", null);
-        });
         return view;
+    }
+
+    @Override
+    public void onClick(View v) {
+        if (!isAdded()) return;
+        ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.SEQUENTIAL_CHARGING);
+        ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.SEQUENTIAL_CHARGING, "SEQUENTIAL_CHARGING", null);
     }
 }
