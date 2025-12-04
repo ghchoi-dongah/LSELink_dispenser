@@ -109,7 +109,7 @@ public class ChargingWaitFragment extends Fragment {
 
             // 애니메이션 중지
             stopDotLoop();
-
+            ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.CHARGING);
             ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.CHARGING, "CHARGING", null);
         });
 

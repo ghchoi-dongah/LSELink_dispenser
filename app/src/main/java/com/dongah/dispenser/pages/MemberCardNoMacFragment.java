@@ -108,7 +108,8 @@ public class MemberCardNoMacFragment extends Fragment {
                 public void run() {
                     timer--;
                     if (Objects.equals(timer, 0)) {
-                        ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.MEMBER_CHECK_FAILED, "MEMBER_CHECK_FAILED", null);
+                        ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.CHARGING);
+                        ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.CHARGING, "CHARGING", null);
                     } else {
                         countHandler.postDelayed(countRunnable, 1000);
                         textViewTagTimer.setText(timer + "초");

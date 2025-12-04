@@ -75,6 +75,7 @@ public class ChargingFinishFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_charging_finish, container, false);
         btnCheck = view.findViewById(R.id.btnCheck);
         btnCheck.setOnClickListener(v -> {
+            ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.INIT);
             ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.INIT, "INIT", null);
         });
         return view;

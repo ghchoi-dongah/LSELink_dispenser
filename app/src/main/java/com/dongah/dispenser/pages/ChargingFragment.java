@@ -91,6 +91,7 @@ public class ChargingFragment extends Fragment {
         startBlink();        // 깜빡임 시작
 
         btnChargingStop.setOnClickListener(v -> {
+            ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.FINISH_WAIT);
             ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.FINISH_WAIT, "FINISH_WAIT", null);
         });
 

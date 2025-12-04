@@ -1,14 +1,28 @@
 package com.dongah.dispenser.pages;
 
+import android.annotation.SuppressLint;
+import android.graphics.drawable.AnimationDrawable;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.TextView;
 
+import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.R;
+import com.dongah.dispenser.basefunction.UiSeq;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Objects;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -17,14 +31,25 @@ import com.dongah.dispenser.R;
  */
 public class MemberCardFragment extends Fragment {
 
+    private static final Logger logger = LoggerFactory.getLogger(MemberCardFragment.class);
+
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
+    private static final String CHANNEL = "CHANNEL";
 
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
+    private int mChannel;
+
+    int timer = 10;
+    TextView textViewTagTimer;
+    ImageView imageViewMemberCard;
+    AnimationDrawable animationDrawable;
+    Handler countHandler;
+    Runnable countRunnable;
 
     public MemberCardFragment() {
         // Required empty public constructor
@@ -54,13 +79,56 @@ public class MemberCardFragment extends Fragment {
         if (getArguments() != null) {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
+            mChannel = getArguments().getInt(CHANNEL);
         }
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_member_card, container, false);
+        View view = inflater.inflate(R.layout.fragment_member_card, container, false);
+        textViewTagTimer = view.findViewById(R.id.textViewTagTimer);
+        imageViewMemberCard = view.findViewById(R.id.imageViewMemberCard);
+        imageViewMemberCard.setBackgroundResource(R.drawable.membercardtagging);
+        animationDrawable = (AnimationDrawable) imageViewMemberCard.getBackground();
+        return view;
+    }
+
+    @SuppressLint("SetTextI18n")
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        try {
+            animationDrawable.start();
+            textViewTagTimer.setText(timer + "초");
+
+            countHandler = new Handler();
+            countRunnable = new Runnable() {
+                @Override
+                public void run() {
+                    timer--;
+                    if (Objects.equals(timer, 0)) {
+                        ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.MEMBER_CHECK_WAIT, "MEMBER_CHECK_WAIT", null);
+                    } else {
+                        countHandler.postDelayed(countRunnable, 1000);
+                        textViewTagTimer.setText(timer + "초");
+                    }
+                }
+            };
+            countHandler.postDelayed(countRunnable, 1000);
+        } catch (Exception e) {
+            logger.error("MemberCardNoMacFragment error: {}", e.getMessage());
+        }
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        animationDrawable.stop();
+        ((AnimationDrawable) imageViewMemberCard.getBackground()).stop();
+        imageViewMemberCard.setBackground(null);
+        countHandler.removeCallbacks(countRunnable);
+        countHandler.removeCallbacksAndMessages(null);
+        countHandler.removeMessages(0);
     }
 }

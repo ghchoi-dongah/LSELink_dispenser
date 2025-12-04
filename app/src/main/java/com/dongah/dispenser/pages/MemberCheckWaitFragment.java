@@ -56,8 +56,8 @@ public class MemberCheckWaitFragment extends Fragment implements View.OnClickLis
     ChargingCurrentData chargingCurrentData;
     ChargerConfiguration chargerConfiguration;
 
-    Handler countHandler;
-    Runnable countRunnable;
+//    Handler countHandler;
+//    Runnable countRunnable;
 
     public MemberCheckWaitFragment() {
         // Required empty public constructor
@@ -149,13 +149,28 @@ public class MemberCheckWaitFragment extends Fragment implements View.OnClickLis
             if (!isAdded()) return;
             stopAviAnim();
 
-            if (mChannel == 0) {
-                ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.CHARGING_WAIT);
-                ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.CHARGING_WAIT, "CHARGING_WAIT", null);
-            } else {
-                ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.CONNECTION_FAILED);
-                ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.CONNECTION_FAILED, "CONNECTION_FAILED", null);
+            switch (Integer.parseInt(chargerConfiguration.getAuthMode())) {
+                case 0:
+                case 1:
+                    ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.CHARGING_WAIT);
+                    ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.CHARGING_WAIT, "CHARGING_WAIT", null);
+                    break;
+                case 2:
+                    ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.MEMBER_CARD_NO_MAC);
+                    ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.MEMBER_CARD_NO_MAC, "MEMBER_CARD_NO_MAC", null);
+                    break;
+                default:
+                    logger.error("MemberCheckWaitFragment onClick error >> Invalid value");
+                    break;
             }
+
+//            if (mChannel == 0) {
+//                ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.CHARGING_WAIT);
+//                ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.CHARGING_WAIT, "CHARGING_WAIT", null);
+//            } else {
+//                ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.CONNECTION_FAILED);
+//                ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.CONNECTION_FAILED, "CONNECTION_FAILED", null);
+//            }
         } catch (Exception e) {
             Log.e("MemberCheckWaitFragment", "onClick error", e);
             logger.error("MemberCheckWaitFragment onClick error : {}", e.getMessage());
@@ -211,9 +226,9 @@ public class MemberCheckWaitFragment extends Fragment implements View.OnClickLis
     public void onDetach() {
         super.onDetach();
         try {
-            countHandler.removeCallbacks(countRunnable);
-            countHandler.removeCallbacksAndMessages(null);
-            countHandler.removeMessages(0);
+//            countHandler.removeCallbacks(countRunnable);
+//            countHandler.removeCallbacksAndMessages(null);
+//            countHandler.removeMessages(0);
         } catch (Exception e) {
             Log.e("MemberCheckWaitFragment", "onDetach error", e);
             logger.error("MemberCheckWaitFragment onDetach error : {}", e.getMessage());
