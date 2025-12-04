@@ -182,6 +182,8 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // 3. control board
+//        controlBoard = new ControlBoard(GlobalVariables.maxChannel, chargerConfiguration.getControlCom());
+
         // 4. rf card reader : MID = terminal ID
         // 5. web socket
 

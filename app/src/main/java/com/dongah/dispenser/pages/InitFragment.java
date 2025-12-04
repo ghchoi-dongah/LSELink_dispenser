@@ -126,6 +126,7 @@ public class InitFragment extends Fragment implements View.OnClickListener {
             // chargingCurrentData.onCurrentDataClear();   // clear
 
             if (!isAdded()) return;
+            ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.MEMBER_CHECK_WAIT);
             ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.MEMBER_CHECK_WAIT, "MEMBER_CHECK_WAIT", null);
 
         } catch (Exception e) {
