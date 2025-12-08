@@ -9,6 +9,8 @@ import com.dongah.dispenser.R;
 import com.dongah.dispenser.TECH3800.TLS3800;
 import com.dongah.dispenser.TECH3800.TLS3800Listener;
 import com.dongah.dispenser.controlboard.ControlBoard;
+import com.dongah.dispenser.rfcard.RfCardReaderListener;
+import com.dongah.dispenser.rfcard.RfCardReaderReceive;
 import com.dongah.dispenser.websocket.ocpp.core.Reason;
 import com.dongah.dispenser.websocket.ocpp.core.ResetType;
 
@@ -30,6 +32,7 @@ public class ClassUiProcess  {
     FragmentChange fragmentChange;
     TLS3800 tls3800;
     ControlBoard controlBoard;
+    RfCardReaderReceive rfCardReaderReceive;
 
     /**
      * MeterValue Thread
@@ -62,6 +65,9 @@ public class ClassUiProcess  {
             setUiSeq(UiSeq.INIT);
 
             // rf card
+            rfCardReaderReceive = ((MainActivity) MainActivity.mContext).getRfCardReaderReceive();
+            rfCardReaderReceive.setRfCardReaderListener((RfCardReaderListener) this);
+            // payment
             tls3800 = ((MainActivity) MainActivity.mContext).getTls3800();
             tls3800.setTls3800Listener((TLS3800Listener) this);
             // configuration
