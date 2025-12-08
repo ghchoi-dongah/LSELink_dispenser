@@ -154,6 +154,8 @@ public class InitFragment extends Fragment implements View.OnClickListener {
                 Log.d("InitFragment", "getOpMode(): test mode");
                 double testPrice = Double.parseDouble(((MainActivity) MainActivity.mContext).getChargerConfiguration().getTestPrice());
                 ((MainActivity) MainActivity.mContext).getChargingCurrentData(mChannel).setPowerUnitPrice(testPrice);
+                ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.CHARGING_WAIT);
+                ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.CHARGING_WAIT, "CHARGING_WAIT", null);
             } else if (Objects.equals(chargerConfiguration.getOpMode(), "1")) {
                 // server mode
                 Log.d("InitFragment", "getOpMode(): server mode");
@@ -163,7 +165,22 @@ public class InitFragment extends Fragment implements View.OnClickListener {
                 }
                 try {
                     SocketState socketState = ((MainActivity) MainActivity.mContext).getSocketReceiveMessage().getSocket().getState();
-                    if (!Objects.equals(socketState, SocketState.OPEN)) {
+                    if (Objects.equals(socketState, SocketState.OPEN)) {
+                        switch (Integer.parseInt(chargerConfiguration.getAuthMode())) {
+                            case 0:
+                            case 2:
+                                ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.MEMBER_CHECK_WAIT);
+                                ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.MEMBER_CHECK_WAIT, "MEMBER_CHECK_WAIT", null);
+                                break;
+                            case 1:
+                                ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.MEMBER_CARD);
+                                ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.MEMBER_CARD, "MEMBER_CARD", null);
+                                break;
+                            default:
+                                logger.error("InitFragment onClick error >> Invalid value");
+                                break;
+                        }
+                    } else {
                         ((MainActivity) MainActivity.mContext).getToastPositionMake().onShowToast(mChannel, "서버 연결 DISCONNECT.\n충전을 할 수 없습니다.");
                     }
                 } catch (Exception e) {
@@ -171,21 +188,6 @@ public class InitFragment extends Fragment implements View.OnClickListener {
                     Log.e("InitFragment", "server disconnect error", e);
                     logger.error("InitFragment server disconnect error : {}", e.getMessage());
                 }
-            }
-
-            switch (Integer.parseInt(chargerConfiguration.getAuthMode())) {
-                case 0:
-                case 2:
-                    ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.MEMBER_CHECK_WAIT);
-                    ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.MEMBER_CHECK_WAIT, "MEMBER_CHECK_WAIT", null);
-                    break;
-                case 1:
-                    ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.MEMBER_CARD);
-                    ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.MEMBER_CARD, "MEMBER_CARD", null);
-                    break;
-                default:
-                    logger.error("InitFragment onClick error >> Invalid value");
-                    break;
             }
 
         } catch (Exception e) {
