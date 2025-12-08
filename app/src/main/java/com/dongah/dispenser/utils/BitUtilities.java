@@ -23,6 +23,21 @@ public class BitUtilities {
         return (value & (1 << i)) != 0;
     }
 
+    public static int makeInt(byte b1, byte b0) {
+        return (((b1 & 0xff) << 8) | ((b0 & 0xff)));
+    }
+
+    /**
+     * hex array -> String
+     */
+    public static String byteArrayToString(byte[] bytes) {
+        StringBuilder sb = new StringBuilder();
+        for (byte b : bytes) {
+            sb.append(String.format("%02X", b & 0xff));
+        }
+        return sb.toString();
+    }
+
     public static byte[] ShortToByteArray(short value) {
         byte[] byteArray = new byte[2];
         try {

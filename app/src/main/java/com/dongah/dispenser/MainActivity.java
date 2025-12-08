@@ -29,6 +29,7 @@ import com.dongah.dispenser.basefunction.ChargingCurrentData;
 import com.dongah.dispenser.basefunction.ClassUiProcess;
 import com.dongah.dispenser.basefunction.ConfigurationKeyRead;
 import com.dongah.dispenser.controlboard.ControlBoard;
+import com.dongah.dispenser.rfcard.RfCardReaderReceive;
 import com.dongah.dispenser.sqlite.SQLiteHelper;
 import com.dongah.dispenser.basefunction.FragmentChange;
 import com.dongah.dispenser.basefunction.FragmentCurrent;
@@ -79,6 +80,7 @@ public class MainActivity extends AppCompatActivity {
     FragmentCurrent fragmentCurrent;
 
     ControlBoard controlBoard;
+    RfCardReaderReceive rfCardReaderReceive;
     TLS3800 tls3800;
 
 
@@ -117,6 +119,10 @@ public class MainActivity extends AppCompatActivity {
 
     public ControlBoard getControlBoard() {
         return controlBoard;
+    }
+
+    public RfCardReaderReceive getRfCardReaderReceive() {
+        return rfCardReaderReceive;
     }
 
     public TLS3800 getTls3800() {
