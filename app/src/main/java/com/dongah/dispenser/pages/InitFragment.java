@@ -4,6 +4,8 @@ import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
@@ -14,16 +16,21 @@ import android.view.ViewGroup;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.R;
 import com.dongah.dispenser.basefunction.ChargerConfiguration;
+import com.dongah.dispenser.basefunction.ChargerPointType;
 import com.dongah.dispenser.basefunction.ChargingCurrentData;
+import com.dongah.dispenser.basefunction.GlobalVariables;
 import com.dongah.dispenser.basefunction.UiSeq;
+import com.dongah.dispenser.websocket.socket.SocketState;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.util.Objects;
 
 /**
@@ -121,11 +128,50 @@ public class InitFragment extends Fragment implements View.OnClickListener {
     }
 
     @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        try {
+            chargingCurrentData = ((MainActivity) MainActivity.mContext).getChargingCurrentData(mChannel);
+        } catch (Exception e) {
+            Log.e("InitFragment", "onViewCreated error", e);
+            logger.error("InitFragment onViewCreated : {}", e.getMessage());
+        }
+    }
+
+    @Override
     public void onClick(View v) {
         try {
-            // chargingCurrentData.onCurrentDataClear();   // clear
+            chargingCurrentData.onCurrentDataClear();   // clear
+            chargingCurrentData.setConnectorId(mChannel + 1);
+
+            ((MainActivity) MainActivity.mContext).getChargingCurrentData(mChannel).setChargerPointType(ChargerPointType.COMBO);
+            ((MainActivity) MainActivity.mContext).getChargingCurrentData(mChannel).setConnectorId(mChannel + 1);
 
             if (!isAdded()) return;
+
+            if (Objects.equals(chargerConfiguration.getOpMode(), "0")) {
+                // test mode
+                Log.d("InitFragment", "getOpMode(): test mode");
+                double testPrice = Double.parseDouble(((MainActivity) MainActivity.mContext).getChargerConfiguration().getTestPrice());
+                ((MainActivity) MainActivity.mContext).getChargingCurrentData(mChannel).setPowerUnitPrice(testPrice);
+            } else if (Objects.equals(chargerConfiguration.getOpMode(), "1")) {
+                // server mode
+                Log.d("InitFragment", "getOpMode(): server mode");
+                if (!onUnitPrice()) {
+                    Toast.makeText(getActivity(), "단가 정보가 없습니다.\n잠시 후, 충전하세요!", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                try {
+                    SocketState socketState = ((MainActivity) MainActivity.mContext).getSocketReceiveMessage().getSocket().getState();
+                    if (!Objects.equals(socketState, SocketState.OPEN)) {
+                        ((MainActivity) MainActivity.mContext).getToastPositionMake().onShowToast(mChannel, "서버 연결 DISCONNECT.\n충전을 할 수 없습니다.");
+                    }
+                } catch (Exception e) {
+                    ((MainActivity) MainActivity.mContext).getToastPositionMake().onShowToast(mChannel, "서버 연결 DISCONNECT.\n충전을 할 수 없습니다.");
+                    Log.e("InitFragment", "server disconnect error", e);
+                    logger.error("InitFragment server disconnect error : {}", e.getMessage());
+                }
+            }
 
             switch (Integer.parseInt(chargerConfiguration.getAuthMode())) {
                 case 0:
@@ -146,6 +192,17 @@ public class InitFragment extends Fragment implements View.OnClickListener {
             Log.e("InitFragment", "onClick error", e);
             logger.error("InitFragment onClick error : {}", e.getMessage());
         }
+    }
+
+    private boolean onUnitPrice() {
+        boolean result = false;
+        try {
+            File file = new File(GlobalVariables.getRootPath() + File.separator + GlobalVariables.UNIT_FILE_NAME);
+            result = file.exists() || !Objects.equals(chargerConfiguration.getOpMode(), "1");
+        } catch (Exception e) {
+            logger.error("InitFragment onUnitPrice error : {}" ,e.getMessage());
+        }
+        return result;
     }
 
     @Override

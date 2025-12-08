@@ -36,6 +36,7 @@ import com.dongah.dispenser.basefunction.FragmentCurrent;
 import com.dongah.dispenser.basefunction.GlobalVariables;
 import com.dongah.dispenser.basefunction.UiSeq;
 import com.dongah.dispenser.sqlite.dto.CpSettings;
+import com.dongah.dispenser.utils.ToastPositionMake;
 import com.dongah.dispenser.websocket.socket.SocketReceiveMessage;
 
 import org.slf4j.Logger;
@@ -82,6 +83,7 @@ public class MainActivity extends AppCompatActivity {
     ControlBoard controlBoard;
     RfCardReaderReceive rfCardReaderReceive;
     TLS3800 tls3800;
+    ToastPositionMake toastPositionMake;
 
 
 
@@ -129,6 +131,10 @@ public class MainActivity extends AppCompatActivity {
         return tls3800;
     }
 
+    public ToastPositionMake getToastPositionMake() {
+        return toastPositionMake;
+    }
+
     public FragmentChange getFragmentChange() {
         return fragmentChange;
     }
@@ -174,6 +180,7 @@ public class MainActivity extends AppCompatActivity {
         // ConfigurationKey read
         configurationKeyRead = new ConfigurationKeyRead();
         configurationKeyRead.onRead();
+        toastPositionMake = new ToastPositionMake(this);
 
         // 1. charger configuration, ConfigurationKey read
         chargerConfiguration = new ChargerConfiguration();
@@ -197,18 +204,22 @@ public class MainActivity extends AppCompatActivity {
 
         // modem data
 
-        // server mode
         // 6. classUiProcess
-//        chargingCurrentData = new ChargingCurrentData[GlobalVariables.maxChannel];
-//        for (int i = 0; i < GlobalVariables.maxChannel; i++) {
-//            chargingCurrentData[i] = new ChargingCurrentData();
-//            chargingCurrentData[i].onCurrentDataClear();
-//        }
+        chargingCurrentData = new ChargingCurrentData[GlobalVariables.maxChannel];
+        for (int i = 0; i < GlobalVariables.maxChannel; i++) {
+            chargingCurrentData[i] = new ChargingCurrentData();
+            chargingCurrentData[i].onCurrentDataClear();
+        }
 
         classUiProcess = new ClassUiProcess[GlobalVariables.maxChannel];
         for (int i = 0; i < GlobalVariables.maxChannel; i++) {
             classUiProcess[i] = new ClassUiProcess(i);
             classUiProcess[i].setUiSeq(UiSeq.INIT);
+        }
+
+        // server mode
+        if (Objects.equals(chargerConfiguration.getAuthMode(), "1")) {
+            // TODO: sendOcppAuthInfoRequest();
         }
 
         // 7. PLC modem
