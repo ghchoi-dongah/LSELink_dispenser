@@ -7,6 +7,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Base64;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
@@ -240,7 +241,7 @@ public class SocketReceiveMessage extends JSONCommunicator implements SocketInte
     public SocketReceiveMessage(String url) {
         this.url = url;
         fragmentChange = ((MainActivity) MainActivity.mContext).getFragmentChange();
-//        processHandler = ((MainActivity) MainActivity.mContext).getProcessHandler();
+        processHandler = ((MainActivity) MainActivity.mContext).getProcessHandler();
         zonedDateTimeConvert = new ZonedDateTimeConvert();
         fileManagement = new FileManagement();
         Collections.addAll(actionList, actionNames);
@@ -379,17 +380,6 @@ public class SocketReceiveMessage extends JSONCommunicator implements SocketInte
                                                 null,
                                                 null,
                                                 false));
-                                        // Custom Unit Price
-//                                        GlobalVariables.setCustomUnitPriceReq(true);
-//                                        GlobalVariables.setHumaxUserType("A");
-//                                        processHandler.sendMessage(onMakeHandlerMessage(
-//                                                GlobalVariables.MESSAGE_CUSTOM_UNIT_PRICE,
-//                                                connectorId,
-//                                                0,
-//                                                null,
-//                                                null,
-//                                                GlobalVariables.getHumaxUserType(),
-//                                                false));
                                     } else if (Objects.equals(status, RegistrationStatus.Rejected)) {
                                         processHandler.sendMessage(onMakeHandlerMessage(
                                                 GlobalVariables.MESSAGE_HANDLER_BOOT_NOTIFICATION,
@@ -436,35 +426,27 @@ public class SocketReceiveMessage extends JSONCommunicator implements SocketInte
                                         chargingCurrentData.setParentIdTag(parentIdTag);
                                         boolean ocppMode = ((MainActivity) MainActivity.mContext).getChargerConfiguration().isStopConfirm();
                                         //OCPP 인증이 연부 확인
-//                                        if (!ocppMode && Objects.equals(chargerConfiguration.getAuthMode(), "0")) {
-//                                            //custom unit price
-//                                            GlobalVariables.setHumaxUserType("A");
-//                                            processHandler.sendMessage(onMakeHandlerMessage(
-//                                                    GlobalVariables.MESSAGE_CUSTOM_UNIT_PRICE,
-//                                                    chargingCurrentData.getConnectorId(),
-//                                                    0,
-//                                                    chargingCurrentData.getIdTag(),
-//                                                    null,
-//                                                    GlobalVariables.getHumaxUserType(),       /////////Customer unit price 에서만 userType(A:회원, B:비회원) 사용 한다.
-//                                                    false));
-//                                        } else {
-//                                            chargingCurrentData.setPowerUnitPrice(Double.parseDouble(chargerConfiguration.getTestPrice()));
-//                                            ((MainActivity) MainActivity.mContext).getClassUiProcess(getChannel()).setUiSeq(UiSeq.PLUG_CHECK);
-//                                            fragmentChange.onFragmentChange(getChannel(), UiSeq.PLUG_CHECK, "PLUG_CHECK", null);
-//                                        }
 
-//                                        if (!Objects.equals(chargingCurrentData.getChargePointStatus(), ChargePointStatus.Preparing) &&
-//                                                Objects.equals(chargerConfiguration.getAuthMode(), "0")) {
-//                                            chargingCurrentData.setChargePointStatus(ChargePointStatus.Preparing);
-//                                            processHandler.sendMessage(onMakeHandlerMessage(
-//                                                    GlobalVariables.MESSAGE_HANDLER_STATUS_NOTIFICATION,
-//                                                    chargingCurrentData.getConnectorId(),
-//                                                    0,
-//                                                    null,
-//                                                    null,
-//                                                    null,
-//                                                    false));
-//                                        }
+                                        // test mode
+                                        if (ocppMode && !Objects.equals(chargerConfiguration.getAuthMode(), "1")) {
+                                            Log.d("SocketReceiveMessage", "ocpp check");
+                                            chargingCurrentData.setPowerUnitPrice(Double.parseDouble(chargerConfiguration.getTestPrice()));
+                                            ((MainActivity) MainActivity.mContext).getClassUiProcess(getChannel()).setUiSeq(UiSeq.CHARGING_WAIT);
+                                            fragmentChange.onFragmentChange(getChannel(), UiSeq.CHARGING_WAIT, "CHARGING_WAIT", null);
+                                        }
+
+                                        if (!Objects.equals(chargingCurrentData.getChargePointStatus(), ChargePointStatus.Preparing) &&
+                                                Objects.equals(chargerConfiguration.getAuthMode(), "1")) {
+                                            chargingCurrentData.setChargePointStatus(ChargePointStatus.Preparing);
+                                            processHandler.sendMessage(onMakeHandlerMessage(
+                                                    GlobalVariables.MESSAGE_HANDLER_STATUS_NOTIFICATION,
+                                                    chargingCurrentData.getConnectorId(),
+                                                    0,
+                                                    null,
+                                                    null,
+                                                    null,
+                                                    false));
+                                        }
                                     }
                                 } else {
                                     String certificationReason = status.name();
@@ -683,104 +665,6 @@ public class SocketReceiveMessage extends JSONCommunicator implements SocketInte
                                             null,
                                             false));
                                 }
-                            } else if (Objects.equals("CustomUnitPrice", actionName)) {
-                                DataTransferStatus status = DataTransferStatus.valueOf(jsonObject.getString("status"));
-                                if (Objects.equals(DataTransferStatus.Accepted, status)) {
-//                                    String idTag;
-//                                    UiSeq currentSeq ;
-//                                    try {
-//                                        currentSeq = ((MainActivity) MainActivity.mContext).getClassUiProcess(channel).getUiSeq();
-//                                    } catch (Exception e) {
-//                                        currentSeq = UiSeq.FINISH;
-//                                    }
-//                                    try {
-//                                        idTag = chargingCurrentData.getIdTag();
-//                                    } catch (Exception e) {
-//                                        idTag = "";
-//                                    }
-//                                    if (TextUtils.isEmpty(idTag) || currentSeq == UiSeq.FAULT ||
-//                                            currentSeq == UiSeq.FINISH_WAIT || currentSeq == UiSeq.FINISH) {
-//                                    if (GlobalVariables.isCustomUnitPriceReq()) {
-//                                        String dataStr = jsonObject.getString("data");
-//                                        JSONObject dataJson = new JSONObject(dataStr);
-//                                        dataJson.put("userType", GlobalVariables.getHumaxUserType());
-//                                        //////
-//                                        boolean chk;
-//                                        File file = new File(GlobalVariables.getRootPath() + File.separator + GlobalVariables.UNIT_FILE_NAME);
-//
-//                                        if (file.exists() && fileManagement.countFileRows(file) >= 2 ) chk = file.delete();
-//                                        chk = fileManagement.stringToFileSave(GlobalVariables.getRootPath(), GlobalVariables.UNIT_FILE_NAME, dataJson.toString(), true);
-//                                        if (Objects.equals(GlobalVariables.getHumaxUserType(), "A")) {
-//                                            GlobalVariables.setHumaxUserType("B");
-//                                            // Custom Unit Price
-//                                            processHandler.sendMessage(onMakeHandlerMessage(
-//                                                    GlobalVariables.MESSAGE_CUSTOM_UNIT_PRICE,
-//                                                    connectorId,
-//                                                    0,
-//                                                    null,
-//                                                    null,
-//                                                    GlobalVariables.getHumaxUserType(),
-//                                                    false));
-//
-//                                            //CustomStatusNoti
-//                                            processHandler.sendMessage(onMakeHandlerMessage(
-//                                                    GlobalVariables.MESSAGE_CUSTOM_STATUS_NOTIFICATION,
-//                                                    chargingCurrentData.getConnectorId(),
-//                                                    0,
-//                                                    null,
-//                                                    null,
-//                                                    null,
-//                                                    false));
-//
-//                                        } else if (Objects.equals(GlobalVariables.getHumaxUserType(), "B")) {
-//                                            GlobalVariables.setCustomUnitPriceReq(false);
-//                                        }
-//                                    } else {
-//                                        JSONObject data = jsonObject.has("data") ? new JSONObject(jsonObject.getString("data")) : null;
-//                                        assert data != null;
-//                                        chargingCurrentData.setHmChargingLimitFee(data.getInt("HmChargingLimitFee"));
-//                                        JSONArray jsonArrayTariff = data.getJSONArray("tariff");
-//                                        chargingCurrentData.setPowerUnitPrice(onFindUnitPrice(jsonArrayTariff));
-//                                        uiSeq = ((MainActivity) MainActivity.mContext).getClassUiProcess(getChannel()).getUiSeq();
-//                                        if (!Objects.equals(UiSeq.FINISH, uiSeq)){
-//                                            //비회원 회원인 경우 구분 (회원 : plug_wait  /  비회원 : auth_credit)
-//                                            switch (chargingCurrentData.getPaymentType().value()) {
-//                                                case 1:
-//                                                case 4:
-//                                                    ((MainActivity) MainActivity.mContext).getClassUiProcess(getChannel()).setUiSeq(UiSeq.PLUG_CHECK);
-//                                                    fragmentChange.onFragmentChange(getChannel(),UiSeq.PLUG_CHECK, "PLUG_CHECK", null);
-//                                                    break;
-//                                                case 2:
-//                                                    ((MainActivity) MainActivity.mContext).getClassUiProcess(getChannel()).setUiSeq(UiSeq.CREDIT_CARD);
-//                                                    fragmentChange.onFragmentChange(getChannel(),UiSeq.CREDIT_CARD, "CREDIT_CARD", null);
-//                                                    break;
-//                                            }
-//                                        }
-//
-//                                        //단가 Accept ==> status preparing
-//                                        if (!Objects.equals(chargingCurrentData.getChargePointStatus(), ChargePointStatus.Preparing)
-//                                                && Objects.equals(chargingCurrentData.getPowerMeterUsePay(), 0)) {
-//                                            chargingCurrentData.setChargePointStatus(ChargePointStatus.Preparing);
-//                                            processHandler.sendMessage(onMakeHandlerMessage(
-//                                                    GlobalVariables.MESSAGE_HANDLER_STATUS_NOTIFICATION,
-//                                                    chargingCurrentData.getConnectorId(),
-//                                                    0,
-//                                                    null,
-//                                                    null,
-//                                                    null,
-//                                                    false));
-//                                        } else if (Objects.equals(UiSeq.FINISH, uiSeq)) {
-//                                            // custom unit price ==> 다시 금액 계산
-//                                            chargingCurrentData.setPowerMeterUsePay(chargingCurrentData.getPowerMeterUse() * 0.01 * chargingCurrentData.getPowerUnitPrice());
-//                                            //
-//                                            ((MainActivity) MainActivity.mContext).getClassUiProcess(getChannel()).setUiSeq(UiSeq.FINISH);
-//                                            fragmentChange.onFragmentChange(getChannel(), UiSeq.FINISH, "FINISH", null);
-//                                        } else if (Objects.equals(UiSeq.FAULT, uiSeq)) {
-//                                            // custom unit price ==> 다시 금액 계산
-//                                            chargingCurrentData.setPowerMeterUsePay(chargingCurrentData.getPowerMeterUse() * 0.01 * chargingCurrentData.getPowerUnitPrice());
-//                                        }
-//                                    }
-                                }
                             } else if (Objects.equals("Payment", actionName)) {
                                 DataTransferStatus status = DataTransferStatus.valueOf(jsonObject.getString("status"));
                                 if (Objects.equals(DataTransferStatus.Accepted, status)) {
@@ -875,18 +759,6 @@ public class SocketReceiveMessage extends JSONCommunicator implements SocketInte
                                         message.getId(),
                                         null,
                                         realConnectorId > 0 ));
-
-                                // Custom Unit Price
-//                                chargingCurrentData.setPaymentType(PaymentType.APP);
-//                                GlobalVariables.setHumaxUserType("C");
-//                                processHandler.sendMessage(onMakeHandlerMessage(
-//                                        GlobalVariables.MESSAGE_CUSTOM_UNIT_PRICE,
-//                                        realConnectorId,
-//                                        0,
-//                                        idTag,
-//                                        null,
-//                                        GlobalVariables.getHumaxUserType(),
-//                                        false));
                             }
                         } else if (Objects.equals("RemoteStopTransaction", actionName)) {
                             boolean result = false;

@@ -6,11 +6,15 @@ import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.lifecycle.ViewModelProvider;
 
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,10 +22,19 @@ import android.widget.LinearLayout;
 
 import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.R;
+import com.dongah.dispenser.basefunction.ChargerConfiguration;
+import com.dongah.dispenser.basefunction.ChargingCurrentData;
+import com.dongah.dispenser.basefunction.GlobalVariables;
 import com.dongah.dispenser.basefunction.UiSeq;
+import com.dongah.dispenser.controlboard.RxData;
+import com.dongah.dispenser.utils.SharedModel;
+import com.dongah.dispenser.websocket.ocpp.core.ChargePointErrorCode;
+import com.dongah.dispenser.websocket.ocpp.core.ChargePointStatus;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Objects;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -53,6 +66,15 @@ public class ChargingWaitFragment extends Fragment implements View.OnClickListen
 
     private static final int STEP_DELAY_MS  = 600;  // 점 하나씩 표시 간격
     private static final int CYCLE_PAUSE_MS = 1000;  // 한 사이클 끝난 뒤 쉬는 시간
+
+    int cnt = 0;
+    RxData rxData;
+    Handler countHandler;
+    Runnable countRunnable;
+    SharedModel sharedModel;
+    String[] requestStrings = new String[1];
+    ChargerConfiguration chargerConfiguration;
+    ChargingCurrentData chargingCurrentData;
 
 
     public ChargingWaitFragment() {
@@ -108,7 +130,73 @@ public class ChargingWaitFragment extends Fragment implements View.OnClickListen
             dotDrawables[i] = gd;
         }
 
+        chargerConfiguration = ((MainActivity) MainActivity.mContext).getChargerConfiguration();
+        chargingCurrentData = ((MainActivity) MainActivity.mContext).getChargingCurrentData(mChannel);
         return view;
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        try {
+            sharedModel = new ViewModelProvider(requireActivity()).get(SharedModel.class);
+            requestStrings[0] = String.valueOf(mChannel);
+            sharedModel.setMutableLiveData(requestStrings);
+
+            cnt = 0;
+            rxData = ((MainActivity) MainActivity.mContext).getControlBoard().getRxData(mChannel);
+
+            // connection time out
+            ((MainActivity) MainActivity.mContext).runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    countHandler = new Handler();
+                    countRunnable = new Runnable() {
+                        @Override
+                        public void run() {
+                            cnt++;
+                            if (Objects.equals(cnt, GlobalVariables.getConnectionTimeOut())) {
+                                countHandler.removeCallbacks(countRunnable);
+                                countHandler.removeCallbacksAndMessages(null);
+                                countHandler.removeMessages(0);
+                                // 충전기 종료
+                                ((MainActivity) MainActivity.mContext).getControlBoard().getTxData(mChannel).setStart(false);
+                                ((MainActivity) MainActivity.mContext).getControlBoard().getTxData(mChannel).setStop(false);
+
+                                // preparing
+                                if (Objects.equals(chargingCurrentData.getChargePointStatus(), ChargePointStatus.Preparing) &&
+                                        Objects.equals(chargerConfiguration.getOpMode(), "1") &&
+                                        !((MainActivity) MainActivity.mContext).getControlBoard().getRxData(mChannel).isCsPilot()) {
+                                    chargingCurrentData.setChargePointStatus(ChargePointStatus.Available);
+                                    chargingCurrentData.setChargePointErrorCode(ChargePointErrorCode.NoError);
+                                    ((MainActivity) MainActivity.mContext).getProcessHandler().sendMessage(((MainActivity) MainActivity.mContext).getSocketReceiveMessage()
+                                            .onMakeHandlerMessage(
+                                                    GlobalVariables.MESSAGE_HANDLER_STATUS_NOTIFICATION,
+                                                    chargingCurrentData.getConnectorId(),
+                                                    0,
+                                                    null,
+                                                    null,
+                                                    null,
+                                                    false));
+                                }
+                                ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).onHome();
+                            } else {
+                                countHandler.postDelayed(countRunnable, 1000);
+                            }
+
+                            // TODO: connecting wait
+                            if (rxData.isCsPilot()) {
+                                cnt = 0;
+                            }
+                        }
+                    };
+                    countHandler.postDelayed(countRunnable, 1000);
+                }
+            });
+        } catch (Exception e) {
+            Log.e("ChargingWaitFragment", "onViewCreated error", e);
+            logger.error("ChargingWaitFragment onViewCreated error : {}", e.getMessage());
+        }
     }
 
     @Override
@@ -122,6 +210,7 @@ public class ChargingWaitFragment extends Fragment implements View.OnClickListen
 
     private final Runnable loop = new Runnable() {
         @Override public void run() {
+            if (!isAdded() || getView() == null) return;
             if (!running || dots == null) return;
 
             currentStep++;
@@ -145,7 +234,17 @@ public class ChargingWaitFragment extends Fragment implements View.OnClickListen
     @Override
     public void onDetach() {
         super.onDetach();
-        if (handler != null) handler.removeCallbacksAndMessages(null);
+        try {
+            if (handler != null) handler.removeCallbacksAndMessages(null);
+            if (countHandler != null) {
+                countHandler.removeCallbacks(countRunnable);
+                countHandler.removeCallbacksAndMessages(null);
+                countHandler.removeMessages(0);
+            }
+        } catch (Exception e) {
+            Log.e("ChargingWaitFragment", "onDetach error", e);
+            logger.error("ChargingWaitFragment onDetach error : {}", e.getMessage());
+        }
     }
 
     @Override

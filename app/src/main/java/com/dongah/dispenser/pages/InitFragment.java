@@ -8,6 +8,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.lifecycle.ViewModelProvider;
 
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -25,6 +26,7 @@ import com.dongah.dispenser.basefunction.ChargerPointType;
 import com.dongah.dispenser.basefunction.ChargingCurrentData;
 import com.dongah.dispenser.basefunction.GlobalVariables;
 import com.dongah.dispenser.basefunction.UiSeq;
+import com.dongah.dispenser.utils.SharedModel;
 import com.dongah.dispenser.websocket.socket.SocketState;
 
 import org.slf4j.Logger;
@@ -58,6 +60,8 @@ public class InitFragment extends Fragment implements View.OnClickListener {
 
     ChargerConfiguration chargerConfiguration;
     ChargingCurrentData chargingCurrentData;
+    SharedModel sharedModel;
+    String[] requestStrings = new String[1];
 
     public InitFragment() {
         // Required empty public constructor
@@ -132,6 +136,9 @@ public class InitFragment extends Fragment implements View.OnClickListener {
         super.onViewCreated(view, savedInstanceState);
         try {
             chargingCurrentData = ((MainActivity) MainActivity.mContext).getChargingCurrentData(mChannel);
+            sharedModel = new ViewModelProvider(requireActivity()).get(SharedModel.class);
+            requestStrings[0] = String.valueOf(0);
+            sharedModel.setMutableLiveData(requestStrings);
         } catch (Exception e) {
             Log.e("InitFragment", "onViewCreated error", e);
             logger.error("InitFragment onViewCreated : {}", e.getMessage());
@@ -220,6 +227,9 @@ public class InitFragment extends Fragment implements View.OnClickListener {
             if (imageViewConnectorBg != null) {
                 imageViewConnectorBg.clearAnimation();
             }
+
+            requestStrings[0] = String.valueOf(mChannel);
+            sharedModel.setMutableLiveData(requestStrings);
         } catch (Exception e) {
             Log.e("InitFragment", "onDetach error", e);
             logger.error("InitFragment onDetach error : {}", e.getMessage());

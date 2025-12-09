@@ -56,6 +56,8 @@ public class GlobalVariables {
     public static final int MESSAGE_HANDLER_LOCAL_LIST = 128;
     public static final int MESSAGE_HANDLER_FIRMWARE_STATUS = 129;
 
+    public static final int MESSAGE_CUSTOM_STATUS_NOTIFICATION = 131;
+
     /**
      * v-cat handler message
      */

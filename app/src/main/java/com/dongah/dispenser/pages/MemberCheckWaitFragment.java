@@ -6,6 +6,7 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 
 import android.os.Handler;
 import android.os.Looper;
@@ -20,6 +21,7 @@ import com.dongah.dispenser.basefunction.ChargerConfiguration;
 import com.dongah.dispenser.basefunction.ChargingCurrentData;
 import com.dongah.dispenser.basefunction.ClassUiProcess;
 import com.dongah.dispenser.basefunction.UiSeq;
+import com.dongah.dispenser.utils.SharedModel;
 import com.wang.avi.AVLoadingIndicatorView;
 
 import org.slf4j.Logger;
@@ -109,9 +111,9 @@ public class MemberCheckWaitFragment extends Fragment implements View.OnClickLis
         try {
             classUiProcess = ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel);
             chargerConfiguration = ((MainActivity) MainActivity.mContext).getChargerConfiguration();
-//            chargingCurrentData = ((MainActivity) MainActivity.mContext).getChargingCurrentData(mChannel);
+            chargingCurrentData = ((MainActivity) MainActivity.mContext).getChargingCurrentData(mChannel);
 
-            playMemberCardWait();
+            playMemberCardWait();   // media player
 
 //            ((MainActivity) MainActivity.mContext).runOnUiThread(new Runnable() {
 //                @Override
@@ -163,14 +165,6 @@ public class MemberCheckWaitFragment extends Fragment implements View.OnClickLis
                     logger.error("MemberCheckWaitFragment onClick error >> Invalid value");
                     break;
             }
-
-//            if (mChannel == 0) {
-//                ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.CHARGING_WAIT);
-//                ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.CHARGING_WAIT, "CHARGING_WAIT", null);
-//            } else {
-//                ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.CONNECTION_FAILED);
-//                ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.CONNECTION_FAILED, "CONNECTION_FAILED", null);
-//            }
         } catch (Exception e) {
             Log.e("MemberCheckWaitFragment", "onClick error", e);
             logger.error("MemberCheckWaitFragment onClick error : {}", e.getMessage());

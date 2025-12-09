@@ -10,11 +10,14 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.PowerManager;
+import android.text.TextUtils;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.ImageView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -29,6 +32,7 @@ import com.dongah.dispenser.basefunction.ChargingCurrentData;
 import com.dongah.dispenser.basefunction.ClassUiProcess;
 import com.dongah.dispenser.basefunction.ConfigurationKeyRead;
 import com.dongah.dispenser.controlboard.ControlBoard;
+import com.dongah.dispenser.handler.ProcessHandler;
 import com.dongah.dispenser.rfcard.RfCardReaderReceive;
 import com.dongah.dispenser.sqlite.SQLiteHelper;
 import com.dongah.dispenser.basefunction.FragmentChange;
@@ -37,12 +41,22 @@ import com.dongah.dispenser.basefunction.GlobalVariables;
 import com.dongah.dispenser.basefunction.UiSeq;
 import com.dongah.dispenser.sqlite.dto.CpSettings;
 import com.dongah.dispenser.utils.ToastPositionMake;
+import com.dongah.dispenser.websocket.ocpp.core.Reason;
+import com.dongah.dispenser.websocket.socket.HttpClientHelper;
 import com.dongah.dispenser.websocket.socket.SocketReceiveMessage;
+import com.dongah.dispenser.websocket.socket.SocketState;
+import com.dongah.dispenser.websocket.socket.TripleDES;
+import com.dongah.dispenser.websocket.tcpsocket.ClientSocket;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -79,11 +93,13 @@ public class MainActivity extends AppCompatActivity {
     SocketReceiveMessage socketReceiveMessage;
     FragmentChange fragmentChange;
     FragmentCurrent fragmentCurrent;
+    ProcessHandler processHandler;
 
     ControlBoard controlBoard;
     RfCardReaderReceive rfCardReaderReceive;
     TLS3800 tls3800;
     ToastPositionMake toastPositionMake;
+    ClientSocket clientSocket;
 
 
 
@@ -137,6 +153,10 @@ public class MainActivity extends AppCompatActivity {
 
     public FragmentChange getFragmentChange() {
         return fragmentChange;
+    }
+
+    public ProcessHandler getProcessHandler() {
+        return processHandler;
     }
 
     @SuppressLint("SetTextI18n")
@@ -200,9 +220,8 @@ public class MainActivity extends AppCompatActivity {
         // 4. rf card reader : MID = terminal ID
         rfCardReaderReceive = new RfCardReaderReceive(chargerConfiguration.getRfCom());
 
-        // 5. web socket
-
-        // modem data
+        // 5. handler
+        processHandler = new ProcessHandler(chargerConfiguration);
 
         // 6. classUiProcess
         chargingCurrentData = new ChargingCurrentData[GlobalVariables.maxChannel];
@@ -217,13 +236,84 @@ public class MainActivity extends AppCompatActivity {
             classUiProcess[i].setUiSeq(UiSeq.INIT);
         }
 
+        // 7. PLC modem
+//        clientSocket = new ClientSocket("192.168.39.1", 9999, new ClientSocket.TcpClientListener() {
+//            @Override
+//            public void onConnected() {
+//                logger.debug("connected");
+//            }
+//
+//            @Override
+//            public void onDisconnected() {
+//
+//            }
+//
+//            @Override
+//            public void onError(Exception e) {
+//
+//            }
+//
+//            @Override
+//            public void onMessageReceived(String message) {
+//                Log.d("TCP", "General recv: "+ message);
+//            }
+//        });
+
+//        clientSocket.start();
+//
+//        clientSocket.sendCommandExpectPrefix("AT+CNUM", "+CNUM:", 10000)
+//                .thenApply(line -> {
+//                    // line 예: +CNUM: "LGU","+821222492396",145
+//                    String[] parts = line.split(",");
+//                    String raw = parts.length >= 2 ? parts[1].replace("\"","") : null;
+//                    GlobalVariables.setIMSI(raw == null ? "" : parseToLocal(raw));
+//                    return parseToLocal(raw); // 01222492396
+//                })
+//                .thenCompose(localNumber -> {
+//                    Log.d("TCP","Parsed local number: " + localNumber);
+//                    // 이어서 DSCREEN 명령
+//                    return clientSocket.sendCommandExpectPrefix("AT$$DSCREEN?", "DSCREEN:", 5000);
+//                })
+//                .thenAccept(dscreenResp -> {
+//                    GlobalVariables.setRSRP(parseToRSRP(dscreenResp));
+//                    Log.d("TCP","DSCREEN response: " + dscreenResp);
+//                    clientSocket.postDisconnected();
+//                    clientSocket.closeSocket();
+//                })
+//                .exceptionally(ex -> {
+//                    Log.e("TCP","Command chain error", ex);
+//                    return null;
+//                });
+
         // server mode
         if (Objects.equals(chargerConfiguration.getAuthMode(), "1")) {
-            // TODO: sendOcppAuthInfoRequest();
+            sendOcppAuthInfoRequest();
         }
 
-        // 7. PLC modem
         // 8. ChargerOperate read
+        File file = new File(GlobalVariables.getRootPath() + File.separator + "ChargerOperate");
+        File firmwareFile = new File(GlobalVariables.getRootPath() + File.separator + "FirmwareStatusNotification");
+        if (!firmwareFile.exists()) {
+            if (file.exists()) {
+                FileReader fileReader = null;
+                try {
+                    fileReader = new FileReader(file);
+                    BufferedReader bufferedReader = new BufferedReader(fileReader);
+                    String line;
+                    int count = 0;
+                    while ((line = bufferedReader.readLine()) != null) {
+                        GlobalVariables.ChargerOperation[count] = Objects.equals(line, "true");
+                        count++;
+                    }
+                } catch (Exception e) {
+                    logger.error("ChargerOperate read error : {}", e.getMessage());
+                }
+            } else {
+                for (int i = 0; i < GlobalVariables.maxPlugCount; i++) {
+                    GlobalVariables.ChargerOperation[i] = true;
+                }
+            }
+        }
     }
 
     private void hideNavigationBar() {
@@ -248,7 +338,17 @@ public class MainActivity extends AppCompatActivity {
                 // 1초마다 실행
                 handler.postDelayed(this, 1000);
 
-                // TODO: network connection check
+//                try {
+//                    if (socketReceiveMessage.getSocket().getState() != null) {
+//                        ImageView imageViewNetwork = findViewById(R.id.imageViewNetwork);
+//                        imageViewNetwork.setBackgroundResource(socketReceiveMessage.getSocket().getState() == SocketState.OPEN ?
+//                                R.drawable.network : R.drawable.nonetwork);
+//                    }
+//                } catch (Exception e) {
+//                    Log.e("MainActivity", "onStart error", e);
+//                    logger.error("MainActivity onStart error : {}" , e.getMessage());
+//                }
+
             }
         };
         runnable.run();
@@ -266,6 +366,27 @@ public class MainActivity extends AppCompatActivity {
         resetInactivityTimer();  // 입력 있을 때마다 타이머 리셋
     }
 
+    /** ui version update */
+    public void onRebooting() {
+        try {
+            boolean result = false;
+            ChargingCurrentData chargingCurrentData;
+            for (int i = 0; i < GlobalVariables.maxChannel; i++) {
+                chargingCurrentData = ((MainActivity) MainActivity.mContext).getChargingCurrentData(i);
+                result = chargingCurrentData.isReBoot() && (getClassUiProcess(i).getUiSeq() == UiSeq.INIT);
+            }
+
+            if (result) {
+                for (int i = 0; i < GlobalVariables.maxChannel; i++) {
+                    getClassUiProcess(i).setUiSeq(UiSeq.REBOOTING);
+                    ((MainActivity) MainActivity.mContext).getChargingCurrentData(i).setStopReason(Reason.Reboot);
+                }
+            }
+        } catch (Exception e) {
+            logger.error("MainActivity version reboot : {}", e.getMessage());
+        }
+    }
+
     @SuppressLint("ConstantConditions")
     public void onRebooting(String type) {
         try {
@@ -281,10 +402,65 @@ public class MainActivity extends AppCompatActivity {
             logger.error("onRebooting : {}", e.getMessage());
         }
     }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
 //        inactivityHandler.removeCallbacks(inactivityRunnable);
+        //Custom status notification stop
+        for (int i = 0; i < GlobalVariables.maxChannel; i++) {
+            ((MainActivity) MainActivity.mContext).getClassUiProcess(i).onCustomStatusNotificationStop();
+        }
+    }
+
+    /**
+     * HTTPS 연결이 안 되면 다시 접속
+     **/
+    private static final int RETRY_DELAY_MS = 3000;     // 3초
+    private static final int MAX_RETRY_COUNT = 5;       // 최대 재시도 횟수
+    private int retryCount = 0;
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
+    private void sendOcppAuthInfoRequest() {
+        HttpClientHelper httpClientHelper = new HttpClientHelper();
+        String url = chargerConfiguration.getServerConnectingString();
+
+        TripleDES tripleDES = new TripleDES();
+
+        try {
+            // TODO: websocket
+        } catch (Exception e) {
+            logger.error("REQUEST_ERROR {}", e.getMessage());
+            scheduleRetry();
+        }
+    }
+
+    private void scheduleRetry() {
+        if (retryCount < MAX_RETRY_COUNT) {
+            retryCount++;
+            Log.w("HTTP", "재시도 " + retryCount + "회 / " + MAX_RETRY_COUNT + "회");
+            mainHandler.postDelayed(this::sendOcppAuthInfoRequest, RETRY_DELAY_MS);
+        } else {
+            Log.e("HTTP", "최대 재시도 횟수 초과 → 요청 중단");
+        }
+    }
+
+    private String parseToLocal(String number) {
+        if (number.startsWith("+82")) {
+            return "0" + number.substring(3);
+        }
+        return number;
+    }
+
+    private String parseToRSRP(String resp) {
+        Pattern p = Pattern.compile("RSRP:([-]?\\d+)");
+        Matcher m = p.matcher(resp);
+        if (m.find()) {
+            int rsrp = Integer.parseInt(m.group(1));  // -71
+            return String.valueOf(rsrp);
+        } else {
+            System.out.println("RSRP not found");
+        }
+        return "";
     }
 
     private void testCrud() {

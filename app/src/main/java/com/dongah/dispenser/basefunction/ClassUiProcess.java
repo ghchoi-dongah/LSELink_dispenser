@@ -1,7 +1,9 @@
 package com.dongah.dispenser.basefunction;
 
+import android.os.Build;
 import android.util.Log;
 
+import androidx.annotation.RequiresApi;
 import androidx.fragment.app.Fragment;
 
 import com.dongah.dispenser.MainActivity;
@@ -9,15 +11,25 @@ import com.dongah.dispenser.R;
 import com.dongah.dispenser.TECH3800.TLS3800;
 import com.dongah.dispenser.TECH3800.TLS3800Listener;
 import com.dongah.dispenser.controlboard.ControlBoard;
+import com.dongah.dispenser.controlboard.RxData;
+import com.dongah.dispenser.handler.CustomStatusNotificationThread;
+import com.dongah.dispenser.handler.ProcessHandler;
+import com.dongah.dispenser.pages.FaultFragment;
 import com.dongah.dispenser.rfcard.RfCardReaderListener;
 import com.dongah.dispenser.rfcard.RfCardReaderReceive;
+import com.dongah.dispenser.websocket.ocpp.core.ChargePointStatus;
 import com.dongah.dispenser.websocket.ocpp.core.Reason;
 import com.dongah.dispenser.websocket.ocpp.core.ResetType;
+import com.dongah.dispenser.websocket.ocpp.utilities.ZonedDateTimeConvert;
+import com.dongah.dispenser.websocket.socket.SocketReceiveMessage;
+import com.dongah.dispenser.websocket.socket.SocketState;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class ClassUiProcess  {
 
@@ -33,7 +45,12 @@ public class ClassUiProcess  {
     TLS3800 tls3800;
     ControlBoard controlBoard;
     RfCardReaderReceive rfCardReaderReceive;
+    SocketReceiveMessage socketReceiveMessage;
+    ProcessHandler processHandler;
+    Timer eventTimer;
 
+    ZonedDateTimeConvert zonedDateTimeConvert;
+    CustomStatusNotificationThread customStatusNotificationThread;
     /**
      * MeterValue Thread
      * */
@@ -77,10 +94,82 @@ public class ClassUiProcess  {
             // control board
             controlBoard = ((MainActivity) MainActivity.mContext).getControlBoard();
             // TODO: alarm check
-            // TODO: process handler
-            // TODO: loop
+            // process handler
+            processHandler = ((MainActivity) MainActivity.mContext).getProcessHandler();
+            // loop
+            eventTimer = new Timer();
+            eventTimer.schedule(new TimerTask() {
+                @RequiresApi(api = Build.VERSION_CODES.O)
+                @Override
+                public void run() {
+                    onEventAction();
+                }
+            }, 3000, 200);
         } catch (Exception e) {
             logger.error("ClassUiProcess - construct error : {}", e.getMessage());
+        }
+    }
+
+    int getId = 0;
+    int channel;
+    boolean check;
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private void onEventAction() {
+        try {
+            Log.d("ClassUiProcess", "onEventAction start...");
+            channel = getCh();
+            RxData rxData = controlBoard.getRxData(getCh());
+            check = rxData.isCsFault();
+            chargingCurrentData = ((MainActivity) MainActivity.mContext).getChargingCurrentData(channel);
+            getId = ((MainActivity) MainActivity.mContext).getFragmentSeq(getCh()).getValue();
+
+            Log.d("ClassUiProcess", "onEventAction switch-case start...");
+            // sequence check
+            switch (getUiSeq()) {
+                case INIT:
+                    setoSeq(UiSeq.INIT);
+                    break;
+                case REBOOTING:
+                    if (!(getCurrentFragment() instanceof FaultFragment)) {
+                        fragmentChange.onFragmentChange(
+                                getCh(),
+                                UiSeq.REBOOTING,
+                                "REBOOTING",
+                                chargingCurrentData.getStopReason() == Reason.HardReset ? "Hard" : "Soft"
+                        );
+                    }
+                    break;
+                case CHARGING_WAIT:
+                    if (rxData.isCsPilot()) {
+                        chargingCurrentData.setChargePointStatus(ChargePointStatus.Charging);
+                        chargingCurrentData.setChargingStartTime(zonedDateTimeConvert.getStringCurrentTimeZone());
+
+                        // Auto 및 Test mode
+                        // socket receive message get instance
+                        socketReceiveMessage = ((MainActivity) MainActivity.mContext).getSocketReceiveMessage();
+                        if (!Objects.equals(chargerConfiguration.getOpMode(), "1") ||
+                                (SocketState.OPEN != socketReceiveMessage.getSocket().getState() && !GlobalVariables.isStopTransactionOnInvalidId())) {
+                            setUiSeq(UiSeq.CHARGING);
+                            ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(getCh(), UiSeq.CHARGING, "CHARGING", null);
+                        }
+                        // server mode
+                        if (Objects.equals(chargerConfiguration.getOpMode(), "1")) {
+
+                        }
+                    }
+                    break;
+                case FINISH:
+                    onFinish();
+                    break;
+                default:
+                    Log.e("ClassUiProcess", "onEventAction switch-case error");
+                    logger.error("ClassUiProcess onEventAction switch-case error");
+                    break;
+            }
+        } catch (Exception e) {
+            Log.e("ClassUiProcess", "onEventAction error ", e);
+            logger.error("ClassUiProcess onEventAction error : {}", e.getMessage());
         }
     }
 
@@ -90,6 +179,13 @@ public class ClassUiProcess  {
             fragmentChange.onFragmentChange(getCh(), UiSeq.INIT, "INIT", null);
         } catch (Exception e) {
             Log.e("ClassUiProcess", "onHome error ", e);
+        }
+    }
+
+    /** 충전 완료 */
+    private void onFinish() {
+        if (chargingCurrentData.isReBoot()) {
+            setUiSeq(UiSeq.INIT);
         }
     }
 
@@ -163,5 +259,20 @@ public class ClassUiProcess  {
 
     public void onMeterValueStop() {
         // TODO
+    }
+
+    public void onCustomStatusNotificationStart(int connectorId, int delay) {
+        onCustomStatusNotificationStop();
+        customStatusNotificationThread = new CustomStatusNotificationThread(connectorId,delay);
+        customStatusNotificationThread.setStopped(false);
+        customStatusNotificationThread.start();
+    }
+
+    public void onCustomStatusNotificationStop() {
+        if (customStatusNotificationThread != null) {
+            customStatusNotificationThread.interrupt();
+            customStatusNotificationThread.setStopped(true);
+            customStatusNotificationThread = null;
+        }
     }
 }
