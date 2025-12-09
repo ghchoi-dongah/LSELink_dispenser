@@ -80,13 +80,12 @@ public class ClassUiProcess  {
         this.ch = ch;
         try {
             setUiSeq(UiSeq.INIT);
+            zonedDateTimeConvert = new ZonedDateTimeConvert();
 
             // rf card
             rfCardReaderReceive = ((MainActivity) MainActivity.mContext).getRfCardReaderReceive();
-            rfCardReaderReceive.setRfCardReaderListener((RfCardReaderListener) this);
             // payment
             tls3800 = ((MainActivity) MainActivity.mContext).getTls3800();
-            tls3800.setTls3800Listener((TLS3800Listener) this);
             // configuration
             chargerConfiguration = ((MainActivity) MainActivity.mContext).getChargerConfiguration();
             // fragment change
@@ -106,6 +105,7 @@ public class ClassUiProcess  {
                 }
             }, 3000, 200);
         } catch (Exception e) {
+            Log.e("ClassUiProcess", "construct error", e);
             logger.error("ClassUiProcess - construct error : {}", e.getMessage());
         }
     }
@@ -141,9 +141,10 @@ public class ClassUiProcess  {
                     }
                     break;
                 case CHARGING_WAIT:
-                    if (rxData.isCsPilot()) {
+                    // TODO: rxData.isCsPilot()
+                    if (true) {
                         chargingCurrentData.setChargePointStatus(ChargePointStatus.Charging);
-                        chargingCurrentData.setChargingStartTime(zonedDateTimeConvert.getStringCurrentTimeZone());
+//                        chargingCurrentData.setChargingStartTime(zonedDateTimeConvert.getStringCurrentTimeZone());
 
                         // Auto 및 Test mode
                         // socket receive message get instance
