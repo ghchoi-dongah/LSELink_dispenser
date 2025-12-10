@@ -20,6 +20,8 @@ import com.dongah.dispenser.R;
 import com.dongah.dispenser.basefunction.ChargerConfiguration;
 import com.dongah.dispenser.basefunction.GlobalVariables;
 import com.dongah.dispenser.basefunction.UiSeq;
+import com.dongah.dispenser.websocket.socket.SocketReceiveMessage;
+import com.dongah.dispenser.websocket.socket.SocketState;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,7 +59,8 @@ public class FooterFragment extends Fragment implements View.OnClickListener {
     TextView textViewTime, textViewChargerIdValue, textViewVersionValue;
 
     ChargerConfiguration chargerConfiguration;
-    Runnable runnable;
+    SocketReceiveMessage socketReceiveMessage;
+
 
     // 1초마다 실행되는 Runnable
     private final Runnable timeUpdater = new Runnable() {
@@ -65,6 +68,17 @@ public class FooterFragment extends Fragment implements View.OnClickListener {
         public void run() {
             updateTime();
             handler.postDelayed(this, 1000); // 1초마다 반복
+
+            try {
+                socketReceiveMessage = ((MainActivity) MainActivity.mContext).getSocketReceiveMessage();
+                if (socketReceiveMessage.getSocket().getState() != null) {
+                    imageViewNetwork.setBackgroundResource(socketReceiveMessage.getSocket().getState() == SocketState.OPEN ?
+                            R.drawable.network : R.drawable.nonetwork);
+                }
+            } catch (Exception e) {
+                Log.e("FooterFragment", "timeUpdater error", e);
+                logger.error("FooterFragment timeUpdater error : {}" , e.getMessage());
+            }
         }
     };
 

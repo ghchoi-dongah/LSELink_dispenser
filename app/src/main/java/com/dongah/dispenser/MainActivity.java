@@ -328,32 +328,6 @@ public class MainActivity extends AppCompatActivity {
         );
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-
-        runnable = new Runnable() {
-            @Override
-            public void run() {
-                // 1초마다 실행
-                handler.postDelayed(this, 1000);
-
-//                try {
-//                    if (socketReceiveMessage.getSocket().getState() != null) {
-//                        ImageView imageViewNetwork = findViewById(R.id.imageViewNetwork);
-//                        imageViewNetwork.setBackgroundResource(socketReceiveMessage.getSocket().getState() == SocketState.OPEN ?
-//                                R.drawable.network : R.drawable.nonetwork);
-//                    }
-//                } catch (Exception e) {
-//                    Log.e("MainActivity", "onStart error", e);
-//                    logger.error("MainActivity onStart error : {}" , e.getMessage());
-//                }
-
-            }
-        };
-        runnable.run();
-    }
-
     // 타이머 리셋 메서드 (외부에서 호출 가능)
     public void resetInactivityTimer() {
 //        inactivityHandler.removeCallbacks(inactivityRunnable);

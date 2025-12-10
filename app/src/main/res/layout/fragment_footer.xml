@@ -24,7 +24,7 @@
         android:id="@+id/imageViewNetwork"
         android:layout_width="20dp"
         android:layout_height="20dp"
-        android:background="@drawable/network"
+        android:background="@drawable/nonetwork"
         android:layout_marginEnd="10dp"
         android:importantForAccessibility="no"
         app:layout_constraintTop_toTopOf="@id/textViewTime"
