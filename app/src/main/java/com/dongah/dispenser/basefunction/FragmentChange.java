@@ -1,6 +1,7 @@
 package com.dongah.dispenser.basefunction;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.FrameLayout;
 
@@ -327,6 +328,38 @@ public class FragmentChange {
             }
         } catch (Exception e) {
             logger.error(e.getMessage());
+        }
+    }
+
+    public boolean onFragmentScreenSaverChange() {
+        try {
+            UiSeq ui0 = ((MainActivity) MainActivity.mContext).getClassUiProcess(0) != null
+                    ? ((MainActivity) MainActivity.mContext).getClassUiProcess(0).getUiSeq()
+                    : null;
+            UiSeq ui1 = ((MainActivity) MainActivity.mContext).getClassUiProcess(1) != null
+                    ? ((MainActivity) MainActivity.mContext).getClassUiProcess(1).getUiSeq()
+                    : null;
+
+            boolean chkUiSeq = ui0 == UiSeq.ADMIN_PASS || ui1 == UiSeq.ADMIN_PASS ||
+                    ui0 == UiSeq.ENVIRONMENT || ui1 == UiSeq.ENVIRONMENT ||
+                    ui0 == UiSeq.CONFIG_SETTING || ui1 == UiSeq.CONFIG_SETTING ||
+                    ui0 == UiSeq.CONTROL_BOARD_DEBUGGING || ui1 == UiSeq.CONTROL_BOARD_DEBUGGING ||
+                    ui0 == UiSeq.WEB_SOCKET || ui1 == UiSeq.WEB_SOCKET;
+
+            if (chkUiSeq) {
+                return false;
+            }
+
+            FragmentTransaction transaction = ((MainActivity) MainActivity.mContext).getSupportFragmentManager().beginTransaction();
+            onFrameLayoutChange(true);
+            ScreenSaverFragment screenSaverFragment = new ScreenSaverFragment();
+            transaction.replace(R.id.frameFull, screenSaverFragment, "SCREEN_SAVER");
+            transaction.commit();
+            return true;
+        } catch (Exception e) {
+            Log.e("FragmentChange", "onFragmentScreenSaverChange error", e);
+            logger.error("FragmentChange onFragmentScreenSaverChange error : {}", e.getMessage());
+            return false;
         }
     }
 }

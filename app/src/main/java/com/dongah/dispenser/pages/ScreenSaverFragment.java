@@ -14,6 +14,7 @@ import android.widget.TextView;
 
 import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.R;
+import com.dongah.dispenser.basefunction.FragmentChange;
 import com.dongah.dispenser.basefunction.UiSeq;
 
 import org.slf4j.Logger;
@@ -93,9 +94,11 @@ public class ScreenSaverFragment extends Fragment implements View.OnClickListene
 
     @Override
     public void onClick(View v) {
-        if (!isAdded()) return;
-        System.out.println("ScreenSaverFragment mChannel: " + mChannel);
-        ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.INIT);
-        ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.INIT, "INIT", null);
+        try {
+            if (!isAdded()) return;
+            ((MainActivity) MainActivity.mContext).getFragmentChange().onFrameLayoutChange(false);
+        } catch (Exception e) {
+            logger.error("ScreenSaverFragment onClick error : {}", e.getMessage());
+        }
     }
 }

@@ -10,14 +10,12 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.PowerManager;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.ImageView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -25,6 +23,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.fragment.app.FragmentTransaction;
 
 import com.dongah.dispenser.TECH3800.TLS3800;
 import com.dongah.dispenser.basefunction.ChargerConfiguration;
@@ -33,6 +32,7 @@ import com.dongah.dispenser.basefunction.ClassUiProcess;
 import com.dongah.dispenser.basefunction.ConfigurationKeyRead;
 import com.dongah.dispenser.controlboard.ControlBoard;
 import com.dongah.dispenser.handler.ProcessHandler;
+import com.dongah.dispenser.pages.ScreenSaverFragment;
 import com.dongah.dispenser.rfcard.RfCardReaderReceive;
 import com.dongah.dispenser.sqlite.SQLiteHelper;
 import com.dongah.dispenser.basefunction.FragmentChange;
@@ -44,7 +44,6 @@ import com.dongah.dispenser.utils.ToastPositionMake;
 import com.dongah.dispenser.websocket.ocpp.core.Reason;
 import com.dongah.dispenser.websocket.socket.HttpClientHelper;
 import com.dongah.dispenser.websocket.socket.SocketReceiveMessage;
-import com.dongah.dispenser.websocket.socket.SocketState;
 import com.dongah.dispenser.websocket.socket.TripleDES;
 import com.dongah.dispenser.websocket.tcpsocket.ClientSocket;
 
@@ -65,18 +64,6 @@ public class MainActivity extends AppCompatActivity {
 
     @SuppressLint("StaticFieldLeak")
     public static Context mContext;
-
-    // screen saver
-    private static final long INACTIVITY_TIMEOUT = 1 * 60 * 1000L;  // 2분 (ms 단위)
-//    private final Handler inactivityHandler = new Handler(Looper.getMainLooper());
-//    private final Runnable inactivityRunnable = new Runnable() {
-//        @Override
-//        public void run() {
-//            int channel = 0;
-//            getFragmentChange().onFragmentChange(channel, UiSeq.SCREEN_SAVER, "SCREEN_SAVER", null);
-//        }
-//    };
-
 
     Handler handler = new Handler();
     Runnable runnable;
@@ -328,10 +315,29 @@ public class MainActivity extends AppCompatActivity {
         );
     }
 
+
+    // screen saver
+    private static final long INACTIVITY_TIMEOUT = 1 * 60 * 1000L;  // 1분 (ms 단위)
+    private final Handler inactivityHandler = new Handler(Looper.getMainLooper());
+    private final Runnable inactivityRunnable = new Runnable() {
+        @Override
+        public void run() {
+            try {
+                boolean check = fragmentChange.onFragmentScreenSaverChange();
+                if (!check) {
+                    resetInactivityTimer();
+                }
+            } catch (Exception e) {
+                logger.error("ScreenSaver inactivityRunnable error : {}", e.getMessage());
+            }
+        }
+    };
+
+
     // 타이머 리셋 메서드 (외부에서 호출 가능)
     public void resetInactivityTimer() {
-//        inactivityHandler.removeCallbacks(inactivityRunnable);
-//        inactivityHandler.postDelayed(inactivityRunnable, INACTIVITY_TIMEOUT);
+        inactivityHandler.removeCallbacks(inactivityRunnable);
+        inactivityHandler.postDelayed(inactivityRunnable, INACTIVITY_TIMEOUT);
     }
 
     @Override
@@ -380,7 +386,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-//        inactivityHandler.removeCallbacks(inactivityRunnable);
+        inactivityHandler.removeCallbacks(inactivityRunnable);
         //Custom status notification stop
         for (int i = 0; i < GlobalVariables.maxChannel; i++) {
             ((MainActivity) MainActivity.mContext).getClassUiProcess(i).onCustomStatusNotificationStop();

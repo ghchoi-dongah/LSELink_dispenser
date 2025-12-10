@@ -76,7 +76,6 @@ public class FooterFragment extends Fragment implements View.OnClickListener {
                             R.drawable.network : R.drawable.nonetwork);
                 }
             } catch (Exception e) {
-                Log.e("FooterFragment", "timeUpdater error", e);
                 logger.error("FooterFragment timeUpdater error : {}" , e.getMessage());
             }
         }
