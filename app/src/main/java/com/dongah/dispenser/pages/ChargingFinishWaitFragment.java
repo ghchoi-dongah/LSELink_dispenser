@@ -5,11 +5,13 @@ import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentTransaction;
 
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,6 +23,8 @@ import com.dongah.dispenser.basefunction.UiSeq;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Objects;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -52,6 +56,10 @@ public class ChargingFinishWaitFragment extends Fragment implements View.OnClick
 
     private static final int STEP_DELAY_MS  = 600;  // 점 하나씩 표시 간격
     private static final int CYCLE_PAUSE_MS = 1000;  // 한 사이클 끝난 뒤 쉬는 시간
+
+    int cnt;
+    Handler countHandler;
+    Runnable countRunnable;
 
     public ChargingFinishWaitFragment() {
         // Required empty public constructor
@@ -108,17 +116,46 @@ public class ChargingFinishWaitFragment extends Fragment implements View.OnClick
         }
 
         return view;
+    }
 
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        try {
+            cnt = 0;
+
+            ((MainActivity) MainActivity.mContext).runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    countHandler = new Handler();
+                    countRunnable = new Runnable() {
+                        @Override
+                        public void run() {
+                            cnt++;
+                            if (Objects.equals(cnt, 10)) {
+                                countHandler.removeCallbacks(countRunnable);
+                                countHandler.removeCallbacksAndMessages(null);
+                                countHandler.removeMessages(0);
+
+                                stopDotLoop();  // animation stop
+                                ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.FINISH_WAIT);
+                            } else {
+                                countHandler.postDelayed(countRunnable, 1000);
+                            }
+                        }
+                    };
+                    countHandler.postDelayed(countRunnable, 1000);
+                }
+            });
+        } catch (Exception e) {
+            Log.e("ChargingFinishWaitFragment", "onViewCreated error", e);
+            logger.error("ChargingFinishWaitFragment onViewCreated error : {}", e.getMessage());
+        }
     }
 
     @Override
     public void onClick(View v) {
-        if (!isAdded()) return;
 
-        // 애니메이션 중지
-        stopDotLoop();
-        ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.FINISH);
-        ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.FINISH, "FINISH", null);
     }
 
     private final Runnable loop = new Runnable() {

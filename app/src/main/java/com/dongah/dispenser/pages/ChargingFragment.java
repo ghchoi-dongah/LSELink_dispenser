@@ -171,7 +171,7 @@ public class ChargingFragment extends Fragment implements View.OnClickListener {
     @Override
     public void onClick(View v) {
         if (Objects.equals(v.getId(), R.id.btnChargingStop)) {
-            ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.FINISH_WAIT);
+//            ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.FINISH_WAIT);
             ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.FINISH_WAIT, "FINISH_WAIT", null);
         }
     }

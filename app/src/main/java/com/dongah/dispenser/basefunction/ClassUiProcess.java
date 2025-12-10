@@ -160,6 +160,42 @@ public class ClassUiProcess  {
                         }
                     }
                     break;
+                case FINISH_WAIT:
+                    try {
+                        //사용자 user stop
+                        chargingCurrentData.setStopReason(chargingCurrentData.isUserStop() ? Reason.Local : chargingCurrentData.getStopReason());
+                        // 충전 사용량 정리
+                        chargingCurrentData.setPowerMeterStop(rxData.getPowerMeter()*10);
+                        chargingCurrentData.setChargingEndTime(zonedDateTimeConvert.getStringCurrentTimeZone());
+                        //stop transaction send to server
+                        chargingCurrentData.setChargePointStatus(ChargePointStatus.Finishing);
+                        //socket receive message get instance
+                        socketReceiveMessage = ((MainActivity) MainActivity.mContext).getSocketReceiveMessage();
+                        setUiSeq(UiSeq.FINISH);
+                        fragmentChange.onFragmentChange(getCh(), UiSeq.FINISH, "FINISH", null);
+                        if (Objects.equals(chargerConfiguration.getOpMode(), "1")) {
+                            processHandler.sendMessage(socketReceiveMessage.onMakeHandlerMessage(
+                                    GlobalVariables.MESSAGE_HANDLER_STOP_TRANSACTION,
+                                    chargingCurrentData.getConnectorId(),
+                                    0,
+                                    chargingCurrentData.getIdTag(),
+                                    null,
+                                    null,
+                                    false));
+                            //status notification send to server
+                            processHandler.sendMessage(socketReceiveMessage.onMakeHandlerMessage(
+                                    GlobalVariables.MESSAGE_HANDLER_STATUS_NOTIFICATION,
+                                    chargingCurrentData.getConnectorId(),
+                                    0,
+                                    null,
+                                    null,
+                                    null,
+                                    false));
+                        }
+                    } catch (Exception e) {
+                        logger.error("ClassUiProcess - FINISH_WAIT error : {} ", e.getMessage());
+                    }
+                    break;
                 case FINISH:
                     onFinish();
                     break;
