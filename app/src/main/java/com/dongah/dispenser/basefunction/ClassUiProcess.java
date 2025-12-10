@@ -144,7 +144,7 @@ public class ClassUiProcess  {
                     // TODO: rxData.isCsPilot()
                     if (true) {
                         chargingCurrentData.setChargePointStatus(ChargePointStatus.Charging);
-//                        chargingCurrentData.setChargingStartTime(zonedDateTimeConvert.getStringCurrentTimeZone());
+                        chargingCurrentData.setChargingStartTime(zonedDateTimeConvert.getStringCurrentTimeZone());
 
                         // Auto 및 Test mode
                         // socket receive message get instance

@@ -1,25 +1,39 @@
 package com.dongah.dispenser.pages;
 
+import android.annotation.SuppressLint;
+import android.media.MediaPlayer;
+import android.os.Build;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentTransaction;
+import androidx.lifecycle.ViewModelProvider;
 
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.R;
+import com.dongah.dispenser.basefunction.ChargerConfiguration;
+import com.dongah.dispenser.basefunction.ChargingCurrentData;
 import com.dongah.dispenser.basefunction.UiSeq;
+import com.dongah.dispenser.utils.SharedModel;
+import com.dongah.dispenser.websocket.ocpp.utilities.ZonedDateTimeConvert;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.text.DecimalFormat;
+import java.util.Date;
 import java.util.Objects;
 
 /**
@@ -43,6 +57,9 @@ public class ChargingFragment extends Fragment implements View.OnClickListener {
 
     Button btnChargingStop;
     ImageView imageViewBattery, imageViewBatteryValue;
+    TextView textViewSocValue;
+    TextView textViewChargingAmtValue, textViewChargingTimeRemainValue, textViewChargingTimeValue;
+    TextView textViewChargingVoltageValue, textViewChargingPowerValue, textViewChargingCurrentValue, textViewRequestCurrentValue;
 
 
     private final Handler handler = new Handler(Looper.getMainLooper());
@@ -52,6 +69,19 @@ public class ChargingFragment extends Fragment implements View.OnClickListener {
     int soc = 75;
     private static final int MAX_SOC = 90;
     private static final int BLINK_INTERVAL = 500;  // 깜빡임 간격(ms)
+
+    MediaPlayer mediaPlayer;
+    SharedModel sharedModel;
+    String[] requestStrings = new String[1];
+    Handler uiUpdateHandler;
+    ChargerConfiguration chargerConfiguration;
+    ChargingCurrentData chargingCurrentData;
+
+    int cnt = 0;
+    Date startTime = null, useTime = null;
+    DecimalFormat powerFormatter = new DecimalFormat("#,###,##0.00");
+    DecimalFormat voltageFormatter = new DecimalFormat("#,###,##0.0");
+    ZonedDateTimeConvert zonedDateTimeConvert = new ZonedDateTimeConvert();
 
     public ChargingFragment() {
         // Required empty public constructor
@@ -93,6 +123,14 @@ public class ChargingFragment extends Fragment implements View.OnClickListener {
         btnChargingStop.setOnClickListener(this);
         imageViewBattery = view.findViewById(R.id.imageViewBattery);
         imageViewBatteryValue = view.findViewById(R.id.imageViewBatteryValue);
+        textViewSocValue = view.findViewById(R.id.textViewSocValue);
+        textViewChargingAmtValue = view.findViewById(R.id.textViewChargingAmtValue);
+        textViewChargingTimeRemainValue = view.findViewById(R.id.textViewChargingTimeRemainValue);
+        textViewChargingTimeValue = view.findViewById(R.id.textViewChargingTimeValue);
+        textViewChargingVoltageValue = view.findViewById(R.id.textViewChargingVoltageValue);
+        textViewChargingPowerValue = view.findViewById(R.id.textViewChargingPowerValue);
+        textViewChargingCurrentValue = view.findViewById(R.id.textViewChargingCurrentValue);
+        textViewRequestCurrentValue = view.findViewById(R.id.textViewRequestCurrentValue);
 
         updateBatteryUI();   // soc에 따른 이미지 갱신
         startBlink();        // 깜빡임 시작
@@ -101,10 +139,116 @@ public class ChargingFragment extends Fragment implements View.OnClickListener {
     }
 
     @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        try {
+            chargerConfiguration = ((MainActivity) MainActivity.mContext).getChargerConfiguration();
+            chargingCurrentData = ((MainActivity) MainActivity.mContext).getChargingCurrentData(mChannel);
+            setSoc(chargingCurrentData.getSoc());
+
+            mediaPlayer();  // media player
+
+            sharedModel = new ViewModelProvider(requireActivity()).get(SharedModel.class);
+            requestStrings[0] = String.valueOf(mChannel);
+            sharedModel.setMutableLiveData(requestStrings);
+
+            try {
+                startTime = zonedDateTimeConvert.doStringDateToDate(chargingCurrentData.getChargingStartTime());
+                Log.d("ChargingFragment", "onViewCreated useTime=" + useTime
+                        + ", startTime=" + startTime);
+
+            } catch (Exception e) {
+                Log.e("ChargingFragment", "onViewCreated try-catch error", e);
+                throw new RuntimeException(e);
+            }
+            onCharging();
+        } catch (Exception e) {
+            Log.e("ChargingFragment", "onViewCreated error", e);
+            logger.error("ChargingFragment onViewCreated error : {}", e.getMessage());
+        }
+    }
+
+    @Override
     public void onClick(View v) {
         if (Objects.equals(v.getId(), R.id.btnChargingStop)) {
             ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.FINISH_WAIT);
             ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.FINISH_WAIT, "FINISH_WAIT", null);
+        }
+    }
+    
+    private void onCharging() {
+        uiUpdateHandler = new Handler();
+        uiUpdateHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                ((MainActivity) MainActivity.mContext).runOnUiThread(new Runnable() {
+                     @SuppressLint({"SetTextI18n", "DefaultLocale"})
+                     @RequiresApi(api = Build.VERSION_CODES.O)
+                     @Override
+                     public void run() {
+                         try {
+                             long diffTime = 0;
+                             useTime = zonedDateTimeConvert.doStringDateToDate(zonedDateTimeConvert.getStringCurrentTimeZone());
+
+                             Log.d("ChargingFragment", "diffTime calc skipped: useTime=" + useTime
+                                     + ", startTime=" + startTime);
+
+                             if (useTime != null) {
+                                 diffTime = (useTime.getTime() - startTime.getTime()) / 1000;
+                                 int hour = (int) diffTime / 3600;
+                                 int minute = (int) (diffTime % 3600) / 60;
+                                 int second = (int) diffTime % 60;
+                                 chargingCurrentData.setChargingTime((int) diffTime);
+                                 textViewChargingTimeValue.setText(String.format("%02d", hour) + ":" + String.format("%02d", minute) + ":" + String.format("%02d", second));
+                                 chargingCurrentData.setChargingUseTime(textViewChargingTimeValue.getText().toString());
+
+                                 textViewChargingAmtValue.setText(powerFormatter.format(chargingCurrentData.getPowerMeterUse() * 0.01) + "kWh");
+
+                                 int rHour = chargingCurrentData.getRemaintime() / 3600;
+                                 int rMinute = (chargingCurrentData.getRemaintime() % 3600) / 60;
+                                 int rSecond = chargingCurrentData.getRemaintime() % 60;
+
+                                 textViewChargingTimeRemainValue.setText(String.format("%02d", rHour) + ":" + String.format("%02d", rMinute) + ":" + String.format("%02d", rSecond));
+
+                                 textViewSocValue.setText(chargingCurrentData.getSoc() + "%");
+                                 textViewChargingVoltageValue.setText(voltageFormatter.format(chargingCurrentData.getOutPutVoltage() * 0.1) + " V");
+                                 textViewChargingCurrentValue.setText(powerFormatter.format(chargingCurrentData.getOutPutCurrent() * 0.1) + " A");
+                                 textViewChargingPowerValue.setText(powerFormatter.format(chargingCurrentData.getOutPutVoltage() * chargingCurrentData.getOutPutCurrent() * 0.00001) + " kW");
+                                 // TODO: 요청전류
+                             }
+                         } catch (Exception e) {
+                             Log.e("ChargingFragment", "onCharging error", e);
+                             logger.error("ChargingFragment onCharging error : {}", e.getMessage());
+                         }
+                     }
+                 });
+                uiUpdateHandler.postDelayed(this, 1000);
+            }
+        }, 50);
+    }
+    
+    private void mediaPlayer() {
+        releasePlayer();
+        
+        try {
+            mediaPlayer = MediaPlayer.create(requireContext(), R.raw.charging);
+            mediaPlayer.setOnCompletionListener(me -> releasePlayer());
+            mediaPlayer.start();
+        } catch (Exception e) {
+            Log.e("ChargingFragment", "mediaPlayer error", e);
+            logger.error("ChargingFragment mediaPlayer error : {}", e.getMessage());
+        }
+    }
+    
+    private void releasePlayer() {
+        if (mediaPlayer != null) {
+            try {
+                mediaPlayer.release();
+            } catch (Exception e) {
+                Log.e("ChargingFragment", "releasePlayer error", e);
+                logger.error("ChargingFragment releasePlayer error : {}", e.getMessage());
+            }
+            mediaPlayer = null;
         }
     }
 
@@ -164,5 +308,20 @@ public class ChargingFragment extends Fragment implements View.OnClickListener {
     public void setSoc(int socValue) {
         this.soc = Math.min(socValue, MAX_SOC);
         updateBatteryUI();
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        try {
+            requestStrings[0] = String.valueOf(mChannel);
+            sharedModel.setMutableLiveData(requestStrings);
+            uiUpdateHandler.removeCallbacksAndMessages(null);
+            uiUpdateHandler.removeMessages(0);
+            if (uiUpdateHandler != null) uiUpdateHandler = null;
+        } catch (Exception e) {
+            Log.e("ChargingFragment", "onDetach error", e);
+            logger.error("ChargingFragment onDetach error : {}", e.getMessage());
+        }
     }
 }

@@ -113,7 +113,7 @@ public class MemberCheckWaitFragment extends Fragment implements View.OnClickLis
             chargerConfiguration = ((MainActivity) MainActivity.mContext).getChargerConfiguration();
             chargingCurrentData = ((MainActivity) MainActivity.mContext).getChargingCurrentData(mChannel);
 
-            playMemberCardWait();   // media player
+            mediaPlayer();   // media player
 
 //            ((MainActivity) MainActivity.mContext).runOnUiThread(new Runnable() {
 //                @Override
@@ -171,39 +171,27 @@ public class MemberCheckWaitFragment extends Fragment implements View.OnClickLis
         }
     }
 
-    private void playMemberCardWait() {
+    private void mediaPlayer() {
         releasePlayer();
-
-        Log.d("MP_TEST", "playMemberCardWait() called");
-
-        mediaPlayer = MediaPlayer.create(requireContext(), R.raw.membercardwait);
-        Log.d("MP_TEST", "mediaPlayer = " + mediaPlayer);
-
-        if (mediaPlayer == null) {
-            Log.e("MemberCheckWaitFragment", "playMemberCardWait >> mediaPlayer is null");
-            logger.error("MediaPlayer.create() failed for MemberCardWait");
-            return;
+        
+        try {
+            mediaPlayer = MediaPlayer.create(requireContext(), R.raw.membercardwait);
+            mediaPlayer.setOnCompletionListener(me -> releasePlayer());
+            mediaPlayer.start();
+        } catch (Exception e) {
+            Log.e("MemberCheckWaitFragment", "mediaPlayer error", e);
+            logger.error("MemberCheckWaitFragment mediaPlayer error : {}", e.getMessage());
         }
-
-        mediaPlayer.setOnErrorListener((mp, what, extra) -> {
-            Log.e("MemberCheckWaitFragment", "playMemberCardWait >> setOnErrorListener error");
-            logger.error("MediaPlayer error: what={}, extra={}", what, extra);
-            releasePlayer();
-            return true;
-        });
-
-        mediaPlayer.setOnCompletionListener(mp -> releasePlayer());
-        Log.d("MP_TEST", "onCompletion");
-
-        mediaPlayer.start();
-        Log.d("MP_TEST", "start() called");
     }
 
     private void releasePlayer() {
         if (mediaPlayer != null) {
             try {
                 mediaPlayer.release();
-            } catch (Exception ignored) {}
+            } catch (Exception e) {
+                Log.e("MemberCheckWaitFragment", "releasePlayer error", e);
+                logger.error("MemberCheckWaitFragment releasePlayer error : {}", e.getMessage());
+            }
             mediaPlayer = null;
         }
     }

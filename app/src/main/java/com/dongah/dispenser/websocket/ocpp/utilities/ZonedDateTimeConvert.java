@@ -197,15 +197,15 @@ public class ZonedDateTimeConvert {
         return ZonedDateTime.ofInstant(instant, zoneId);
     }
 
-
     @RequiresApi(api = Build.VERSION_CODES.O)
     public String getStringCurrentTimeZone() {
         try {
-            LocalDateTime utcTime = LocalDateTime.now(ZoneOffset.UTC);
-            return utcTime.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
-//            @SuppressLint("SimpleDateFormat") SimpleDateFormat sdf = new SimpleDateFormat(SIMPLE_DATE_TIME_FORMAT);
+//            LocalDateTime utcTime = LocalDateTime.now(ZoneOffset.UTC);
+//            return utcTime.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+            @SuppressLint("SimpleDateFormat") SimpleDateFormat sdf = new SimpleDateFormat(SIMPLE_DATE_TIME_FORMAT);
+            sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
 //            sdf.setTimeZone(TimeZone.getTimeZone("Asia/Seoul"));
-//            return sdf.format(new Date());
+            return sdf.format(new Date());
         } catch (Exception e) {
             logger.error(e.getMessage());
         }
