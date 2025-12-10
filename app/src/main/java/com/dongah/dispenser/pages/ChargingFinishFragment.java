@@ -1,25 +1,29 @@
 package com.dongah.dispenser.pages;
 
+import android.annotation.SuppressLint;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentTransaction;
 
+import android.os.Handler;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
 import android.widget.Button;
-import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.R;
-import com.dongah.dispenser.basefunction.UiSeq;
+import com.dongah.dispenser.basefunction.ChargingCurrentData;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.text.DecimalFormat;
 import java.util.Objects;
 
 /**
@@ -42,6 +46,13 @@ public class ChargingFinishFragment extends Fragment implements View.OnClickList
     private int mChannel;
 
     Button btnCheck;
+    TextView textViewSocValue, textViewChargingAmtValue, textViewChargingTimeValue;
+
+    MediaPlayer mediaPlayer;
+    Handler uiCheckHandler;
+    ChargingCurrentData chargingCurrentData;
+    DecimalFormat powerFormatter = new DecimalFormat("#,###,##0.00");
+
 
     public ChargingFinishFragment() {
         // Required empty public constructor
@@ -81,7 +92,45 @@ public class ChargingFinishFragment extends Fragment implements View.OnClickList
         View view = inflater.inflate(R.layout.fragment_charging_finish, container, false);
         btnCheck = view.findViewById(R.id.btnCheck);
         btnCheck.setOnClickListener(this);
+        textViewSocValue = view.findViewById(R.id.textViewSocValue);
+        textViewChargingAmtValue = view.findViewById(R.id.textViewChargingAmtValue);
+        textViewChargingTimeValue = view.findViewById(R.id.textViewChargingTimeValue);
         return view;
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        try {
+            chargingCurrentData = ((MainActivity) MainActivity.mContext).getChargingCurrentData(mChannel);
+
+            mediaPlayer();
+
+            // unplug check 후 초기 화면
+            uiCheckHandler = new Handler();
+            uiCheckHandler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    if (!((MainActivity) MainActivity.mContext).getControlBoard().getRxData(mChannel).isCsPilot()) {
+                        btnCheck.performClick();
+                    }
+                    uiCheckHandler.postDelayed(this, 60000);
+                }
+            }, 60000);
+
+            // charging finish info
+            ((MainActivity) MainActivity.mContext).runOnUiThread(new Runnable() {
+                @SuppressLint("SetTextI18n")
+                @Override
+                public void run() {
+                    textViewSocValue.setText(chargingCurrentData.getSoc() + "%");
+                    textViewChargingAmtValue.setText(powerFormatter.format(chargingCurrentData.getPowerMeterUse() * 0.01) + "kWh");
+                    textViewChargingTimeValue.setText(chargingCurrentData.getChargingUseTime());
+                }
+            });
+        } catch (Exception e) {
+            logger.error("ChargingFinishFragment onViewCreated error : {}", e.getMessage());
+        }
     }
 
     @Override
@@ -89,8 +138,44 @@ public class ChargingFinishFragment extends Fragment implements View.OnClickList
         if (!isAdded()) return;
 
         if (Objects.equals(v.getId(), R.id.btnCheck)) {
-            ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.INIT);
-            ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.INIT, "INIT", null);
+            ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).onHome();
+        }
+    }
+
+    private void mediaPlayer() {
+        releasePlayer();
+
+        try {
+            mediaPlayer = MediaPlayer.create(requireContext(), R.raw.chargingfinsih);
+            mediaPlayer.setOnCompletionListener(me -> releasePlayer());
+            mediaPlayer.start();
+        } catch (Exception e) {
+            Log.e("ChargingFinishFragment", "mediaPlayer error", e);
+            logger.error("ChargingFinishFragment mediaPlayer error : {}", e.getMessage());
+        }
+    }
+
+    private void releasePlayer() {
+        if (mediaPlayer != null) {
+            try {
+                mediaPlayer.release();
+            } catch (Exception e) {
+                Log.e("ChargingFinishFragment", "releasePlayer error", e);
+                logger.error("ChargingFinishFragment releasePlayer error : {}", e.getMessage());
+            }
+            mediaPlayer = null;
+        }
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        try {
+            uiCheckHandler.removeCallbacksAndMessages(null);
+            uiCheckHandler.removeMessages(0);
+        } catch (Exception e) {
+            Log.e("ChargingFinishFragment", "onDetach error", e);
+            logger.error("ChargingFinishFragment onDetach error : {}", e.getMessage());
         }
     }
 }
