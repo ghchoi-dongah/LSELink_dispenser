@@ -221,12 +221,12 @@ public class ControlDebugFragment extends Fragment implements View.OnClickListen
                     @Override
                     public void run() {
                         listViewTxAdapter.clearItem();
+                        listViewTxAdapter.addItem("TX", "IsAuthorizedMac", String.valueOf(txData[currCh].IsAuthorizedMac));
                         listViewTxAdapter.addItem("TX", "IsStart", String.valueOf(txData[currCh].IsStart));
                         listViewTxAdapter.addItem("TX", "IsStop", String.valueOf(txData[currCh].IsStop));
                         listViewTxAdapter.addItem("TX", "IsReset", String.valueOf(txData[currCh].IsReset));
                         listViewTxAdapter.addItem("TX", "uiSequence", txData[currCh].uiSequence == 0 ? "대기" : txData[currCh].uiSequence == 1 ? "충전" : "종료");
                         listViewTxAdapter.addItem("TX", "chargerPointMode", txData[currCh].chargerPointMode == 0 ? "운영" : txData[currCh].uiSequence == 1 ? "부하" : "I/O");
-//                        listViewTxAdapter.addItem("TX", "testDualSingle", txData[currCh].testDualSingle == 0 ? "듀얼Test" : "싱글Test");
                         listViewTxAdapter.addItem("TX", "testDrVoltage", String.valueOf(txData[currCh].testDrVoltage));
                         listViewTxAdapter.addItem("TX", "testDrCurrent", String.valueOf(txData[currCh].testDrCurrent));
                         listViewTxAdapter.addItem("TX", "IsRelay1", txData[currCh].IsRelay1 ? "ON" : "OFF");
