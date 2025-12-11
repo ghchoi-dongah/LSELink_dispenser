@@ -167,6 +167,7 @@ public class ControlDebugFragment extends Fragment implements View.OnClickListen
                         listViewRxAdapter.addItem("RX", "csStart", String.valueOf(rxData[getCurrCh()].isCsStart()));
                         listViewRxAdapter.addItem("RX", "csStop", String.valueOf(rxData[getCurrCh()].isCsStop()));
                         listViewRxAdapter.addItem("RX", "csFault", String.valueOf(rxData[getCurrCh()].isCsFault()));
+                        listViewRxAdapter.addItem("RX", "csReady", String.valueOf(rxData[getCurrCh()].isCsReady()));
                         listViewRxAdapter.addItem("RX", "cpVoltage", String.valueOf(rxData[getCurrCh()].getCpVoltage() * 0.1));
                         listViewRxAdapter.addItem("RX", "FW Ver", controlBoardUtil.parseVersion(rxData[getCurrCh()].getFirmwareVersion()));
                         listViewRxAdapter.addItem("RX", "RemainTime", controlBoardUtil.getRemainTime(rxData[getCurrCh()].getRemainTime()));
@@ -182,7 +183,6 @@ public class ControlDebugFragment extends Fragment implements View.OnClickListen
                         listViewRxAdapter.addItem("RX", "powerMeter", String.valueOf(rxData[getCurrCh()].getPowerMeter() * 0.01));
                         listViewRxAdapter.addItem("RX", "outVoltage", String.valueOf(rxData[getCurrCh()].getOutVoltage() * 0.1));
                         listViewRxAdapter.addItem("RX", "outCurrent", String.valueOf(rxData[getCurrCh()].getOutCurrent() * 0.1));
-
                         listViewRxAdapter.addItem("RX", "csEmergency", String.valueOf(rxData[getCurrCh()].isCsEmergency()));
                         listViewRxAdapter.addItem("RX", "csPLCComm", String.valueOf(rxData[getCurrCh()].isCsPLCComm()));
                         listViewRxAdapter.addItem("RX", "csPowerMeterComm", String.valueOf(rxData[getCurrCh()].isCsPowerMeterComm()));
@@ -201,6 +201,7 @@ public class ControlDebugFragment extends Fragment implements View.OnClickListen
                         listViewRxAdapter.addItem("RX", "csModule3Error", String.valueOf(rxData[getCurrCh()].isCsModule3Error()));
                         listViewRxAdapter.addItem("RX", "csModule4Error", String.valueOf(rxData[getCurrCh()].isCsModule4Error()));
                         listViewRxAdapter.addItem("RX", "커플러 온도", String.valueOf(rxData[getCurrCh()].getCouplerTemp()));
+
                         ///나중에 PLC 모뎀
                         listViewRxAdapter.notifyDataSetChanged();
 
