@@ -127,6 +127,7 @@ public class ChargerConfiguration {
         } catch (Exception e) {
 //            e.printStackTrace();
 //            Log.d(" {}", e.getMessage());
+            Log.e("ChargerConfiguration", "onLoadConfiguration error : {}", e);
             logger.error("configuration load fail: {}", e.getMessage());
         }
     }

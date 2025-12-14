@@ -117,14 +117,12 @@ public class ClassUiProcess  {
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void onEventAction() {
         try {
-            Log.d("ClassUiProcess", "onEventAction start...");
             channel = getCh();
             RxData rxData = controlBoard.getRxData(getCh());
             check = rxData.isCsFault();
             chargingCurrentData = ((MainActivity) MainActivity.mContext).getChargingCurrentData(channel);
             getId = ((MainActivity) MainActivity.mContext).getFragmentSeq(getCh()).getValue();
 
-            Log.d("ClassUiProcess", "onEventAction switch-case start...");
             // sequence check
             switch (getUiSeq()) {
                 case INIT:
@@ -200,8 +198,8 @@ public class ClassUiProcess  {
                     onFinish();
                     break;
                 default:
-                    Log.e("ClassUiProcess", "onEventAction switch-case error");
-                    logger.error("ClassUiProcess onEventAction switch-case error");
+//                    Log.e("ClassUiProcess", "onEventAction switch-case error");
+//                    logger.error("ClassUiProcess onEventAction switch-case error");
                     break;
             }
         } catch (Exception e) {

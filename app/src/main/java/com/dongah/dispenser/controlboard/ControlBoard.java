@@ -1,5 +1,7 @@
 package com.dongah.dispenser.controlboard;
 
+import android.util.Log;
+
 import com.dongah.dispenser.R;
 import com.dongah.dispenser.utils.CRC16;
 
@@ -94,7 +96,7 @@ public class ControlBoard implements Runnable {
             this.maxCh = maxCh;
             this.comPort = comPort;
 
-            serialPort = new SerialPort(new File(comPort), 115200, 0);
+            serialPort = new SerialPort(new File(comPort), 38400, 0);
             // multi channel
             rxData = new RxData[maxCh];
             txData = new TxData[maxCh];
@@ -238,6 +240,11 @@ public class ControlBoard implements Runnable {
             try {
 
                 if (tCount++ > 1200) tCount = 0;
+                /**
+                 * tCount % 2
+                 * 0: 채널 변경하면서 0x04 명령 전송
+                 * 1: 현재 채널의 txData를 Encode()해서 0x10 명령 전송
+                 **/
                 if ((tCount % 2) == 0) {
                     curCh = (curCh + 1) % maxCh;
                     chkTx = requestSend(sendCh[0], (byte) 0x04, curCh == 0 ? (short) 400 : (short) 446, (short) 46);
@@ -250,8 +257,8 @@ public class ControlBoard implements Runnable {
                 }
                 Thread.sleep(150);
                 try {
-                    Arrays.fill(receiveData, (byte) 0x00);
-                    availableCount = inputStream.available();
+                    Arrays.fill(receiveData, (byte) 0x00);  // 수신 버퍼 초기화
+                    availableCount = inputStream.available();   // 수신 대기 중인 바이트 수 확인
                     if (availableCount >= HEAD_SIZE) {
                         int readCount = inputStream.read(receiveData, 0, availableCount);
                     } else {
@@ -284,7 +291,6 @@ public class ControlBoard implements Runnable {
             } catch (Exception e) {
                 logger.error("thread receive error : {} ", e.getMessage());
             }
-
         }
     }
 }
