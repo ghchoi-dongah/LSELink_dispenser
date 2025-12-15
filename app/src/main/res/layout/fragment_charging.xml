@@ -8,13 +8,13 @@
 
     <TextView
         android:id="@+id/textViewSocValue"
-        android:layout_width="190dp"
+        android:layout_width="200dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="40dp"
         android:layout_marginStart="120dp"
         android:gravity="center_horizontal"
-        android:text="90%"
-        android:textSize="96sp"
+        android:text="100%"
+        android:textSize="80sp"
         android:textStyle="bold"
         android:textColor="@color/black"
         app:layout_constraintTop_toTopOf="parent"

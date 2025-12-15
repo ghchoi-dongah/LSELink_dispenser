@@ -77,7 +77,6 @@ public class ChargingFragment extends Fragment implements View.OnClickListener {
     ChargerConfiguration chargerConfiguration;
     ChargingCurrentData chargingCurrentData;
 
-    int cnt = 0;
     Date startTime = null, useTime = null;
     DecimalFormat powerFormatter = new DecimalFormat("#,###,##0.00");
     DecimalFormat voltageFormatter = new DecimalFormat("#,###,##0.0");
@@ -154,16 +153,11 @@ public class ChargingFragment extends Fragment implements View.OnClickListener {
 
             try {
                 startTime = zonedDateTimeConvert.doStringDateToDate(chargingCurrentData.getChargingStartTime());
-                Log.d("ChargingFragment", "onViewCreated useTime=" + useTime
-                        + ", startTime=" + startTime);
-
             } catch (Exception e) {
-                Log.e("ChargingFragment", "onViewCreated try-catch error", e);
                 throw new RuntimeException(e);
             }
             onCharging();
         } catch (Exception e) {
-            Log.e("ChargingFragment", "onViewCreated error", e);
             logger.error("ChargingFragment onViewCreated error : {}", e.getMessage());
         }
     }
@@ -171,8 +165,9 @@ public class ChargingFragment extends Fragment implements View.OnClickListener {
     @Override
     public void onClick(View v) {
         if (Objects.equals(v.getId(), R.id.btnChargingStop)) {
-//            ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.FINISH_WAIT);
-            ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.FINISH_WAIT, "FINISH_WAIT", null);
+            ((MainActivity) MainActivity.mContext).getChargingCurrentData(mChannel).setUserStop(true);
+            ((MainActivity) MainActivity.mContext).getControlBoard().getTxData(mChannel).setStop(true);
+            ((MainActivity) MainActivity.mContext).getControlBoard().getTxData(mChannel).setStart(false);
         }
     }
     
@@ -189,9 +184,6 @@ public class ChargingFragment extends Fragment implements View.OnClickListener {
                          try {
                              long diffTime = 0;
                              useTime = zonedDateTimeConvert.doStringDateToDate(zonedDateTimeConvert.getStringCurrentTimeZone());
-
-                             Log.d("ChargingFragment", "diffTime calc skipped: useTime=" + useTime
-                                     + ", startTime=" + startTime);
 
                              if (useTime != null) {
                                  diffTime = (useTime.getTime() - startTime.getTime()) / 1000;
@@ -215,6 +207,7 @@ public class ChargingFragment extends Fragment implements View.OnClickListener {
                                  textViewChargingCurrentValue.setText(powerFormatter.format(chargingCurrentData.getOutPutCurrent() * 0.1) + " A");
                                  textViewChargingPowerValue.setText(powerFormatter.format(chargingCurrentData.getOutPutVoltage() * chargingCurrentData.getOutPutCurrent() * 0.00001) + " kW");
                                  // TODO: 요청전류
+                                 updateBatteryUI();
                              }
                          } catch (Exception e) {
                              Log.e("ChargingFragment", "onCharging error", e);

@@ -51,6 +51,8 @@ public class ClassUiProcess  {
 
     ZonedDateTimeConvert zonedDateTimeConvert;
     CustomStatusNotificationThread customStatusNotificationThread;
+
+    int powerMeterCheck = 0;
     /**
      * MeterValue Thread
      * */
@@ -75,6 +77,15 @@ public class ClassUiProcess  {
     public void setoSeq(UiSeq oSeq) {
         this.oSeq = oSeq;
     }
+
+    public int getPowerMeterCheck() {
+        return powerMeterCheck;
+    }
+
+    public void setPowerMeterCheck(int powerMeterCheck) {
+        this.powerMeterCheck = powerMeterCheck;
+    }
+
 
     public ClassUiProcess(int ch) {
         this.ch = ch;
@@ -114,6 +125,10 @@ public class ClassUiProcess  {
     int channel;
     boolean check;
 
+    /**
+     * charging sequence loop
+     * server data send : 서버와 연결이 안된 경우 ProcessHandler dump data save
+     */
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void onEventAction() {
         try {
@@ -121,12 +136,24 @@ public class ClassUiProcess  {
             RxData rxData = controlBoard.getRxData(getCh());
             check = rxData.isCsFault();
             chargingCurrentData = ((MainActivity) MainActivity.mContext).getChargingCurrentData(channel);
+            chargingCurrentData.setIntegratedPower(rxData.getPowerMeter());
             getId = ((MainActivity) MainActivity.mContext).getFragmentSeq(getCh()).getValue();
 
             // sequence check
             switch (getUiSeq()) {
+                case NONE:
                 case INIT:
                     setoSeq(UiSeq.INIT);
+                    setPowerMeterCheck(0);
+                    if (Objects.equals(controlBoard.getTxData(channel).getChargerPointMode(), 0)) {
+                        controlBoard.getTxData(getCh()).setUiSequence((short) 1);
+                        controlBoard.getTxData(getCh()).setStart(false);
+                        controlBoard.getTxData(getCh()).setStop(false);
+                    }
+                    if (chargingCurrentData.isReBoot() && onRebootCheck()) {
+                        setUiSeq(UiSeq.REBOOTING);
+                    }
+                    onMeterValueStop(); // MeterValue Stop
                     break;
                 case REBOOTING:
                     if (!(getCurrentFragment() instanceof FaultFragment)) {
@@ -138,10 +165,23 @@ public class ClassUiProcess  {
                         );
                     }
                     break;
+                case MEMBER_CARD:
+                case MEMBER_CARD_NO_MAC:
+                case MEMBER_CHECK_WAIT:
+                    break;
                 case CHARGING_WAIT:
                     // TODO: rxData.isCsPilot()
-                    if (true) {
+                    Log.d("ClassUiProcess", "CHARGING_WAIT isCsPilot: " + rxData.isCsPilot());
+                    if (!rxData.isCsPilot()) break;
+                    Log.d("ClassUiProcess", "CHARGING_WAIT isCsPilot true");
+                    controlBoard.getTxData(getCh()).setStart(true);
+                    controlBoard.getTxData(getCh()).setStop(false);
+
+                    if (rxData.isCsStart()) {
+                        Log.d("ClassUiProcess", "CHARGING_WAIT isCsStart true");
                         chargingCurrentData.setChargePointStatus(ChargePointStatus.Charging);
+                        chargingCurrentData.setPowerMeterStart(rxData.getPowerMeter()*10);
+                        chargingCurrentData.setPowerMeterCalculate(rxData.getPowerMeter());
                         chargingCurrentData.setChargingStartTime(zonedDateTimeConvert.getStringCurrentTimeZone());
 
                         // Auto 및 Test mode
@@ -158,6 +198,43 @@ public class ClassUiProcess  {
                         }
                     }
                     break;
+                case CHARGING:
+                    try {
+                        // 충전 사용량 계산
+                        onUsePowerMeter(getCh(), rxData);
+                        controlBoard.getTxData(getCh()).setUiSequence((short) 2);
+                        // stop 조건
+                        if (!GlobalVariables.isStopTransactionOnEVSideDisconnect() &&
+                                !GlobalVariables.isUnlockConnectorOnEVSideDisconnect()) {
+                            if (rxData.isCsStop() || !rxData.isCsPilot()) {
+                                if (chargingCurrentData.getStopReason() == Reason.Remote || chargingCurrentData.isUserStop()) {
+                                    controlBoard.getTxData(getCh()).setStop(true);
+                                    controlBoard.getTxData(getCh()).setStop(false);
+                                    if (!rxData.isCsPilot()) {
+                                        // status notification send to server : ChargePointStatus.SuspendedEV
+                                        // 2.4.5. EV Side Disconnected
+                                        chargingCurrentData.setStopReason(Reason.EVDisconnected);
+                                    }
+                                    setUiSeq(UiSeq.FINISH_WAIT);
+                                }
+                            }
+                        } else {
+                            if (rxData.isCsStop() || !rxData.isCsPilot() || chargingCurrentData.isUserStop()) {
+                                controlBoard.getTxData(getCh()).setStop(true);
+                                controlBoard.getTxData(getCh()).setStart(false);
+                                if (!rxData.isCsPilot()) {
+                                    // status notification send to server : ChargePointStatus.SuspendedEV
+                                    // 2.4.5. EV Side Disconnected
+                                    chargingCurrentData.setStopReason(Reason.EVDisconnected);
+                                }
+                                setUiSeq(UiSeq.FINISH_WAIT);
+                            }
+                        }
+                    } catch (Exception e) {
+                        Log.e("ClassUiProcess", "CHARGING error", e);
+                        logger.error("ClassUiProcess - CHARGING error : {}", e.getMessage());
+                    }
+                    break;
                 case FINISH_WAIT:
                     try {
                         //사용자 user stop
@@ -169,8 +246,6 @@ public class ClassUiProcess  {
                         chargingCurrentData.setChargePointStatus(ChargePointStatus.Finishing);
                         //socket receive message get instance
                         socketReceiveMessage = ((MainActivity) MainActivity.mContext).getSocketReceiveMessage();
-                        setUiSeq(UiSeq.FINISH);
-                        fragmentChange.onFragmentChange(getCh(), UiSeq.FINISH, "FINISH", null);
                         if (Objects.equals(chargerConfiguration.getOpMode(), "1")) {
                             processHandler.sendMessage(socketReceiveMessage.onMakeHandlerMessage(
                                     GlobalVariables.MESSAGE_HANDLER_STOP_TRANSACTION,
@@ -190,6 +265,8 @@ public class ClassUiProcess  {
                                     null,
                                     false));
                         }
+                        setUiSeq(UiSeq.FINISH);
+                        fragmentChange.onFragmentChange(getCh(), UiSeq.FINISH, "FINISH", null);
                     } catch (Exception e) {
                         logger.error("ClassUiProcess - FINISH_WAIT error : {} ", e.getMessage());
                     }
@@ -308,6 +385,40 @@ public class ClassUiProcess  {
             customStatusNotificationThread.interrupt();
             customStatusNotificationThread.setStopped(true);
             customStatusNotificationThread = null;
+        }
+    }
+
+    /**
+     * 충전 사용량 계산
+     *
+     * @param rxData power meter raw data pick
+     */
+    private void onUsePowerMeter(int ch, RxData rxData) {
+        try {
+            long gapPower = 0;
+            double gapPay = 0;
+            if (rxData.getPowerMeter() > 0) {
+                // current power meter --> charging CurrentData.powerKwh
+                // 전력량 변화 여부 체크
+                chargingCurrentData = ((MainActivity) MainActivity.mContext).getChargingCurrentData(ch);
+                gapPower = rxData.getPowerMeter() - chargingCurrentData.getPowerMeterCalculate();
+                gapPower = (gapPower <= 0) ? 0 : (gapPower > 10) ? 1 : gapPower;
+                // 전력량 변화 여부 체크 892 = 8.92kW
+                powerMeterCheck = gapPower == 0 ? powerMeterCheck + 1 : 0;
+
+                chargingCurrentData.setPowerMeterUse(chargingCurrentData.getPowerMeterUse() + gapPower);
+                chargingCurrentData.setPowerMeterCalculate(rxData.getPowerMeter());
+
+                chargingCurrentData.setRemaintime(rxData.getRemainTime());
+            }
+            chargingCurrentData.setOutPutCurrent(rxData.getOutCurrent());   // 출력전류
+            chargingCurrentData.setOutPutVoltage(rxData.getOutVoltage());   // 출력전압
+            chargingCurrentData.setPowerMeter(rxData.getPowerMeter());      // 전력량
+            chargingCurrentData.setFrequency(60);                           // 주파수
+            chargingCurrentData.setChargingRemainTime(rxData.getRemainTime());  // 충전 남은 시간
+            chargingCurrentData.setSoc(rxData.getSoc());
+        } catch (Exception e) {
+            logger.error("power meter calculate error : {}", e.getMessage());
         }
     }
 }
