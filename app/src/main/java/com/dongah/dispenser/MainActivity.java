@@ -165,7 +165,7 @@ public class MainActivity extends AppCompatActivity {
         hideNavigationBar();
 
         // 앱 켜질 때 타이머 시작
-        resetInactivityTimer();
+//        resetInactivityTimer();
 
         mContext = this;
 
@@ -177,9 +177,9 @@ public class MainActivity extends AppCompatActivity {
         // SQLite DB
         sqLiteHelper = new SQLiteHelper(this);
         sqLiteDatabase = sqLiteHelper.getWritableDatabase();
-        sqLiteHelper.dropAllTables(sqLiteDatabase);   // delete all tables
-        sqLiteHelper.onCreate(sqLiteDatabase);          // create all tables
-        testCrud(); // test data insert
+//        sqLiteHelper.dropAllTables(sqLiteDatabase);   // delete all tables
+//        sqLiteHelper.onCreate(sqLiteDatabase);          // create all tables
+//        testCrud(); // test data insert
 
         // fragment current
         fragmentCurrent = new FragmentCurrent();
@@ -319,32 +319,32 @@ public class MainActivity extends AppCompatActivity {
     // screen saver
     private static final long INACTIVITY_TIMEOUT = 1 * 60 * 1000L;  // 1분 (ms 단위)
     private final Handler inactivityHandler = new Handler(Looper.getMainLooper());
-    private final Runnable inactivityRunnable = new Runnable() {
-        @Override
-        public void run() {
-            try {
-                boolean check = fragmentChange.onFragmentScreenSaverChange();
-                if (!check) {
-                    resetInactivityTimer();
-                }
-            } catch (Exception e) {
-                logger.error("ScreenSaver inactivityRunnable error : {}", e.getMessage());
-            }
-        }
-    };
+//    private final Runnable inactivityRunnable = new Runnable() {
+//        @Override
+//        public void run() {
+//            try {
+//                boolean check = fragmentChange.onFragmentScreenSaverChange();
+//                if (!check) {
+//                    resetInactivityTimer();
+//                }
+//            } catch (Exception e) {
+//                logger.error("ScreenSaver inactivityRunnable error : {}", e.getMessage());
+//            }
+//        }
+//    };
 
 
     // 타이머 리셋 메서드 (외부에서 호출 가능)
-    public void resetInactivityTimer() {
-        inactivityHandler.removeCallbacks(inactivityRunnable);
-        inactivityHandler.postDelayed(inactivityRunnable, INACTIVITY_TIMEOUT);
-    }
+//    public void resetInactivityTimer() {
+//        inactivityHandler.removeCallbacks(inactivityRunnable);
+//        inactivityHandler.postDelayed(inactivityRunnable, INACTIVITY_TIMEOUT);
+//    }
 
-    @Override
-    public void onUserInteraction() {
-        super.onUserInteraction();
-        resetInactivityTimer();  // 입력 있을 때마다 타이머 리셋
-    }
+//    @Override
+//    public void onUserInteraction() {
+//        super.onUserInteraction();
+//        resetInactivityTimer();  // 입력 있을 때마다 타이머 리셋
+//    }
 
     /** ui version update */
     public void onRebooting() {
@@ -386,7 +386,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        inactivityHandler.removeCallbacks(inactivityRunnable);
+//        inactivityHandler.removeCallbacks(inactivityRunnable);
         //Custom status notification stop
         for (int i = 0; i < GlobalVariables.maxChannel; i++) {
             ((MainActivity) MainActivity.mContext).getClassUiProcess(i).onCustomStatusNotificationStop();

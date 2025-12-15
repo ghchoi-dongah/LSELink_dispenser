@@ -113,7 +113,7 @@ public class ChargingWaitFragment extends Fragment implements View.OnClickListen
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_charging_wait, container, false);
-        view.setOnClickListener(this);
+//        view.setOnClickListener(this);
         linearLayoutLoadingContainer = view.findViewById(R.id.linearLayoutLoadingContainer);
         handler = new Handler(Looper.getMainLooper());
 
@@ -203,33 +203,33 @@ public class ChargingWaitFragment extends Fragment implements View.OnClickListen
     public void onClick(View v) {
         if (!isAdded()) return;
 
-        stopDotLoop(); // 애니메이션 중지
+//        stopDotLoop(); // 애니메이션 중지
         ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.CHARGING);
         ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.CHARGING, "CHARGING", null);
     }
 
-    private final Runnable loop = new Runnable() {
-        @Override public void run() {
-            if (!isAdded() || getView() == null) return;
-            if (!running || dots == null) return;
-
-            currentStep++;
-
-            if (currentStep < dots.length) {
-                // 현재 단계까지 누적해서 표시
-                for (int i = 0; i <= currentStep; i++) {
-                    dots[i].setVisibility(View.VISIBLE);
-                    dots[i].setBackground(dotDrawables[i]);
-                }
-                handler.postDelayed(this, STEP_DELAY_MS);
-            } else {
-                // 사이클 종료: 전부 숨기고 다시 시작
-                for (View d : dots) d.setVisibility(View.INVISIBLE);
-                currentStep = -1;
-                handler.postDelayed(this, CYCLE_PAUSE_MS);
-            }
-        }
-    };
+//    private final Runnable loop = new Runnable() {
+//        @Override public void run() {
+//            if (!isAdded() || getView() == null) return;
+//            if (!running || dots == null) return;
+//
+//            currentStep++;
+//
+//            if (currentStep < dots.length) {
+//                // 현재 단계까지 누적해서 표시
+//                for (int i = 0; i <= currentStep; i++) {
+//                    dots[i].setVisibility(View.VISIBLE);
+//                    dots[i].setBackground(dotDrawables[i]);
+//                }
+//                handler.postDelayed(this, STEP_DELAY_MS);
+//            } else {
+//                // 사이클 종료: 전부 숨기고 다시 시작
+//                for (View d : dots) d.setVisibility(View.INVISIBLE);
+//                currentStep = -1;
+//                handler.postDelayed(this, CYCLE_PAUSE_MS);
+//            }
+//        }
+//    };
 
     @Override
     public void onDetach() {
@@ -263,12 +263,12 @@ public class ChargingWaitFragment extends Fragment implements View.OnClickListen
         if (running) return;
         running = true;
         currentStep = -1;
-        handler.post(loop);
+//        handler.post(loop);
     }
 
     private void stopDotLoop() {
         running = false;
-        handler.removeCallbacks(loop);
+//        handler.removeCallbacks(loop);
         if (dots != null) for (View d : dots) d.setVisibility(View.INVISIBLE);
     }
 }

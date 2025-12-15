@@ -28,13 +28,13 @@ public class CustomAnalogClock extends View {
     private final Rect textBounds = new Rect();
 
     private final Handler handler = new Handler(Looper.getMainLooper());
-    private final Runnable ticker = new Runnable() {
-        @Override
-        public void run() {
-            invalidate();                // 다시 그리기 → 시간이 바뀜
-            handler.postDelayed(this, 1000); // 1초마다 실행
-        }
-    };
+//    private final Runnable ticker = new Runnable() {
+//        @Override
+//        public void run() {
+//            invalidate();                // 다시 그리기 → 시간이 바뀜
+//            handler.postDelayed(this, 1000); // 1초마다 실행
+//        }
+//    };
 
     public CustomAnalogClock(Context context) {
         super(context);
@@ -104,13 +104,13 @@ public class CustomAnalogClock extends View {
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
-        handler.post(ticker);   // 화면에 붙을 때부터 시계 시작
+//        handler.post(ticker);   // 화면에 붙을 때부터 시계 시작
     }
 
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
-        handler.removeCallbacks(ticker); // 메모리 누수 방지
+//        handler.removeCallbacks(ticker); // 메모리 누수 방지
     }
 
     @Override

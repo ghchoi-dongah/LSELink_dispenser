@@ -124,31 +124,30 @@ public class ChargingFinishWaitFragment extends Fragment implements View.OnClick
         try {
             cnt = 0;
 
-            ((MainActivity) MainActivity.mContext).runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    countHandler = new Handler();
-                    countRunnable = new Runnable() {
-                        @Override
-                        public void run() {
-                            cnt++;
-                            if (Objects.equals(cnt, 10)) {
-                                countHandler.removeCallbacks(countRunnable);
-                                countHandler.removeCallbacksAndMessages(null);
-                                countHandler.removeMessages(0);
-
-                                stopDotLoop();  // animation stop
-                                ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.FINISH_WAIT);
-                            } else {
-                                countHandler.postDelayed(countRunnable, 1000);
-                            }
-                        }
-                    };
-                    countHandler.postDelayed(countRunnable, 1000);
-                }
-            });
+//            ((MainActivity) MainActivity.mContext).runOnUiThread(new Runnable() {
+//                @Override
+//                public void run() {
+//                    countHandler = new Handler();
+//                    countRunnable = new Runnable() {
+//                        @Override
+//                        public void run() {
+//                            cnt++;
+//                            if (Objects.equals(cnt, 10)) {
+//                                countHandler.removeCallbacks(countRunnable);
+//                                countHandler.removeCallbacksAndMessages(null);
+//                                countHandler.removeMessages(0);
+//
+////                                stopDotLoop();  // animation stop
+//                                ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.FINISH_WAIT);
+//                            } else {
+//                                countHandler.postDelayed(countRunnable, 1000);
+//                            }
+//                        }
+//                    };
+//                    countHandler.postDelayed(countRunnable, 1000);
+//                }
+//            });
         } catch (Exception e) {
-            Log.e("ChargingFinishWaitFragment", "onViewCreated error", e);
             logger.error("ChargingFinishWaitFragment onViewCreated error : {}", e.getMessage());
         }
     }
@@ -158,27 +157,27 @@ public class ChargingFinishWaitFragment extends Fragment implements View.OnClick
 
     }
 
-    private final Runnable loop = new Runnable() {
-        @Override public void run() {
-            if (!running || dots == null) return;
-
-            currentStep++;
-
-            if (currentStep < dots.length) {
-                // 현재 단계까지 누적해서 표시
-                for (int i = 0; i <= currentStep; i++) {
-                    dots[i].setVisibility(View.VISIBLE);
-                    dots[i].setBackground(dotDrawables[i]);
-                }
-                handler.postDelayed(this, STEP_DELAY_MS);
-            } else {
-                // 사이클 종료: 전부 숨기고 다시 시작
-                for (View d : dots) d.setVisibility(View.INVISIBLE);
-                currentStep = -1;
-                handler.postDelayed(this, CYCLE_PAUSE_MS);
-            }
-        }
-    };
+//    private final Runnable loop = new Runnable() {
+//        @Override public void run() {
+//            if (!running || dots == null) return;
+//
+//            currentStep++;
+//
+//            if (currentStep < dots.length) {
+//                // 현재 단계까지 누적해서 표시
+//                for (int i = 0; i <= currentStep; i++) {
+//                    dots[i].setVisibility(View.VISIBLE);
+//                    dots[i].setBackground(dotDrawables[i]);
+//                }
+//                handler.postDelayed(this, STEP_DELAY_MS);
+//            } else {
+//                // 사이클 종료: 전부 숨기고 다시 시작
+//                for (View d : dots) d.setVisibility(View.INVISIBLE);
+//                currentStep = -1;
+//                handler.postDelayed(this, CYCLE_PAUSE_MS);
+//            }
+//        }
+//    };
 
     @Override
     public void onResume() {
@@ -196,12 +195,12 @@ public class ChargingFinishWaitFragment extends Fragment implements View.OnClick
         if (running) return;
         running = true;
         currentStep = -1;
-        handler.post(loop);
+//        handler.post(loop);
     }
 
     private void stopDotLoop() {
         running = false;
-        handler.removeCallbacks(loop);
+//        handler.removeCallbacks(loop);
         if (dots != null) for (View d : dots) d.setVisibility(View.INVISIBLE);
     }
 }
