@@ -20,7 +20,7 @@ public class ChargerConfiguration {
 
     private static final Logger logger = LoggerFactory.getLogger(ChargerConfiguration.class);
 
-    public static final String CONFIG_FILE_NAME = "config2";
+    public static final String CONFIG_FILE_NAME = "config";
     FileManagement fileManagement;
 
     public String rootPath = "";
@@ -55,8 +55,9 @@ public class ChargerConfiguration {
     public String opMode = "0";
     public int opModeId;
 
+
     /** device serial port */
-    public String controlCom = "/dev/ttyS0";
+    public String controlCom = "/dev/ttyS4";
     public String rfCom = "/dev/ttyS2";
     public String creditCom = "/dev/ttyS3";
 
