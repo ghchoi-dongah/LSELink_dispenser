@@ -66,7 +66,7 @@ public class ChargingFragment extends Fragment implements View.OnClickListener {
     private boolean blinkVisible = true;
     private boolean running = false;
 
-    int soc = 75;
+    int soc = 0;
     private static final int MAX_SOC = 90;
     private static final int BLINK_INTERVAL = 500;  // 깜빡임 간격(ms)
 
@@ -130,10 +130,6 @@ public class ChargingFragment extends Fragment implements View.OnClickListener {
         textViewChargingPowerValue = view.findViewById(R.id.textViewChargingPowerValue);
         textViewChargingCurrentValue = view.findViewById(R.id.textViewChargingCurrentValue);
         textViewRequestCurrentValue = view.findViewById(R.id.textViewRequestCurrentValue);
-
-        updateBatteryUI();   // soc에 따른 이미지 갱신
-        startBlink();        // 깜빡임 시작
-
         return view;
     }
 
@@ -145,7 +141,9 @@ public class ChargingFragment extends Fragment implements View.OnClickListener {
             chargingCurrentData = ((MainActivity) MainActivity.mContext).getChargingCurrentData(mChannel);
             setSoc(chargingCurrentData.getSoc());
 
-            mediaPlayer();  // media player
+            updateBatteryUI();  // soc에 따른 이미지 갱신
+            startBlink();       // 깜빡임 시작
+            mediaPlayer();      // media player
 
             sharedModel = new ViewModelProvider(requireActivity()).get(SharedModel.class);
             requestStrings[0] = String.valueOf(mChannel);
@@ -203,11 +201,13 @@ public class ChargingFragment extends Fragment implements View.OnClickListener {
                                  textViewChargingTimeRemainValue.setText(String.format("%02d", rHour) + ":" + String.format("%02d", rMinute) + ":" + String.format("%02d", rSecond));
 
                                  textViewSocValue.setText(chargingCurrentData.getSoc() + "%");
+                                 setSoc(chargingCurrentData.getSoc());
+                                 updateBatteryUI();
+
                                  textViewChargingVoltageValue.setText(voltageFormatter.format(chargingCurrentData.getOutPutVoltage() * 0.1) + " V");
                                  textViewChargingCurrentValue.setText(powerFormatter.format(chargingCurrentData.getOutPutCurrent() * 0.1) + " A");
                                  textViewChargingPowerValue.setText(powerFormatter.format(chargingCurrentData.getOutPutVoltage() * chargingCurrentData.getOutPutCurrent() * 0.00001) + " kW");
                                  // TODO: 요청전류
-                                 updateBatteryUI();
                              }
                          } catch (Exception e) {
                              Log.e("ChargingFragment", "onCharging error", e);

@@ -114,7 +114,7 @@ public class ClassUiProcess  {
                 public void run() {
                     onEventAction();
                 }
-            }, 3000, 200);
+            }, 3000, 1000);
         } catch (Exception e) {
             Log.e("ClassUiProcess", "construct error", e);
             logger.error("ClassUiProcess - construct error : {}", e.getMessage());
