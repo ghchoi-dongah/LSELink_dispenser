@@ -127,6 +127,7 @@ public class ChargingCurrentData {
     public boolean remoteStartSmartCharging = false;
     public JSONArray remoteSmartChargingJsonArray;
 
+    public boolean chgWait = false;
     public boolean chgFinishWait = false;
 
     public ChargingCurrentData() {
@@ -787,6 +788,14 @@ public class ChargingCurrentData {
 
     public void setRemainTimeStr(String remainTimeStr) {
         this.remainTimeStr = remainTimeStr;
+    }
+
+    public boolean isChgWait() {
+        return chgWait;
+    }
+
+    public void setChgWait(boolean chgWait) {
+        this.chgWait = chgWait;
     }
 
     public boolean isChgFinishWait() {

@@ -145,6 +145,7 @@ public class ClassUiProcess  {
                 case INIT:
                     setoSeq(UiSeq.INIT);
                     setPowerMeterCheck(0);
+                    chargingCurrentData.setChgWait(false);
                     if (Objects.equals(controlBoard.getTxData(channel).getChargerPointMode(), 0)) {
                         controlBoard.getTxData(getCh()).setUiSequence((short) 1);
                         controlBoard.getTxData(getCh()).setStart(false);
@@ -170,15 +171,15 @@ public class ClassUiProcess  {
                 case MEMBER_CHECK_WAIT:
                     break;
                 case CHARGING_WAIT:
-                    // TODO: rxData.isCsPilot()
-                    Log.d("ClassUiProcess", "CHARGING_WAIT isCsPilot: " + rxData.isCsPilot());
+                    // Test Mode
+                    if (Objects.equals(chargerConfiguration.getOpMode(), "0") && !chargingCurrentData.isChgWait()) {
+                        break;
+                    }
                     if (!rxData.isCsPilot()) break;
-                    Log.d("ClassUiProcess", "CHARGING_WAIT isCsPilot true");
                     controlBoard.getTxData(getCh()).setStart(true);
                     controlBoard.getTxData(getCh()).setStop(false);
 
                     if (rxData.isCsStart()) {
-                        Log.d("ClassUiProcess", "CHARGING_WAIT isCsStart true");
                         chargingCurrentData.setChargePointStatus(ChargePointStatus.Charging);
                         chargingCurrentData.setPowerMeterStart(rxData.getPowerMeter()*10);
                         chargingCurrentData.setPowerMeterCalculate(rxData.getPowerMeter());
@@ -233,7 +234,6 @@ public class ClassUiProcess  {
                             }
                         }
                     } catch (Exception e) {
-                        Log.e("ClassUiProcess", "CHARGING error", e);
                         logger.error("ClassUiProcess - CHARGING error : {}", e.getMessage());
                     }
                     break;
@@ -279,8 +279,6 @@ public class ClassUiProcess  {
                     onFinish();
                     break;
                 default:
-//                    Log.e("ClassUiProcess", "onEventAction switch-case error");
-//                    logger.error("ClassUiProcess onEventAction switch-case error");
                     break;
             }
         } catch (Exception e) {
@@ -294,7 +292,7 @@ public class ClassUiProcess  {
             setUiSeq(UiSeq.INIT);
             fragmentChange.onFragmentChange(getCh(), UiSeq.INIT, "INIT", null);
         } catch (Exception e) {
-            Log.e("ClassUiProcess", "onHome error ", e);
+            logger.error("ClassUiProcess onHome error : {}", e.getMessage());
         }
     }
 

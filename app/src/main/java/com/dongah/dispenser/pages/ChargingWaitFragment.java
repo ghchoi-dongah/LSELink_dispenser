@@ -66,6 +66,7 @@ public class ChargingWaitFragment extends Fragment implements View.OnClickListen
 
     private static final int STEP_DELAY_MS  = 600;  // 점 하나씩 표시 간격
     private static final int CYCLE_PAUSE_MS = 1000;  // 한 사이클 끝난 뒤 쉬는 시간
+    private static final int TIME_OUT = 10;
 
     int cnt = 0;
     RxData rxData;
@@ -113,7 +114,6 @@ public class ChargingWaitFragment extends Fragment implements View.OnClickListen
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_charging_wait, container, false);
-//        view.setOnClickListener(this);
         linearLayoutLoadingContainer = view.findViewById(R.id.linearLayoutLoadingContainer);
         handler = new Handler(Looper.getMainLooper());
 
@@ -130,6 +130,7 @@ public class ChargingWaitFragment extends Fragment implements View.OnClickListen
             dotDrawables[i] = gd;
         }
 
+        cnt = 0;
         chargerConfiguration = ((MainActivity) MainActivity.mContext).getChargerConfiguration();
         chargingCurrentData = ((MainActivity) MainActivity.mContext).getChargingCurrentData(mChannel);
         return view;
@@ -142,8 +143,6 @@ public class ChargingWaitFragment extends Fragment implements View.OnClickListen
             sharedModel = new ViewModelProvider(requireActivity()).get(SharedModel.class);
             requestStrings[0] = String.valueOf(mChannel);
             sharedModel.setMutableLiveData(requestStrings);
-
-            cnt = 0;
             rxData = ((MainActivity) MainActivity.mContext).getControlBoard().getRxData(mChannel);
 
             // connection time out
@@ -155,6 +154,11 @@ public class ChargingWaitFragment extends Fragment implements View.OnClickListen
                         @Override
                         public void run() {
                             cnt++;
+
+                            if (Objects.equals(chargerConfiguration.getAuthMode(), "0") && Objects.equals(cnt, TIME_OUT)) {
+                                chargingCurrentData.setChgWait(true);
+                            }
+
                             if (Objects.equals(cnt, GlobalVariables.getConnectionTimeOut())) {
                                 countHandler.removeCallbacks(countRunnable);
                                 countHandler.removeCallbacksAndMessages(null);
@@ -182,11 +186,6 @@ public class ChargingWaitFragment extends Fragment implements View.OnClickListen
                                 ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).onHome();
                             } else {
                                 countHandler.postDelayed(countRunnable, 1000);
-                            }
-
-                            // TODO: connecting wait
-                            if (rxData.isCsPilot()) {
-                                cnt = 0;
                             }
                         }
                     };
