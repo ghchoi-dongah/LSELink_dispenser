@@ -104,13 +104,13 @@ public class CustomAnalogClock extends View {
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
-//        handler.post(ticker);   // 화면에 붙을 때부터 시계 시작
+        handler.post(ticker);   // 화면에 붙을 때부터 시계 시작
     }
 
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
-//        handler.removeCallbacks(ticker); // 메모리 누수 방지
+        handler.removeCallbacks(ticker); // 메모리 누수 방지
     }
 
     @Override
@@ -124,7 +124,7 @@ public class CustomAnalogClock extends View {
         // 1) 배경 원
         canvas.drawCircle(cx, cy, radius, backgroundPaint);
 
-        // 2) 눈금(60개) – 글에서처럼 6도 단위로
+        // 2) 눈금(60개) – 6도 단위로
         for (int i = 0; i < 60; i++) {
             double degree = i * 6.0; // 360 / 60
             double radian = Math.toRadians(degree);
@@ -168,7 +168,7 @@ public class CustomAnalogClock extends View {
         int minute = calendar.get(Calendar.MINUTE);
         int second = calendar.get(Calendar.SECOND);
 
-        // 5) 시침 각도 계산 (글의 로직과 동일하게 분/초 반영)
+        // 5) 시침 각도 계산 (분/초 반영)
         float hourAngle =
                 (float) ((hour + minute / 60f + second / 3600f) * 30.0 - 90.0);
         float minuteAngle =
