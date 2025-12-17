@@ -216,6 +216,7 @@ public class ClassUiProcess  {
                                         chargingCurrentData.setStopReason(Reason.EVDisconnected);
                                     }
                                     setUiSeq(UiSeq.FINISH_WAIT);
+                                    fragmentChange.onFragmentChange(getCh(), UiSeq.FINISH_WAIT, "FINISH_WAIT", null);
                                 }
                             }
                         } else {
@@ -228,6 +229,7 @@ public class ClassUiProcess  {
                                     chargingCurrentData.setStopReason(Reason.EVDisconnected);
                                 }
                                 setUiSeq(UiSeq.FINISH_WAIT);
+                                fragmentChange.onFragmentChange(getCh(), UiSeq.FINISH_WAIT, "FINISH_WAIT", null);
                             }
                         }
                     } catch (Exception e) {
@@ -237,6 +239,8 @@ public class ClassUiProcess  {
                     break;
                 case FINISH_WAIT:
                     try {
+                        if (!chargingCurrentData.isChgFinishWait()) break;
+                        chargingCurrentData.setChgFinishWait(false);
                         //사용자 user stop
                         chargingCurrentData.setStopReason(chargingCurrentData.isUserStop() ? Reason.Local : chargingCurrentData.getStopReason());
                         // 충전 사용량 정리

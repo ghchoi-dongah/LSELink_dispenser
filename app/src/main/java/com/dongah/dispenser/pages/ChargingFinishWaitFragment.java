@@ -19,6 +19,7 @@ import android.widget.LinearLayout;
 
 import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.R;
+import com.dongah.dispenser.basefunction.ChargingCurrentData;
 import com.dongah.dispenser.basefunction.UiSeq;
 
 import org.slf4j.Logger;
@@ -56,10 +57,13 @@ public class ChargingFinishWaitFragment extends Fragment implements View.OnClick
 
     private static final int STEP_DELAY_MS  = 600;  // 점 하나씩 표시 간격
     private static final int CYCLE_PAUSE_MS = 1000;  // 한 사이클 끝난 뒤 쉬는 시간
+    private static final int TIME_OUT = 10;
 
     int cnt;
     Handler countHandler;
     Runnable countRunnable;
+
+    ChargingCurrentData chargingCurrentData;
 
     public ChargingFinishWaitFragment() {
         // Required empty public constructor
@@ -122,32 +126,35 @@ public class ChargingFinishWaitFragment extends Fragment implements View.OnClick
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         try {
+            chargingCurrentData = ((MainActivity) MainActivity.mContext).getChargingCurrentData(mChannel);
             cnt = 0;
 
-//            ((MainActivity) MainActivity.mContext).runOnUiThread(new Runnable() {
-//                @Override
-//                public void run() {
-//                    countHandler = new Handler();
-//                    countRunnable = new Runnable() {
-//                        @Override
-//                        public void run() {
-//                            cnt++;
-//                            if (Objects.equals(cnt, 10)) {
-//                                countHandler.removeCallbacks(countRunnable);
-//                                countHandler.removeCallbacksAndMessages(null);
-//                                countHandler.removeMessages(0);
-//
-////                                stopDotLoop();  // animation stop
+            ((MainActivity) MainActivity.mContext).runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    countHandler = new Handler();
+                    countRunnable = new Runnable() {
+                        @Override
+                        public void run() {
+                            cnt++;
+                            if (Objects.equals(cnt, TIME_OUT)) {
+                                countHandler.removeCallbacks(countRunnable);
+                                countHandler.removeCallbacksAndMessages(null);
+                                countHandler.removeMessages(0);
+
+                                stopDotLoop();  // animation stop
+                                chargingCurrentData.setChgFinishWait(true);
 //                                ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.FINISH_WAIT);
-//                            } else {
-//                                countHandler.postDelayed(countRunnable, 1000);
-//                            }
-//                        }
-//                    };
-//                    countHandler.postDelayed(countRunnable, 1000);
-//                }
-//            });
+                            } else {
+                                countHandler.postDelayed(countRunnable, 1000);
+                            }
+                        }
+                    };
+                    countHandler.postDelayed(countRunnable, 1000);
+                }
+            });
         } catch (Exception e) {
+            Log.e("ChargingFinishWaitFragment", "onViewCreated error", e);
             logger.error("ChargingFinishWaitFragment onViewCreated error : {}", e.getMessage());
         }
     }
@@ -157,27 +164,44 @@ public class ChargingFinishWaitFragment extends Fragment implements View.OnClick
 
     }
 
-//    private final Runnable loop = new Runnable() {
-//        @Override public void run() {
-//            if (!running || dots == null) return;
-//
-//            currentStep++;
-//
-//            if (currentStep < dots.length) {
-//                // 현재 단계까지 누적해서 표시
-//                for (int i = 0; i <= currentStep; i++) {
-//                    dots[i].setVisibility(View.VISIBLE);
-//                    dots[i].setBackground(dotDrawables[i]);
-//                }
-//                handler.postDelayed(this, STEP_DELAY_MS);
-//            } else {
-//                // 사이클 종료: 전부 숨기고 다시 시작
-//                for (View d : dots) d.setVisibility(View.INVISIBLE);
-//                currentStep = -1;
-//                handler.postDelayed(this, CYCLE_PAUSE_MS);
-//            }
-//        }
-//    };
+    private final Runnable loop = new Runnable() {
+        @Override public void run() {
+            if (!isAdded() || getView() == null) return;
+            if (!running || dots == null) return;
+
+            currentStep++;
+
+            if (currentStep < dots.length) {
+                // 현재 단계까지 누적해서 표시
+                for (int i = 0; i <= currentStep; i++) {
+                    dots[i].setVisibility(View.VISIBLE);
+                    dots[i].setBackground(dotDrawables[i]);
+                }
+                handler.postDelayed(this, STEP_DELAY_MS);
+            } else {
+                // 사이클 종료: 전부 숨기고 다시 시작
+                for (View d : dots) d.setVisibility(View.INVISIBLE);
+                currentStep = -1;
+                handler.postDelayed(this, CYCLE_PAUSE_MS);
+            }
+        }
+    };
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        try {
+            if (handler != null) handler.removeCallbacksAndMessages(null);
+            if (countHandler != null) {
+                countHandler.removeCallbacks(countRunnable);
+                countHandler.removeCallbacksAndMessages(null);
+                countHandler.removeMessages(0);
+            }
+        } catch (Exception e) {
+            Log.e("ChargingFinishWaitFragment", "onDetach error", e);
+            logger.error("ChargingFinishWaitFragment onDetach error : {}", e.getMessage());
+        }
+    }
 
     @Override
     public void onResume() {
@@ -195,12 +219,12 @@ public class ChargingFinishWaitFragment extends Fragment implements View.OnClick
         if (running) return;
         running = true;
         currentStep = -1;
-//        handler.post(loop);
+        handler.post(loop);
     }
 
     private void stopDotLoop() {
         running = false;
-//        handler.removeCallbacks(loop);
+        handler.removeCallbacks(loop);
         if (dots != null) for (View d : dots) d.setVisibility(View.INVISIBLE);
     }
 }

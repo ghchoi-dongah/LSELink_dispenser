@@ -340,26 +340,20 @@ public class FragmentChange {
                     ? ((MainActivity) MainActivity.mContext).getClassUiProcess(1).getUiSeq()
                     : null;
 
-            boolean chkUiSeq = ui0 == UiSeq.ADMIN_PASS || ui1 == UiSeq.ADMIN_PASS ||
-                    ui0 == UiSeq.ENVIRONMENT || ui1 == UiSeq.ENVIRONMENT ||
-                    ui0 == UiSeq.CONFIG_SETTING || ui1 == UiSeq.CONFIG_SETTING ||
-                    ui0 == UiSeq.CONTROL_BOARD_DEBUGGING || ui1 == UiSeq.CONTROL_BOARD_DEBUGGING ||
-                    ui0 == UiSeq.WEB_SOCKET || ui1 == UiSeq.WEB_SOCKET;
+            boolean chkUiSeq = ui0 == UiSeq.INIT && ui1 == UiSeq.INIT;
 
             if (chkUiSeq) {
-                return false;
+                FragmentTransaction transaction = ((MainActivity) MainActivity.mContext).getSupportFragmentManager().beginTransaction();
+                onFrameLayoutChange(true);
+                ScreenSaverFragment screenSaverFragment = new ScreenSaverFragment();
+                transaction.replace(R.id.frameFull, screenSaverFragment, "SCREEN_SAVER");
+                transaction.commit();
+                return true;
             }
-
-            FragmentTransaction transaction = ((MainActivity) MainActivity.mContext).getSupportFragmentManager().beginTransaction();
-            onFrameLayoutChange(true);
-            ScreenSaverFragment screenSaverFragment = new ScreenSaverFragment();
-            transaction.replace(R.id.frameFull, screenSaverFragment, "SCREEN_SAVER");
-            transaction.commit();
-            return true;
         } catch (Exception e) {
             Log.e("FragmentChange", "onFragmentScreenSaverChange error", e);
             logger.error("FragmentChange onFragmentScreenSaverChange error : {}", e.getMessage());
-            return false;
         }
+        return false;
     }
 }

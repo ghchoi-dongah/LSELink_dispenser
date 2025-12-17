@@ -28,13 +28,13 @@ public class CustomAnalogClock extends View {
     private final Rect textBounds = new Rect();
 
     private final Handler handler = new Handler(Looper.getMainLooper());
-//    private final Runnable ticker = new Runnable() {
-//        @Override
-//        public void run() {
-//            invalidate();                // 다시 그리기 → 시간이 바뀜
-//            handler.postDelayed(this, 1000); // 1초마다 실행
-//        }
-//    };
+    private final Runnable ticker = new Runnable() {
+        @Override
+        public void run() {
+            invalidate();                // 다시 그리기 → 시간이 바뀜
+            handler.postDelayed(this, 1000); // 1초마다 실행
+        }
+    };
 
     public CustomAnalogClock(Context context) {
         super(context);

@@ -127,18 +127,7 @@ public class ChargingCurrentData {
     public boolean remoteStartSmartCharging = false;
     public JSONArray remoteSmartChargingJsonArray;
 
-
-    public int getHmChargingLimitFee() {
-        return HmChargingLimitFee;
-    }
-
-    public void setHmChargingLimitFee(int hmChargingLimitFee) {
-        HmChargingLimitFee = hmChargingLimitFee;
-    }
-
-    //charging limit fee
-    int HmChargingLimitFee = 0;
-
+    public boolean chgFinishWait = false;
 
     public ChargingCurrentData() {
         sampleValueData = new SampleValueData();
@@ -798,5 +787,13 @@ public class ChargingCurrentData {
 
     public void setRemainTimeStr(String remainTimeStr) {
         this.remainTimeStr = remainTimeStr;
+    }
+
+    public boolean isChgFinishWait() {
+        return chgFinishWait;
+    }
+
+    public void setChgFinishWait(boolean chgFinishWait) {
+        this.chgFinishWait = chgFinishWait;
     }
 }
