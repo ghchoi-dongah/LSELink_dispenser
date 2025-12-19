@@ -155,9 +155,9 @@ public class ChargingWaitFragment extends Fragment implements View.OnClickListen
                         public void run() {
                             cnt++;
 
-                            if (Objects.equals(chargerConfiguration.getAuthMode(), "0") && Objects.equals(cnt, TIME_OUT)) {
-                                chargingCurrentData.setChgWait(true);
-                            }
+//                            if (Objects.equals(chargerConfiguration.getAuthMode(), "0") && Objects.equals(cnt, TIME_OUT)) {
+//                                chargingCurrentData.setChgWait(true);
+//                            }
 
                             if (Objects.equals(cnt, GlobalVariables.getConnectionTimeOut())) {
                                 countHandler.removeCallbacks(countRunnable);

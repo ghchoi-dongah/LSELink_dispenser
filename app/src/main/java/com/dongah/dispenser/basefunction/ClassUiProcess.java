@@ -172,9 +172,9 @@ public class ClassUiProcess  {
                     break;
                 case CHARGING_WAIT:
                     // Test Mode
-                    if (Objects.equals(chargerConfiguration.getOpMode(), "0") && !chargingCurrentData.isChgWait()) {
-                        break;
-                    }
+//                    if (Objects.equals(chargerConfiguration.getOpMode(), "0") && !chargingCurrentData.isChgWait()) {
+//                        break;
+//                    }
                     if (!rxData.isCsPilot()) break;
                     controlBoard.getTxData(getCh()).setStart(true);
                     controlBoard.getTxData(getCh()).setStop(false);
@@ -239,7 +239,7 @@ public class ClassUiProcess  {
                     break;
                 case FINISH_WAIT:
                     try {
-                        if (!chargingCurrentData.isChgFinishWait()) break;
+//                        if (!chargingCurrentData.isChgFinishWait()) break;
                         chargingCurrentData.setChgFinishWait(false);
                         //사용자 user stop
                         chargingCurrentData.setStopReason(chargingCurrentData.isUserStop() ? Reason.Local : chargingCurrentData.getStopReason());
