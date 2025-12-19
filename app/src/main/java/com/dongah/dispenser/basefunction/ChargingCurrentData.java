@@ -53,6 +53,7 @@ public class ChargingCurrentData {
     double outPutVoltage = 0f;
     double outPutCurrent = 0f;
     double Frequency = 0f;
+    double targetCurrent = 0f;      // 요청전류
 
     int soc = 0;
     int targetSoc = 80;
@@ -192,6 +193,7 @@ public class ChargingCurrentData {
         setRemoteStartSmartCharging(false);
         setSoc(0);
         setTargetSoc(80);
+        setTargetCurrent(0);
         remoteSmartChargingJsonArray = null;
     }
 
@@ -458,6 +460,14 @@ public class ChargingCurrentData {
 
     public void setFrequency(double frequency) {
         Frequency = frequency;
+    }
+
+    public double getTargetCurrent() {
+        return targetCurrent;
+    }
+
+    public void setTargetCurrent(double targetCurrent) {
+        this.targetCurrent = targetCurrent;
     }
 
     public int getSoc() {

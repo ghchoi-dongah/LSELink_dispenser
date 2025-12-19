@@ -301,6 +301,11 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }
+
+        // 9. 전류 제한 설정
+        for (int i = 0; i <GlobalVariables.maxChannel; i++) {
+            ((MainActivity) MainActivity.mContext).getControlBoard().getTxData(i).setOutPowerLimit((short) chargerConfiguration.getDr());
+        }
     }
 
     private void hideNavigationBar() {

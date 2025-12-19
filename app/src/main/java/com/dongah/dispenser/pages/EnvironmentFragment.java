@@ -114,9 +114,8 @@ public class EnvironmentFragment extends Fragment implements View.OnClickListene
                     MainActivity activity = (MainActivity) MainActivity.mContext;
                     for (int ch = 0; ch < GlobalVariables.maxChannel; ch++) {
                         activity.getClassUiProcess(ch).setUiSeq(UiSeq.INIT);
+                        ((MainActivity) MainActivity.mContext).getClassUiProcess(ch).onHome();
                     }
-//                    ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.INIT);
-                    ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel,UiSeq.INIT, "INIT", null);
                     break;
             }
         } else if (Objects.equals(getId, R.id.btnSystemExit)) {

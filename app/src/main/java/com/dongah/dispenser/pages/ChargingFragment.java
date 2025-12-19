@@ -207,7 +207,7 @@ public class ChargingFragment extends Fragment implements View.OnClickListener {
                                  textViewChargingVoltageValue.setText(voltageFormatter.format(chargingCurrentData.getOutPutVoltage() * 0.1) + " V");
                                  textViewChargingCurrentValue.setText(powerFormatter.format(chargingCurrentData.getOutPutCurrent() * 0.1) + " A");
                                  textViewChargingPowerValue.setText(powerFormatter.format(chargingCurrentData.getOutPutVoltage() * chargingCurrentData.getOutPutCurrent() * 0.00001) + " kW");
-                                 // TODO: 요청전류
+                                 textViewRequestCurrentValue.setText(powerFormatter.format(chargingCurrentData.getTargetCurrent() * 0.1) + "A");
                              }
                          } catch (Exception e) {
                              Log.e("ChargingFragment", "onCharging error", e);

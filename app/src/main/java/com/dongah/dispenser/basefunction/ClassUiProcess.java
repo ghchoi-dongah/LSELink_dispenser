@@ -416,6 +416,7 @@ public class ClassUiProcess  {
             chargingCurrentData.setOutPutCurrent(rxData.getOutCurrent());   // 출력전류
             chargingCurrentData.setOutPutVoltage(rxData.getOutVoltage());   // 출력전압
             chargingCurrentData.setPowerMeter(rxData.getPowerMeter());      // 전력량
+            chargingCurrentData.setTargetCurrent(rxData.getCsmEVTargetCurrent());   // 요청전류
             chargingCurrentData.setFrequency(60);                           // 주파수
             chargingCurrentData.setChargingRemainTime(rxData.getRemainTime());  // 충전 남은 시간
             chargingCurrentData.setSoc(rxData.getSoc());

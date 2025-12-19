@@ -29,6 +29,7 @@ import android.widget.Toast;
 import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.R;
 import com.dongah.dispenser.basefunction.ChargerConfiguration;
+import com.dongah.dispenser.basefunction.GlobalVariables;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -281,6 +282,12 @@ public class ConfigSettingFragment extends Fragment implements View.OnClickListe
                         @Override
                         public void onClick(DialogInterface dialogInterface, int i) {
                             onSaveConfiguration();
+
+                            // 전류 제한 설정
+                            for (int j = 0; j < GlobalVariables.maxChannel; j++) {
+                                ((MainActivity) MainActivity.mContext).getControlBoard().getTxData(j).setOutPowerLimit((short) Integer.parseInt(editDR.getText().toString()));
+                            }
+
                             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
