@@ -76,6 +76,8 @@ public class ChargerConfiguration {
     public String meterType = "";                       // 충전기의 주전력량계의 타입 포함
     public int connectorPriority = 0;                   // 1구 제어 우선순위
     public String testPrice = "313.0";                  // 테스트 단가
+    public int targetSoc = 80;                          // SoC
+    public int dr = 0;                                  // 전류 제한
 
     public boolean StopConfirm;
     public boolean signed = true ;
@@ -123,6 +125,8 @@ public class ChargerConfiguration {
                 setMeterType(obj.getString("METER_TYPE"));
                 setConnectorPriority(obj.getInt("CONNECTOR_PRIORITY"));
                 setStopConfirm(obj.getBoolean("STOP_CONFIRM"));
+                setTargetSoc(obj.getInt("TARGET_SOC"));
+                setDr(obj.getInt("DR"));
 //                setSigned(obj.getBoolean("SIGNED"));
             }
         } catch (Exception e) {
@@ -160,6 +164,8 @@ public class ChargerConfiguration {
             obj.put("METER_TYPE", getMeterType());
             obj.put("CONNECTOR_PRIORITY", getConnectorPriority());
             obj.put("STOP_CONFIRM", isStopConfirm());
+            obj.put("TARGET_SOC", getTargetSoc());
+            obj.put("DR", getDr());
 //            obj.put("SIGNED", isSigned());
             fileManagement.stringToFileSave(rootPath, CONFIG_FILE_NAME, obj.toString(), false);
         } catch (Exception e) {
@@ -421,5 +427,21 @@ public class ChargerConfiguration {
 
     public void setSignedFirmwareStatus(SignedFirmwareStatus signedFirmwareStatus) {
         this.signedFirmwareStatus = signedFirmwareStatus;
+    }
+
+    public int getTargetSoc() {
+        return targetSoc;
+    }
+
+    public void setTargetSoc(int targetSoc) {
+        this.targetSoc = targetSoc;
+    }
+
+    public int getDr() {
+        return dr;
+    }
+
+    public void setDr(int dr) {
+        this.dr = dr;
     }
 }

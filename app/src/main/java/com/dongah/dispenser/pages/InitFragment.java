@@ -2,6 +2,7 @@ package com.dongah.dispenser.pages;
 
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -55,6 +56,7 @@ public class InitFragment extends Fragment implements View.OnClickListener {
     private int mChannel;
 
     TextView textViewInitMessage;
+    TextView textViewLimitSocValue, textViewLimitKwValue;
     ImageView imageViewConnector, imageViewConnectorBg;
     ObjectAnimator fadeAnimator;
 
@@ -95,6 +97,7 @@ public class InitFragment extends Fragment implements View.OnClickListener {
         }
     }
 
+    @SuppressLint("SetTextI18n")
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -105,6 +108,10 @@ public class InitFragment extends Fragment implements View.OnClickListener {
         textViewInitMessage = view.findViewById(R.id.textViewInitMessage);
         imageViewConnector = view.findViewById(R.id.imageViewConnector);
         imageViewConnectorBg = view.findViewById(R.id.imageViewConnectorBg);
+        textViewLimitSocValue = view.findViewById(R.id.textViewLimitSocValue);
+        textViewLimitSocValue.setText(chargerConfiguration.getTargetSoc() + "%");
+        textViewLimitKwValue = view.findViewById(R.id.textViewLimitKwValue);
+        textViewLimitKwValue.setText(chargerConfiguration.getDr() + "kW");
 
         try {
             // ch0, ch1 구분 => 이미지 위치 조절

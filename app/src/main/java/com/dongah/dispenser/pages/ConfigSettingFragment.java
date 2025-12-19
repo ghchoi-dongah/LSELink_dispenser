@@ -65,6 +65,7 @@ public class ConfigSettingFragment extends Fragment implements View.OnClickListe
     EditText editFirmwareVersion;
     EditText editIccid, editImsi;
     EditText editMeterSerialNumber, editMeterType;
+    EditText editSoc, editDR;
     RadioGroup radioGrpAuth, radioGrpOp;
     RadioButton radioBtnMac, radioBtnMemberCard, radioBtnMacMemberCard;
     RadioButton radioBtnTest, radioBtnServer;
@@ -261,6 +262,16 @@ public class ConfigSettingFragment extends Fragment implements View.OnClickListe
                 editFirmwareVersion.requestFocus();
                 Toast.makeText(requireContext(), R.string.configRequired, Toast.LENGTH_SHORT).show();
                 return;
+            } else if (TextUtils.isEmpty(editSoc.getText().toString())) {
+                editSoc.setFocusableInTouchMode(true);
+                editSoc.requestFocus();
+                Toast.makeText(requireContext(), R.string.configRequired, Toast.LENGTH_SHORT).show();
+                return;
+            } else if (TextUtils.isEmpty(editDR.getText().toString())) {
+                editDR.setFocusableInTouchMode(true);
+                editDR.requestFocus();
+                Toast.makeText(requireContext(), R.string.configRequired, Toast.LENGTH_SHORT).show();
+                return;
             }
 
             new AlertDialog.Builder(getActivity())
@@ -349,6 +360,10 @@ public class ConfigSettingFragment extends Fragment implements View.OnClickListe
             editMeterSerialNumber.setText(chargerConfiguration.getMeterSerialNumber());
             editMeterType = v.findViewById(R.id.editMeterType);
             editMeterType.setText(chargerConfiguration.getMeterType());
+            editSoc = v.findViewById(R.id.editSoc);
+            editSoc.setText(String.valueOf(chargerConfiguration.getTargetSoc()));
+            editDR = v.findViewById(R.id.editDR);
+            editDR.setText(String.valueOf(chargerConfiguration.getDr()));
 
             radioGrpAuth = v.findViewById(R.id.radioGrpAuth);
             radioGrpOp = v.findViewById(R.id.radioGrpOp);
@@ -433,6 +448,9 @@ public class ConfigSettingFragment extends Fragment implements View.OnClickListe
             chargerConfiguration.setImsi(editImsi.getText().toString());
             chargerConfiguration.setMeterSerialNumber(editMeterSerialNumber.getText().toString());
             chargerConfiguration.setMeterType(editMeterType.getText().toString());
+            chargerConfiguration.setTargetSoc(Integer.parseInt(editSoc.getText().toString()));
+            chargerConfiguration.setDr(Integer.parseInt(editDR.getText().toString()));
+
 
             /* 회원 인증 모드
              * 0: mac
@@ -465,10 +483,5 @@ public class ConfigSettingFragment extends Fragment implements View.OnClickListe
     @Override
     public void onDetach() {
         super.onDetach();
-        // header title message change
-//        SharedModel sharedModel = new ViewModelProvider(requireActivity()).get(SharedModel.class);
-//        String[] requestStrings = new String[1];
-//        requestStrings[0] = "0";
-//        sharedModel.setMutableLiveData(requestStrings);
     }
 }

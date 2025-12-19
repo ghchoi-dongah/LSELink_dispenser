@@ -80,6 +80,8 @@
     <string name="configSaveYesNo">수정하신 내용을 저장하시겠습니까?</string>
     <string name="configSaveCancel">수정 내용 취소</string>
     <string name="configRequired">필수 입력 값입니다</string>
+    <string name="soc"><font color="#000">SoC</font></string>
+    <string name="dr"><font color="#000">출력 전류 제한(kW)</font></string>
 
     <!-- environment   -->
     <string name="configButton">환경설정</string>

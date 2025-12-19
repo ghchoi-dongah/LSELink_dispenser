@@ -227,6 +227,28 @@
         tools:ignore="Autofill,LabelFor,TextFields" />
 
     <TextView
+        android:id="@+id/textViewSoc"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:text="@string/soc"
+        android:textSize="24sp"
+        app:layout_constraintEnd_toEndOf="@id/textViewChargePointType"
+        app:layout_constraintTop_toBottomOf="@id/textViewTestPrice" />
+
+    <EditText
+        android:id="@+id/editSoc"
+        android:layout_width="260dp"
+        android:layout_height="wrap_content"
+        android:background="@drawable/selector_edit_text_required"
+        android:textSize="24sp"
+        android:textColor="#000"
+        android:inputType="text"
+        app:layout_constraintTop_toTopOf="@id/textViewSoc"
+        app:layout_constraintStart_toStartOf="@id/spinnerChargePointType"
+        tools:ignore="Autofill,LabelFor,TextFields" />
+
+    <TextView
         android:id="@+id/textViewConnectorPriority"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -234,7 +256,7 @@
         android:text="@string/connectorPriority"
         android:textSize="24sp"
         app:layout_constraintEnd_toEndOf="@id/textViewChargePointType"
-        app:layout_constraintTop_toBottomOf="@id/textViewTestPrice" />
+        app:layout_constraintTop_toBottomOf="@id/textViewSoc" />
 
     <EditText
         android:id="@+id/editConnectorPriority"
@@ -451,12 +473,35 @@
         app:layout_constraintStart_toStartOf="@id/editChargePointSerialNumber"
         tools:ignore="Autofill,LabelFor,TextFields" />
 
+    <TextView
+        android:id="@+id/textDR"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="10dp"
+        android:text="@string/dr"
+        android:textSize="24sp"
+        app:layout_constraintEnd_toStartOf="@id/editMeterType"
+        app:layout_constraintTop_toBottomOf="@id/textViewMeterType" />
+
+    <EditText
+        android:id="@+id/editDR"
+        android:layout_width="260dp"
+        android:layout_height="wrap_content"
+        android:background="@drawable/selector_edit_text_required"
+        android:textSize="24sp"
+        android:textColor="#000"
+        android:inputType="text"
+        app:layout_constraintTop_toTopOf="@id/textDR"
+        app:layout_constraintStart_toStartOf="@id/editChargePointSerialNumber"
+        tools:ignore="Autofill,LabelFor,TextFields" />
+
     <RadioGroup
         android:id="@+id/radioGrpAuth"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_marginTop="30dp"
+        android:layout_marginTop="12dp"
         android:layout_marginStart="-140dp"
         app:layout_constraintStart_toStartOf="@id/editConnectorPriority"
         app:layout_constraintTop_toBottomOf="@id/textViewConnectorPriority">
