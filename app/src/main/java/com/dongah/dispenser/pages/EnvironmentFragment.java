@@ -4,6 +4,7 @@ import android.os.Bundle;
 
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -35,7 +36,8 @@ public class EnvironmentFragment extends Fragment implements View.OnClickListene
     private String mParam2;
     private int mChannel;
 
-    Button btnConfig, btnWebSocket, btnControl, btnDbControl, btnUi, btnSystemExit;
+    Button btnConfig, btnWebSocket, btnControl, btnDbControl, btnLoadTest, btnUi, btnSystemExit;
+    FragmentTransaction transaction;
 
     public EnvironmentFragment() {
         // Required empty public constructor
@@ -81,6 +83,8 @@ public class EnvironmentFragment extends Fragment implements View.OnClickListene
         btnControl.setOnClickListener(this);
         btnDbControl = view.findViewById(R.id.btnDbControl);
         btnDbControl.setOnClickListener(this);
+        btnLoadTest = view.findViewById(R.id.btnLoadTest);
+        btnLoadTest.setOnClickListener(this);
         btnUi = view.findViewById(R.id.btnUi);
         btnUi.setOnClickListener(this);
         btnSystemExit = view.findViewById(R.id.btnSystemExit);
@@ -99,6 +103,11 @@ public class EnvironmentFragment extends Fragment implements View.OnClickListene
             ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel,UiSeq.CONTROL_BOARD_DEBUGGING, "CONTROL_BOARD_DEBUGGING", null);
         } else if (Objects.equals(getId, R.id.btnDbControl)) {
             // TODO: database control fragment change
+        } else if (Objects.equals(getId, R.id.btnLoadTest)) {
+            transaction = ((MainActivity) MainActivity.mContext).getSupportFragmentManager().beginTransaction();
+            ProductTestFragment productTestFragment = new ProductTestFragment();
+            transaction.replace(R.id.frameFull, productTestFragment);
+            transaction.commit();
         } else if (Objects.equals(getId, R.id.btnUi)) {
             UiSeq uiSeq = ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).getUiSeq();
             switch (uiSeq) {

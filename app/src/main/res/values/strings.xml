@@ -88,8 +88,9 @@
     <string name="webSocketButton">Web Socket</string>
     <string name="controlButton">Control Board</string>
     <string name="dbControl">DB 제어</string>
-    <string name="uiButton">화면전환</string>
-    <string name="systemExit">시스템 종료</string>
+    <string name="uiButton">화면\n전환</string>
+    <string name="systemExit">시스템\n종료</string>
+    <string name="loadTest">Load Test</string>
 
     <!-- control board -->
     <string name="channelSelect">[채널 선택]</string>

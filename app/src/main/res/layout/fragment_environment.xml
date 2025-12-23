@@ -46,7 +46,7 @@
         app:backgroundTint="@null"
         app:layout_constraintLeft_toLeftOf="@id/btnConfig"
         app:layout_constraintTop_toBottomOf="@id/btnConfig"
-        app:layout_constraintBottom_toTopOf="@id/btnUi"/>
+        app:layout_constraintBottom_toTopOf="@id/btnLoadTest"/>
 
     <Button
         android:id="@+id/btnDbControl"
@@ -61,12 +61,12 @@
         app:layout_constraintTop_toTopOf="@id/btnControl" />
 
     <Button
-        android:id="@+id/btnUi"
+        android:id="@+id/btnLoadTest"
         android:layout_width="420dp"
         android:layout_height="140dp"
         android:layout_marginBottom="100dp"
         android:background="@drawable/shape_btn_blue"
-        android:text="@string/uiButton"
+        android:text="@string/loadTest"
         android:textSize="42sp"
         android:textColor="@color/white"
         app:backgroundTint="@null"
@@ -74,16 +74,29 @@
         app:layout_constraintBottom_toBottomOf="parent" />
 
     <Button
+        android:id="@+id/btnUi"
+        android:layout_width="205dp"
+        android:layout_height="140dp"
+        android:background="@drawable/shape_btn_blue"
+        android:text="@string/uiButton"
+        android:textStyle="bold"
+        android:textSize="40sp"
+        android:textColor="@color/white"
+        app:backgroundTint="@null"
+        app:layout_constraintLeft_toLeftOf="@id/btnDbControl"
+        app:layout_constraintTop_toTopOf="@id/btnLoadTest" />
+
+    <Button
         android:id="@+id/btnSystemExit"
-        android:layout_width="420dp"
+        android:layout_width="205dp"
         android:layout_height="140dp"
         android:background="@drawable/shape_btn_blue"
         android:text="@string/systemExit"
         android:textStyle="bold"
-        android:textSize="42sp"
+        android:textSize="40sp"
         android:textColor="@color/white"
         app:backgroundTint="@null"
-        app:layout_constraintLeft_toLeftOf="@id/btnDbControl"
+        app:layout_constraintRight_toRightOf="@id/btnDbControl"
         app:layout_constraintTop_toTopOf="@id/btnUi" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
