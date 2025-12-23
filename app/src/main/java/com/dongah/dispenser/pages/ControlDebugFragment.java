@@ -1,5 +1,6 @@
 package com.dongah.dispenser.pages;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -160,15 +161,18 @@ public class ControlDebugFragment extends Fragment implements View.OnClickListen
         try {
             if (getActivity() != null) {
                 getActivity().runOnUiThread(new Runnable() {
+                    @SuppressLint("DefaultLocale")
                     @Override
                     public void run() {
                         listViewRxAdapter.clearItem();
+//                        listViewRxAdapter.addItem("RX", "MAC Address", String.valueOf(rxData[getCurrCh()].csmVehicleEvccId));   // 디버깅용, 값 확인용
+                        listViewRxAdapter.addItem("RX", "EvccId", String.format("0x%016X", rxData[getCurrCh()].csmVehicleEvccId));   // 16진수(Hex)
                         listViewRxAdapter.addItem("RX", "csPilot", String.valueOf(rxData[getCurrCh()].isCsPilot()));
                         listViewRxAdapter.addItem("RX", "csStart", String.valueOf(rxData[getCurrCh()].isCsStart()));
                         listViewRxAdapter.addItem("RX", "csStop", String.valueOf(rxData[getCurrCh()].isCsStop()));
                         listViewRxAdapter.addItem("RX", "csFault", String.valueOf(rxData[getCurrCh()].isCsFault()));
                         listViewRxAdapter.addItem("RX", "csReady", String.valueOf(rxData[getCurrCh()].isCsReady()));
-                        listViewRxAdapter.addItem("RX", "cpVoltage", String.valueOf(rxData[getCurrCh()].getCpVoltage() * 0.1));
+                        listViewRxAdapter.addItem("RX", "cpVoltage", String.format("%.2f", rxData[getCurrCh()].getCpVoltage() * 0.1));
                         listViewRxAdapter.addItem("RX", "FW Ver", controlBoardUtil.parseVersion(rxData[getCurrCh()].getFirmwareVersion()));
                         listViewRxAdapter.addItem("RX", "RemainTime", controlBoardUtil.getRemainTime(rxData[getCurrCh()].getRemainTime()));
                         listViewRxAdapter.addItem("RX", "SOC", String.valueOf(rxData[getCurrCh()].getSoc()));

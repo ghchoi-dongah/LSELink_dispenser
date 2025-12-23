@@ -15,6 +15,7 @@
         android:layout_marginTop="80dp"
         android:background="@drawable/shape_btn_blue"
         android:text="@string/configButton"
+        android:textStyle="bold"
         android:textSize="40sp"
         android:textColor="@color/white"
         app:backgroundTint="@null"

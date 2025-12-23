@@ -212,15 +212,12 @@ public class MainActivity extends AppCompatActivity {
 
         // 6. classUiProcess
         chargingCurrentData = new ChargingCurrentData[GlobalVariables.maxChannel];
-        for (int i = 0; i < GlobalVariables.maxChannel; i++) {
-            chargingCurrentData[i] = new ChargingCurrentData();
-            chargingCurrentData[i].onCurrentDataClear();
-        }
-
         classUiProcess = new ClassUiProcess[GlobalVariables.maxChannel];
         for (int i = 0; i < GlobalVariables.maxChannel; i++) {
             classUiProcess[i] = new ClassUiProcess(i);
             classUiProcess[i].setUiSeq(UiSeq.INIT);
+            chargingCurrentData[i] = new ChargingCurrentData();
+            chargingCurrentData[i].onCurrentDataClear();
         }
 
         // 7. PLC modem
