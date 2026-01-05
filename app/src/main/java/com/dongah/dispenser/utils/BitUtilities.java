@@ -124,4 +124,15 @@ public class BitUtilities {
 
         return result;
     }
+
+    /**
+     * mac address hex
+     **/
+    public static String toHexString(long value) {
+        return String.format(
+                "%04X%04X%04X",
+                (value >> 32) & 0xFFFF,
+                (value >> 16) & 0xFFFF,
+                value        & 0xFFFF);
+    }
 }

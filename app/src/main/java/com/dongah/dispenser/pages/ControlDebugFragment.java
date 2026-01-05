@@ -25,6 +25,7 @@ import com.dongah.dispenser.controlboard.ControlBoardUtil;
 import com.dongah.dispenser.controlboard.ListViewDspAdapter;
 import com.dongah.dispenser.controlboard.RxData;
 import com.dongah.dispenser.controlboard.TxData;
+import com.dongah.dispenser.utils.BitUtilities;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -166,7 +167,7 @@ public class ControlDebugFragment extends Fragment implements View.OnClickListen
                     public void run() {
                         listViewRxAdapter.clearItem();
 //                        listViewRxAdapter.addItem("RX", "MAC Address", String.valueOf(rxData[getCurrCh()].csmVehicleEvccId));   // 디버깅용, 값 확인용
-                        listViewRxAdapter.addItem("RX", "EvccId", String.format("0x%016X", rxData[getCurrCh()].csmVehicleEvccId));   // 16진수(Hex)
+                        listViewRxAdapter.addItem("RX", "EvccId", BitUtilities.toHexString(rxData[getCurrCh()].csmVehicleEvccId));   // 16진수(Hex)
                         listViewRxAdapter.addItem("RX", "csPilot", String.valueOf(rxData[getCurrCh()].isCsPilot()));
                         listViewRxAdapter.addItem("RX", "csStart", String.valueOf(rxData[getCurrCh()].isCsStart()));
                         listViewRxAdapter.addItem("RX", "csStop", String.valueOf(rxData[getCurrCh()].isCsStop()));
