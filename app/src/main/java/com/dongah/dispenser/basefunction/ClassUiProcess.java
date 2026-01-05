@@ -204,10 +204,13 @@ public class ClassUiProcess  {
                         // 충전 사용량 계산
                         onUsePowerMeter(getCh(), rxData);
                         controlBoard.getTxData(getCh()).setUiSequence((short) 2);
+                        // target soc
+                        boolean isSocReached = (chargingCurrentData.getSoc() != 0
+                                && chargingCurrentData.getSoc() >= chargerConfiguration.getTargetSoc());
                         // stop 조건
                         if (!GlobalVariables.isStopTransactionOnEVSideDisconnect() &&
                                 !GlobalVariables.isUnlockConnectorOnEVSideDisconnect()) {
-                            if (rxData.isCsStop() || !rxData.isCsPilot()) {
+                            if (rxData.isCsStop() || !rxData.isCsPilot() || isSocReached) {
                                 if (chargingCurrentData.getStopReason() == Reason.Remote || chargingCurrentData.isUserStop()) {
                                     controlBoard.getTxData(getCh()).setStop(true);
                                     controlBoard.getTxData(getCh()).setStop(false);
@@ -221,7 +224,7 @@ public class ClassUiProcess  {
                                 }
                             }
                         } else {
-                            if (rxData.isCsStop() || !rxData.isCsPilot() || chargingCurrentData.isUserStop()) {
+                            if (rxData.isCsStop() || !rxData.isCsPilot() || chargingCurrentData.isUserStop() || isSocReached) {
                                 controlBoard.getTxData(getCh()).setStop(true);
                                 controlBoard.getTxData(getCh()).setStart(false);
                                 if (!rxData.isCsPilot()) {
