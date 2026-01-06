@@ -2,13 +2,16 @@ package com.dongah.dispenser.pages;
 
 import android.annotation.SuppressLint;
 import android.graphics.drawable.AnimationDrawable;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 
 import android.os.Handler;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,7 +20,9 @@ import android.widget.TextView;
 
 import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.R;
+import com.dongah.dispenser.TECH3800.TLS3800;
 import com.dongah.dispenser.basefunction.UiSeq;
+import com.dongah.dispenser.utils.SharedModel;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,6 +55,9 @@ public class MemberCardNoMacFragment extends Fragment {
     AnimationDrawable animationDrawable;
     Handler countHandler;
     Runnable countRunnable;
+    SharedModel sharedModel;
+    String[] requestStrings = new String[1];
+    MediaPlayer mediaPlayer;
 
     public MemberCardNoMacFragment() {
         // Required empty public constructor
@@ -91,6 +99,11 @@ public class MemberCardNoMacFragment extends Fragment {
         imageViewMemberCard = view.findViewById(R.id.imageViewMemberCard);
         imageViewMemberCard.setBackgroundResource(R.drawable.membercardtagging);
         animationDrawable = (AnimationDrawable) imageViewMemberCard.getBackground();
+        sharedModel = new ViewModelProvider(requireActivity()).get(SharedModel.class);
+        requestStrings[0] = String.valueOf(mChannel);
+
+        // TLS3800
+        ((MainActivity) MainActivity.mContext).getTls3800().onTLS3800Request(mChannel, TLS3800.CMD_TX_RF_READ, 0);
         return view;
     }
 
@@ -99,6 +112,8 @@ public class MemberCardNoMacFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         try {
+            mediaPlayer();   // media player
+
             animationDrawable.start();
             textViewTagTimer.setText(timer + "초");
 
@@ -108,8 +123,7 @@ public class MemberCardNoMacFragment extends Fragment {
                 public void run() {
                     timer--;
                     if (Objects.equals(timer, 0)) {
-                        ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.CHARGING);
-                        ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.CHARGING, "CHARGING", null);
+                        ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).onHome();
                     } else {
                         countHandler.postDelayed(countRunnable, 1000);
                         textViewTagTimer.setText(timer + "초");
@@ -122,14 +136,43 @@ public class MemberCardNoMacFragment extends Fragment {
         }
     }
 
+    private void mediaPlayer() {
+        releasePlayer();
+
+        try {
+            mediaPlayer = MediaPlayer.create(requireContext(), R.raw.membercard);
+            mediaPlayer.setOnCompletionListener(me -> releasePlayer());
+            mediaPlayer.start();
+        } catch (Exception e) {
+            Log.e("MemberCardNoMacFragment", "mediaPlayer error", e);
+            logger.error("MemberCardNoMacFragment mediaPlayer error : {}", e.getMessage());
+        }
+    }
+
+    private void releasePlayer() {
+        if (mediaPlayer != null) {
+            try {
+                mediaPlayer.release();
+            } catch (Exception e) {
+                Log.e("MemberCardNoMacFragment", "releasePlayer error", e);
+                logger.error("MemberCardNoMacFragment releasePlayer error : {}", e.getMessage());
+            }
+            mediaPlayer = null;
+        }
+    }
+
     @Override
     public void onDetach() {
         super.onDetach();
-        animationDrawable.stop();
-        ((AnimationDrawable) imageViewMemberCard.getBackground()).stop();
-        imageViewMemberCard.setBackground(null);
-        countHandler.removeCallbacks(countRunnable);
-        countHandler.removeCallbacksAndMessages(null);
-        countHandler.removeMessages(0);
+        try {
+            animationDrawable.stop();
+            ((AnimationDrawable) imageViewMemberCard.getBackground()).stop();
+            imageViewMemberCard.setBackground(null);
+            countHandler.removeCallbacks(countRunnable);
+            countHandler.removeCallbacksAndMessages(null);
+            countHandler.removeMessages(0);
+        } catch (Exception e) {
+            logger.error("MemberCardNoMacFragment onDetach error : {}", e.getMessage());
+        }
     }
 }
