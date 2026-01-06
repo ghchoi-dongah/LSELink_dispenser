@@ -20,8 +20,6 @@ import android.widget.TextView;
 
 import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.R;
-import com.dongah.dispenser.TECH3800.TLS3800;
-import com.dongah.dispenser.basefunction.UiSeq;
 import com.dongah.dispenser.utils.SharedModel;
 
 import org.slf4j.Logger;
@@ -102,8 +100,7 @@ public class MemberCardNoMacFragment extends Fragment {
         sharedModel = new ViewModelProvider(requireActivity()).get(SharedModel.class);
         requestStrings[0] = String.valueOf(mChannel);
 
-        // TLS3800
-        ((MainActivity) MainActivity.mContext).getTls3800().onTLS3800Request(mChannel, TLS3800.CMD_TX_RF_READ, 0);
+        ((MainActivity) MainActivity.mContext).getRfCardReaderReceive().rfCardReadRequest();
         return view;
     }
 
