@@ -844,9 +844,11 @@ public class SocketReceiveMessage extends JSONCommunicator implements SocketInte
                                 BootNotificationRequest bootNotificationRequest;
                                 try {
                                     bootNotificationRequest = new BootNotificationRequest(
-                                            chargerConfiguration.getChargePointVendor(),
-                                            chargerConfiguration.getChargerPointModel()
-                                    );
+                                            chargerConfiguration.getChargeBoxSerialNumber(),
+                                            chargerConfiguration.getChargerPointModel(),
+                                            chargerConfiguration.getChargePointSerialNumber(),
+                                            chargerConfiguration.getChargePointVendor()
+                                            );
                                     bootNotificationRequest.setFirmwareVersion(GlobalVariables.VERSION);
                                     bootNotificationRequest.setImsi(chargerConfiguration.getImsi());
                                     bootNotificationRequest.setChargePointSerialNumber(chargerConfiguration.getChargePointSerialNumber());

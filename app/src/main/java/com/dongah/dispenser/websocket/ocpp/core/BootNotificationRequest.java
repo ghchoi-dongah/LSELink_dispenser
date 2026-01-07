@@ -56,9 +56,12 @@ public class BootNotificationRequest implements Request {
     }
 
 
-    public BootNotificationRequest(String chargePointVendor, String chargePointModel) {
-        setChargePointVendor(chargePointVendor);
+    public BootNotificationRequest(String chargeBoxSerialNumber, String chargePointModel,
+                                   String chargePointSerialNumber, String chargePointVendor) {
+        setChargeBoxSerialNumber(chargeBoxSerialNumber);
         setChargePointModel(chargePointModel);
+        setChargePointSerialNumber(chargePointSerialNumber);
+        setChargePointVendor(chargePointVendor);
     }
 
     private static String validationErrorMessage(int maxAllowedLength) {
@@ -89,12 +92,12 @@ public class BootNotificationRequest implements Request {
         this.chargePointModel = chargePointModel;
     }
 
-    @Deprecated
+
     public String getChargeBoxSerialNumber() {
         return chargeBoxSerialNumber;
     }
 
-    @Deprecated
+    @XmlElement
     public void setChargeBoxSerialNumber(String chargeBoxSerialNumber) {
         if (!ModelUtil.validate(chargeBoxSerialNumber, STRING_25_CHAR_MAX_LENGTH)) {
             throw new PropertyConstraintException(chargeBoxSerialNumber.length(), validationErrorMessage(STRING_25_CHAR_MAX_LENGTH));

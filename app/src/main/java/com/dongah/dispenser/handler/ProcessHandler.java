@@ -101,7 +101,7 @@ public class ProcessHandler extends Handler {
     Object payload, call;
     final String CALL_FORMAT = "[2, \"%s\", \"%s\", %s]";
     Bundle bundle;
-//    BootNotificationThread bootNotificationThread;
+    BootNotificationThread bootNotificationThread;
 //    HeartbeatThread heartbeatThread;
 //    DiagnosticsThread diagnosticsThread;
 //    CustomUnitPriceThread customUnitPriceThread;
@@ -758,18 +758,18 @@ public class ProcessHandler extends Handler {
      */
     public void onBootNotificationStart(int delay) {
         onBootNotificationStop();
-//        bootNotificationThread = new BootNotificationThread(delay);
-//        bootNotificationThread.setStopped(false);
-//        bootNotificationThread.start();
+        bootNotificationThread = new BootNotificationThread(delay);
+        bootNotificationThread.setStopped(false);
+        bootNotificationThread.start();
 
     }
 
     public void onBootNotificationStop() {
-//        if (bootNotificationThread != null) {
-//            bootNotificationThread.interrupt();
-//            bootNotificationThread.setStopped(true);
-//            bootNotificationThread = null;
-//        }
+        if (bootNotificationThread != null) {
+            bootNotificationThread.interrupt();
+            bootNotificationThread.setStopped(true);
+            bootNotificationThread = null;
+        }
     }
 
 
