@@ -102,7 +102,7 @@ public class ProcessHandler extends Handler {
     final String CALL_FORMAT = "[2, \"%s\", \"%s\", %s]";
     Bundle bundle;
     BootNotificationThread bootNotificationThread;
-//    HeartbeatThread heartbeatThread;
+    HeartbeatThread heartbeatThread;
 //    DiagnosticsThread diagnosticsThread;
 //    CustomUnitPriceThread customUnitPriceThread;
 
@@ -735,19 +735,19 @@ public class ProcessHandler extends Handler {
      */
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void onHeartBeatStart(int delay) {
-//        if (heartbeatThread == null || heartbeatThread.getState() != Thread.State.RUNNABLE) {
-//            heartbeatThread = new HeartbeatThread(delay);
-//            heartbeatThread.setStopped(false);
-//            heartbeatThread.start();
-//        }
+        if (heartbeatThread == null || heartbeatThread.getState() != Thread.State.RUNNABLE) {
+            heartbeatThread = new HeartbeatThread(delay);
+            heartbeatThread.setStopped(false);
+            heartbeatThread.start();
+        }
     }
 
     public void onHeartBeatStop() {
-//        if (heartbeatThread != null) {
-//            heartbeatThread.interrupt();
-//            heartbeatThread.setStopped(true);
-//            heartbeatThread = null;
-//        }
+        if (heartbeatThread != null) {
+            heartbeatThread.interrupt();
+            heartbeatThread.setStopped(true);
+            heartbeatThread = null;
+        }
     }
 
 
