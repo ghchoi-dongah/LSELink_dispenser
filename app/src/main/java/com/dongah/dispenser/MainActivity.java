@@ -381,7 +381,7 @@ public class MainActivity extends AppCompatActivity {
                 powerManager.reboot("reboot");
             }
         } catch (Exception e) {
-            logger.error("onRebooting : {}", e.getMessage());
+            logger.error("onRebooting error : {}", e.getMessage());
         }
     }
 

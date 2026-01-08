@@ -304,7 +304,7 @@ public class ConfigSettingFragment extends Fragment implements View.OnClickListe
                         }
                     }).show();
         } else if (Objects.equals(v.getId(), R.id.btnRebooting)) {
-
+            ((MainActivity) MainActivity.mContext).onRebooting("Hard");
         } else if (Objects.equals(v.getId(), R.id.btnKeyboardControl)) {
             try {
                 View view = ((MainActivity) MainActivity.mContext).getCurrentFocus();
