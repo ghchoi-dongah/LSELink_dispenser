@@ -200,78 +200,78 @@ public class ConfigSettingFragment extends Fragment implements View.OnClickListe
             if (TextUtils.isEmpty(editChargeBoxSerialNumber.getText().toString())) {
                 editChargeBoxSerialNumber.setFocusableInTouchMode(true);
                 editChargeBoxSerialNumber.requestFocus();
-                Toast.makeText(requireContext(), R.string.configRequired, Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(), getString(R.string.configRequired, getString(R.string.chargeBoxSerialNumber)), Toast.LENGTH_SHORT).show();
                 return;
             } else if (TextUtils.isEmpty(editChargerId.getText().toString())) {
                 editChargerId.setFocusableInTouchMode(true);
                 editChargerId.requestFocus();
-                Toast.makeText(requireContext(), R.string.configRequired, Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(), getString(R.string.configRequired, getString(R.string.chargerId)), Toast.LENGTH_SHORT).show();
                 return;
             } else if (TextUtils.isEmpty(editServerUrl.getText().toString())) {
                 editServerUrl.setFocusableInTouchMode(true);
                 editServerUrl.requestFocus();
-                Toast.makeText(requireContext(), R.string.configRequired, Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(), getString(R.string.configRequired, getString(R.string.serverUrl)), Toast.LENGTH_SHORT).show();
                 return;
             } else if (TextUtils.isEmpty(editServerPort.getText().toString())) {
                 editServerPort.setFocusableInTouchMode(true);
                 editServerPort.requestFocus();
-                Toast.makeText(requireContext(), R.string.configRequired, Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(), getString(R.string.configRequired, getString(R.string.serverPort)), Toast.LENGTH_SHORT).show();
                 return;
             } else if (TextUtils.isEmpty(editControlPort.getText().toString())) {
                 editControlPort.setFocusableInTouchMode(true);
                 editControlPort.requestFocus();
-                Toast.makeText(requireContext(), R.string.configRequired, Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(), getString(R.string.configRequired, getString(R.string.controlPort)), Toast.LENGTH_SHORT).show();
                 return;
 
             } else if (TextUtils.isEmpty(editRfPort.getText().toString())) {
                 editRfPort.setFocusableInTouchMode(true);
                 editRfPort.requestFocus();
-                Toast.makeText(requireContext(), R.string.configRequired, Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(), getString(R.string.configRequired, getString(R.string.rfPort)), Toast.LENGTH_SHORT).show();
                 return;
             } else if (TextUtils.isEmpty(editCreditCardPort.getText().toString())) {
                 editCreditCardPort.setFocusableInTouchMode(true);
                 editCreditCardPort.requestFocus();
-                Toast.makeText(requireContext(), R.string.configRequired, Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(), getString(R.string.configRequired, getString(R.string.creditCardPort)), Toast.LENGTH_SHORT).show();
                 return;
             } else if (TextUtils.isEmpty(editTestPrice.getText().toString())) {
                 editTestPrice.setFocusableInTouchMode(true);
                 editTestPrice.requestFocus();
-                Toast.makeText(requireContext(), R.string.configRequired, Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(), getString(R.string.configRequired, getString(R.string.testPrice)), Toast.LENGTH_SHORT).show();
                 return;
             } else if (TextUtils.isEmpty(editConnectorPriority.getText().toString())) {
                 editConnectorPriority.setFocusableInTouchMode(true);
                 editConnectorPriority.requestFocus();
-                Toast.makeText(requireContext(), R.string.configRequired, Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(), getString(R.string.configRequired, getString(R.string.connectorPriority)), Toast.LENGTH_SHORT).show();
                 return;
             } else if (TextUtils.isEmpty(editChargePointSerialNumber.getText().toString())) {
                 editChargePointSerialNumber.setFocusableInTouchMode(true);
                 editChargePointSerialNumber.requestFocus();
-                Toast.makeText(requireContext(), R.string.configRequired, Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(), getString(R.string.configRequired, getString(R.string.chargePointSerialNumber)), Toast.LENGTH_SHORT).show();
                 return;
             } else if (TextUtils.isEmpty(editChargePointVendor.getText().toString())) {
                 editChargePointVendor.setFocusableInTouchMode(true);
                 editChargePointVendor.requestFocus();
-                Toast.makeText(requireContext(), R.string.configRequired, Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(), getString(R.string.configRequired, getString(R.string.chargePointVendor)), Toast.LENGTH_SHORT).show();
                 return;
             } else if (TextUtils.isEmpty(editMid.getText().toString())) {
                 editMid.setFocusableInTouchMode(true);
                 editMid.requestFocus();
-                Toast.makeText(requireContext(), R.string.configRequired, Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(), getString(R.string.configRequired, getString(R.string.mid)), Toast.LENGTH_SHORT).show();
                 return;
             } else if (TextUtils.isEmpty(editFirmwareVersion.getText().toString())) {
                 editFirmwareVersion.setFocusableInTouchMode(true);
                 editFirmwareVersion.requestFocus();
-                Toast.makeText(requireContext(), R.string.configRequired, Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(), getString(R.string.configRequired, getString(R.string.firmwareVersion)), Toast.LENGTH_SHORT).show();
                 return;
             } else if (TextUtils.isEmpty(editSoc.getText().toString())) {
                 editSoc.setFocusableInTouchMode(true);
                 editSoc.requestFocus();
-                Toast.makeText(requireContext(), R.string.configRequired, Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(), getString(R.string.configRequired, getString(R.string.soc)), Toast.LENGTH_SHORT).show();
                 return;
             } else if (TextUtils.isEmpty(editDR.getText().toString())) {
                 editDR.setFocusableInTouchMode(true);
                 editDR.requestFocus();
-                Toast.makeText(requireContext(), R.string.configRequired, Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(), getString(R.string.configRequired, getString(R.string.dr)), Toast.LENGTH_SHORT).show();
                 return;
             }
 

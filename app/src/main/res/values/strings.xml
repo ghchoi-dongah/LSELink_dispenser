@@ -79,7 +79,7 @@
     <string name="configSaveSuccess">수정 내용 저장 성공</string>
     <string name="configSaveYesNo">수정하신 내용을 저장하시겠습니까?</string>
     <string name="configSaveCancel">수정 내용 취소</string>
-    <string name="configRequired">필수 입력 값입니다</string>
+    <string name="configRequired">%1$s는 필수 입력 값입니다</string>
     <string name="soc"><font color="#000">SoC</font></string>
     <string name="dr"><font color="#000">출력 전류 제한(kW)</font></string>
 
