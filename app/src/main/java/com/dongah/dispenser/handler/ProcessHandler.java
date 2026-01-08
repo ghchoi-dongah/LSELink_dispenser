@@ -103,7 +103,7 @@ public class ProcessHandler extends Handler {
     Bundle bundle;
     BootNotificationThread bootNotificationThread;
     HeartbeatThread heartbeatThread;
-//    DiagnosticsThread diagnosticsThread;
+    DiagnosticsThread diagnosticsThread;
 //    CustomUnitPriceThread customUnitPriceThread;
 
     boolean result;
@@ -124,7 +124,6 @@ public class ProcessHandler extends Handler {
         int channel = bundle.getInt("connectorId") == 1 ? 0 : bundle.getInt("connectorId") == 2 ? 1 : bundle.getInt("connectorId");
         SocketReceiveMessage socketReceiveMessage = ((MainActivity) MainActivity.mContext).getSocketReceiveMessage();
         if (!Objects.equals(channel, 100)) {
-//            chargingCurrentData = ((MainActivity) MainActivity.mContext).getClassUiProcess(channel).getChargingCurrentData();
             chargingCurrentData = ((MainActivity) MainActivity.mContext).getChargingCurrentData(channel);
             setConnectorId(chargingCurrentData.getConnectorId());
         } else {
@@ -255,7 +254,7 @@ public class ProcessHandler extends Handler {
                         LogDataSave logDataSave = new LogDataSave("dump");
                         logDataSave.makeDump(call.toString());
                         //화면을 전환
-                        ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(connectorId - 1, UiSeq.CHARGING, "CHARGING", "full");
+                        ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(connectorId - 1, UiSeq.CHARGING, "CHARGING", null);
                         //Meter value start
                         if (GlobalVariables.getMeterValueSampleInterval() > 0) {
                             ((MainActivity) MainActivity.mContext).getClassUiProcess(connectorId - 1).onMeterValueStart(connectorId, GlobalVariables.getMeterValueSampleInterval());
@@ -268,75 +267,34 @@ public class ProcessHandler extends Handler {
             case GlobalVariables.MESSAGE_HANDLER_PAY_INFO:
                 try {
                     SocketState state = socketReceiveMessage.getSocket().getState();
-                    String cpoName = bundle.getString("alarmCode");
-                    if (Objects.equals(cpoName, "HUMAX")) {
-//                        PaymentRequestData paymentRequestData = new PaymentRequestData();
-//                        paymentRequestData.setConnectorId(getConnectorId());
-//                        paymentRequestData.setResultCode(chargingCurrentData.getResponseCode());
-//                        paymentRequestData.setResultMsg(chargingCurrentData.getResponseMessage());
-//                        paymentRequestData.setMid(chargerConfiguration.getMID());
-//                        paymentRequestData.setTid(chargingCurrentData.getPgTranSeq());
-//                        paymentRequestData.setOid(chargingCurrentData.getTradeUniqueNumber());
-//                        paymentRequestData.setAmt(chargingCurrentData.getPrePayment());
-//                        paymentRequestData.setAuthCode(chargingCurrentData.getApprovalNumber());
-//                        String authDate = zonedDateTimeConvert.doZonedDateTimeToStringUTC(chargingCurrentData.getApprovalDate()+chargingCurrentData.getApprovalTime());
-//
-//                        paymentRequestData.setAuthDate(authDate);
-//
-//                        for (Connector connector : ((MainActivity) MainActivity.mContext).getConnectorList()) {
-//                            int connectorId = connector.getConnectorId();
-//                            if (Objects.equals(connectorId, getConnectorId())) {
-//                                String qrUrl = connector.getQrUrl();
-//                                paymentRequestData.setBuyerName(qrUrl.substring(qrUrl.lastIndexOf("/") + 1));
-//                            }
-//                        }
-//                        paymentRequestData.setCardNum(chargingCurrentData.getCreditCardNumber());
-//                        paymentRequestData.setFnCd(Objects.equals(chargingCurrentData.getIssuer(), "") ? "" : chargingCurrentData.getIssuer().substring(0,4));
-//                        paymentRequestData.setFnName(Objects.equals(chargingCurrentData.getIssuer(), "") ? "" : chargingCurrentData.getIssuer().substring(4).trim());
-//
-//                        PaymentRequest paymentRequest = new PaymentRequest();
-//                        paymentRequest.setVendorId(chargerConfiguration.getChargerPointVendor());
-//                        paymentRequest.setMessageId("Payment");
-//                        paymentRequest.setData(gson.toJson(paymentRequestData));
-//                        if (state == SocketState.OPEN) {
-//                            socketReceiveMessage.onSend(getConnectorId(), paymentRequest.getActionName(), paymentRequest);
-//                        }  else {
-//                            uuid = UUID.randomUUID().toString();
-//                            payload = packPayload(paymentRequest);
-//                            call = String.format(CALL_FORMAT, uuid, paymentRequest.getActionName(), payload);
-//                            LogDataSave logDataSave = new LogDataSave("dump");
-//                            logDataSave.makeDump(call.toString());
-//                        }
+
+                    ZonedDateTime timestamp = zonedDateTimeConvert.doZonedDateTimeToDatetime();
+                    PayInfoData payInfoData = new PayInfoData();
+                    payInfoData.setConnectorId(getConnectorId());
+                    payInfoData.setTimestamp(zonedDateTimeConvert.doZonedDateTimeToString(timestamp));
+                    payInfoData.setPgTransactionNum(chargingCurrentData.getPgTranSeq());
+                    payInfoData.setPayId(chargingCurrentData.getPayId());
+                    payInfoData.setApprovalNum(chargingCurrentData.getApprovalDate());
+                    payInfoData.setTransactionDate(chargingCurrentData.getApprovalDate());
+                    payInfoData.setTransactionTime(chargingCurrentData.getApprovalTime());
+                    payInfoData.setAuthAmount(String.valueOf(chargingCurrentData.getPrePayment()));      //선결제 금액
+                    payInfoData.setCardNum(chargingCurrentData.getCreditCardNumber());
+
+                    PayInfoRequest payInfoRequest = new PayInfoRequest();
+                    payInfoRequest.setVendorId(chargerConfiguration.getChargePointVendor());
+                    payInfoRequest.setMessageId("payInfo");
+                    payInfoRequest.setData(gson.toJson(payInfoData));
+                    // 결제 성공, 서버와 연결이 안되는 경우에 우선 충전 start 시킨다.
+                    // 결제 이력 dump 저장
+                    if (state == SocketState.OPEN) {
+                        socketReceiveMessage.onSend(getConnectorId(), payInfoRequest.getActionName(), payInfoRequest);
                     } else {
-                        ZonedDateTime timestamp = zonedDateTimeConvert.doZonedDateTimeToDatetime();
-                        PayInfoData payInfoData = new PayInfoData();
-                        payInfoData.setConnectorId(getConnectorId());
-                        payInfoData.setTimestamp(zonedDateTimeConvert.doZonedDateTimeToString(timestamp));
-                        payInfoData.setPgTransactionNum(chargingCurrentData.getPgTranSeq());
-                        payInfoData.setPayId(chargingCurrentData.getPayId());
-                        payInfoData.setApprovalNum(chargingCurrentData.getApprovalDate());
-                        payInfoData.setTransactionDate(chargingCurrentData.getApprovalDate());
-                        payInfoData.setTransactionTime(chargingCurrentData.getApprovalTime());
-                        payInfoData.setAuthAmount(String.valueOf(chargingCurrentData.getPrePayment()));      //선결제 금액
-                        payInfoData.setCardNum(chargingCurrentData.getCreditCardNumber());
-
-                        PayInfoRequest payInfoRequest = new PayInfoRequest();
-                        payInfoRequest.setVendorId(chargerConfiguration.getChargePointVendor());
-                        payInfoRequest.setMessageId("payInfo");
-                        payInfoRequest.setData(gson.toJson(payInfoData));
-                        // 결제 성공, 서버와 연결이 안되는 경우에 우선 충전 start 시킨다.
-                        // 결제 이력 dump 저장
-                        if (state == SocketState.OPEN) {
-                            socketReceiveMessage.onSend(getConnectorId(), payInfoRequest.getActionName(), payInfoRequest);
-                        } else {
-                            uuid = UUID.randomUUID().toString();
-                            payload = packPayload(payInfoRequest);
-                            call = String.format(CALL_FORMAT, uuid, payInfoRequest.getActionName(), payload);
-                            LogDataSave logDataSave = new LogDataSave("dump");
-                            logDataSave.makeDump(call.toString());
-                        }
+                        uuid = UUID.randomUUID().toString();
+                        payload = packPayload(payInfoRequest);
+                        call = String.format(CALL_FORMAT, uuid, payInfoRequest.getActionName(), payload);
+                        LogDataSave logDataSave = new LogDataSave("dump");
+                        logDataSave.makeDump(call.toString());
                     }
-
                 } catch (Exception e) {
                     logger.error("MESSAGE_HANDLER_METER_VALUE error : {}", e.getMessage());
                 }
@@ -347,61 +305,34 @@ public class ProcessHandler extends Handler {
                     String idTag = bundle.getString("idTag");
                     boolean payResult = bundle.getBoolean("result");
                     ZonedDateTime timestamp = zonedDateTimeConvert.doZonedDateTimeToDatetime();
-                    String cpoName = bundle.getString("alarmCode");
-                    if (Objects.equals(cpoName, "HUMAX")) {
-//                        PaymentCancelData paymentCancelData = new PaymentCancelData();
-//                        paymentCancelData.setConnectorId(chargingCurrentData.getConnectorId());
-//                        paymentCancelData.setIdTag(chargingCurrentData.getIdTag());
-//                        paymentCancelData.setResultCode(chargingCurrentData.getResponseCode());
-//                        paymentCancelData.setResultMsg(chargingCurrentData.getResponseMessage());
-//                        paymentCancelData.setTid(chargingCurrentData.getPgTranSeq());
-//                        paymentCancelData.setCancelAmt(chargingCurrentData.getPartialCancelPayment());
-//                        //String authDate = zonedDateTimeConvert.doZonedDateTimeToString(chargingCurrentData.getApprovalDate()+chargingCurrentData.getApprovalTime());
-//                        String authDate = zonedDateTimeConvert.doZonedDateTimeToStringUTC(chargingCurrentData.getApprovalDate()+chargingCurrentData.getApprovalTime());
-//                        paymentCancelData.setCancelDate(authDate);
-//
-//                        PaymentCancelRequest paymentCancelRequest = new PaymentCancelRequest();
-//                        paymentCancelRequest.setVendorId(chargerConfiguration.getChargerPointVendor());
-//                        paymentCancelRequest.setMessageId("PaymentCancel");
-//                        paymentCancelRequest.setData(gson.toJson(paymentCancelData));
-//                        if (state == SocketState.OPEN) {
-//                            socketReceiveMessage.onSend(getConnectorId(), paymentCancelRequest.getActionName(), paymentCancelRequest);
-//                        }  else {
-//                            uuid = UUID.randomUUID().toString();
-//                            payload = packPayload(paymentCancelRequest);
-//                            call = String.format(CALL_FORMAT, uuid, paymentCancelRequest.getActionName(), payload);
-//                            LogDataSave logDataSave = new LogDataSave("dump");
-//                            logDataSave.makeDump(call.toString());
-//                        }
-                    } else {
-                        PartialCancelData partialCancelData = new PartialCancelData();
-                        partialCancelData.setConnectorId(getConnectorId());
-                        partialCancelData.setTimestamp(zonedDateTimeConvert.doZonedDateTimeToString(timestamp));
-                        partialCancelData.setPgTransactionNum(chargingCurrentData.getPgTranSeq());
-                        partialCancelData.setPayId(idTag);
-                        partialCancelData.setTransactionId(chargingCurrentData.getTransactionId());
-                        partialCancelData.setDeposit(chargingCurrentData.getPartialCancelPayment());                  //부분취소 후 실결제 금액
-                        partialCancelData.setPayResult(payResult ? 0 : 1);
-                        if (!TextUtils.isEmpty(chargingCurrentData.getChargingStartTime())) {
-                            partialCancelData.setStartTimestamp(zonedDateTimeConvert.doZonedDateTimeToString(chargingCurrentData.getChargingStartTime()));      //input date-time format = yyyyMMddHHmmss
-                        }
-                        if (!TextUtils.isEmpty(chargingCurrentData.getChargingEndTime())) {
-                            partialCancelData.setStopTimestamp(zonedDateTimeConvert.doZonedDateTimeToString(chargingCurrentData.getChargingEndTime()));         //input date-time format = yyyyMMddHHmmss
-                        }
 
-                        PartialCancelRequest partialCancelRequest = new PartialCancelRequest();
-                        partialCancelRequest.setVendorId(chargerConfiguration.getChargePointVendor());
-                        partialCancelRequest.setMessageId("partialCancel");
-                        partialCancelRequest.setData(gson.toJson(partialCancelData));
-                        if (Objects.equals(state.getValue(), 7)) {
-                            socketReceiveMessage.onSend(getConnectorId(), partialCancelRequest.getActionName(), partialCancelRequest);
-                        } else {
-                            uuid = UUID.randomUUID().toString();
-                            payload = packPayload(partialCancelRequest);
-                            call = String.format(CALL_FORMAT, uuid, partialCancelRequest.getActionName(), payload);
-                            LogDataSave logDataSave = new LogDataSave("dump");
-                            logDataSave.makeDump(call.toString());
-                        }
+                    PartialCancelData partialCancelData = new PartialCancelData();
+                    partialCancelData.setConnectorId(getConnectorId());
+                    partialCancelData.setTimestamp(zonedDateTimeConvert.doZonedDateTimeToString(timestamp));
+                    partialCancelData.setPgTransactionNum(chargingCurrentData.getPgTranSeq());
+                    partialCancelData.setPayId(idTag);
+                    partialCancelData.setTransactionId(chargingCurrentData.getTransactionId());
+                    partialCancelData.setDeposit(chargingCurrentData.getPartialCancelPayment());                  //부분취소 후 실결제 금액
+                    partialCancelData.setPayResult(payResult ? 0 : 1);
+                    if (!TextUtils.isEmpty(chargingCurrentData.getChargingStartTime())) {
+                        partialCancelData.setStartTimestamp(zonedDateTimeConvert.doZonedDateTimeToString(chargingCurrentData.getChargingStartTime()));      //input date-time format = yyyyMMddHHmmss
+                    }
+                    if (!TextUtils.isEmpty(chargingCurrentData.getChargingEndTime())) {
+                        partialCancelData.setStopTimestamp(zonedDateTimeConvert.doZonedDateTimeToString(chargingCurrentData.getChargingEndTime()));         //input date-time format = yyyyMMddHHmmss
+                    }
+
+                    PartialCancelRequest partialCancelRequest = new PartialCancelRequest();
+                    partialCancelRequest.setVendorId(chargerConfiguration.getChargePointVendor());
+                    partialCancelRequest.setMessageId("partialCancel");
+                    partialCancelRequest.setData(gson.toJson(partialCancelData));
+                    if (Objects.equals(state.getValue(), 7)) {
+                        socketReceiveMessage.onSend(getConnectorId(), partialCancelRequest.getActionName(), partialCancelRequest);
+                    } else {
+                        uuid = UUID.randomUUID().toString();
+                        payload = packPayload(partialCancelRequest);
+                        call = String.format(CALL_FORMAT, uuid, partialCancelRequest.getActionName(), payload);
+                        LogDataSave logDataSave = new LogDataSave("dump");
+                        logDataSave.makeDump(call.toString());
                     }
                 } catch (Exception e) {
                     logger.error(" MESSAGE_HANDLER_PARTIAL_CANCEL error : {} ", e.getMessage());
@@ -780,17 +711,17 @@ public class ProcessHandler extends Handler {
      */
     public void onDiagnosticsStart(int delay) {
         onDiagnosticsStop();
-//        diagnosticsThread = new DiagnosticsThread(delay);
-//        diagnosticsThread.setStopped(false);
-//        diagnosticsThread.start();
+        diagnosticsThread = new DiagnosticsThread(delay);
+        diagnosticsThread.setStopped(false);
+        diagnosticsThread.start();
     }
 
     public void onDiagnosticsStop() {
-//        if (diagnosticsThread != null) {
-//            diagnosticsThread.interrupt();
-//            diagnosticsThread.setStopped(true);
-//            diagnosticsThread = null;
-//        }
+        if (diagnosticsThread != null) {
+            diagnosticsThread.interrupt();
+            diagnosticsThread.setStopped(true);
+            diagnosticsThread = null;
+        }
     }
 
 

@@ -6,22 +6,27 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProvider;
 
 import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.R;
 import com.dongah.dispenser.basefunction.ChargerConfiguration;
 import com.dongah.dispenser.basefunction.ChargingCurrentData;
 import com.dongah.dispenser.basefunction.ClassUiProcess;
+import com.dongah.dispenser.basefunction.GlobalVariables;
 import com.dongah.dispenser.basefunction.UiSeq;
-import com.dongah.dispenser.utils.SharedModel;
+import com.dongah.dispenser.controlboard.RxData;
+import com.dongah.dispenser.handler.ProcessHandler;
+import com.dongah.dispenser.websocket.ocpp.core.ChargePointStatus;
+import com.dongah.dispenser.websocket.ocpp.core.Reason;
+import com.dongah.dispenser.websocket.socket.SocketReceiveMessage;
+import com.dongah.dispenser.websocket.socket.SocketState;
 import com.wang.avi.AVLoadingIndicatorView;
 
 import org.slf4j.Logger;
@@ -58,8 +63,8 @@ public class MemberCheckWaitFragment extends Fragment implements View.OnClickLis
     ChargingCurrentData chargingCurrentData;
     ChargerConfiguration chargerConfiguration;
 
-//    Handler countHandler;
-//    Runnable countRunnable;
+    Handler countHandler, handler;
+    Runnable countRunnable;
 
     public MemberCheckWaitFragment() {
         // Required empty public constructor
@@ -115,30 +120,173 @@ public class MemberCheckWaitFragment extends Fragment implements View.OnClickLis
 
             mediaPlayer();   // media player
 
-//            ((MainActivity) MainActivity.mContext).runOnUiThread(new Runnable() {
-//                @Override
-//                public void run() {
-//                    countHandler = new Handler();
-//                    countRunnable = new Runnable() {
-//                        @Override
-//                        public void run() {
-//                            try {
-//                                cnt++;
-//                                if (Objects.equals(cnt, 20)) {
-//                                    ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).onHome();
-//                                } else {
-//                                    countHandler.postDelayed(countRunnable, 1000);
-//                                }
-//                                // TODO: authorize result check
-//                            } catch (Exception e) {
-//                                Log.e("MemberCheckWaitFragment", "runOnUiThread error", e);
-//                                logger.error("MemberCheckWaitFragment runOnUiThread error : {}", e.getMessage());
-//                            }
+            ((MainActivity) MainActivity.mContext).runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    countHandler = new Handler();
+                    countRunnable = new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                cnt++;
+                                if (Objects.equals(cnt, 20)) {
+                                    ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).onHome();
+                                } else {
+                                    countHandler.postDelayed(countRunnable, 1000);
+                                }
+                                // authorize result check
+                                if (!chargingCurrentData.isAuthorizeResult()) {
+                                    if (handler != null) handler.removeCallbacksAndMessages(null);
+                                }
+                            } catch (Exception e) {
+                                Log.e("MemberCheckWaitFragment", "runOnUiThread error", e);
+                                logger.error("MemberCheckWaitFragment runOnUiThread error : {}", e.getMessage());
+                            }
+                        }
+                    };
+                    countHandler.postDelayed(countRunnable, 1000);
+                }
+            });
+
+            // 나중에 부활 예정
+            String[] idTagInfo;
+            UiSeq uiSeq = classUiProcess.getUiSeq();
+            SocketReceiveMessage socketReceiveMessage = ((MainActivity) MainActivity.mContext).getSocketReceiveMessage();
+            ProcessHandler processHandler = ((MainActivity) MainActivity.mContext).getProcessHandler();
+
+            // isLocalPreAuthorize == true : local authorization list 에서 사용자 인증
+            // isLocalPreAuthorize: 사전 로컬 인증 모드
+            if (GlobalVariables.isLocalPreAuthorize()) {
+                // local authorization enabled --> local 인증
+                idTagInfo = socketReceiveMessage.getLocalAuthorizationListStrings(uiSeq == UiSeq.CHARGING ? chargingCurrentData.getIdTagStop() : chargingCurrentData.getIdTag());
+                if (Objects.equals(UiSeq.CHARGING, uiSeq)) {
+                    if (Objects.equals(chargingCurrentData.getParentIdTag(), idTagInfo[1]) ||
+                            Objects.equals(chargingCurrentData.getIdTag(), chargingCurrentData.getIdTagStop())) {
+                        ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.FINISH_WAIT, "FINISH_WAIT", null);
+                    } else  {
+                        classUiProcess.setUiSeq(UiSeq.CHARGING);
+                        ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.CHARGING, "CHARGING", null);
+                    }
+                } else {
+                    if (!Objects.equals(chargingCurrentData.getChargePointStatus(), ChargePointStatus.Preparing) &&
+                            Objects.equals(chargerConfiguration.getOpMode(), "1")) {
+                        chargingCurrentData.setChargePointStatus(ChargePointStatus.Preparing);
+                        processHandler.sendMessage(socketReceiveMessage.onMakeHandlerMessage(
+                                GlobalVariables.MESSAGE_HANDLER_STATUS_NOTIFICATION,
+                                chargingCurrentData.getConnectorId(),
+                                0,
+                                null,
+                                null,
+                                null,
+                                false
+                        ));
+                    }
+
+                    if (Objects.equals(idTagInfo[0], chargingCurrentData.getIdTag())) {
+                        chargingCurrentData.setAuthorizeResult(true);
+                        chargingCurrentData.setParentIdTag(idTagInfo[1]);
+                        ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.CHARGING_WAIT);
+                        ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.CHARGING_WAIT, "CHARGING_WAIT", null);
+                    } else if (Objects.equals(idTagInfo[0], "notFound")) {
+                        processHandler.sendMessage(socketReceiveMessage.onMakeHandlerMessage(
+                                GlobalVariables.MESSAGE_HANDLER_AUTHORIZE,
+                                chargingCurrentData.getConnectorId(),
+                                0,
+                                uiSeq == UiSeq.CHARGING ? chargingCurrentData.getIdTagStop() : chargingCurrentData.getIdTag(),
+                                null,
+                                null,
+                                false
+                        ));
+                    } else {
+                        // 인증 실패
+                        ((MainActivity) MainActivity.mContext).getChargingCurrentData(mChannel).setAuthorizeResult(false);
+                        ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).onHome();
+                        RxData rxData = ((MainActivity) MainActivity.mContext).getControlBoard().getRxData(mChannel);
+                        if (!rxData.isCsPilot() && Objects.equals(chargerConfiguration.getOpMode(), "1")) {
+                            chargingCurrentData.setChargePointStatus(ChargePointStatus.Available);
+                            processHandler.sendMessage(socketReceiveMessage.onMakeHandlerMessage(
+                                    GlobalVariables.MESSAGE_HANDLER_STATUS_NOTIFICATION,
+                                    chargingCurrentData.getConnectorId(),
+                                    0,
+                                    null,
+                                    null,
+                                    null,
+                                    false
+                            ));
+                        }
+                    }
+                }
+            } else {
+                // central system send
+                SocketState state = socketReceiveMessage.getSocket().getState();
+                if (state == SocketState.OPEN) {
+                    if (Objects.equals(UiSeq.CHARGING, uiSeq) && Objects.equals(chargingCurrentData.getIdTag(), chargingCurrentData.getIdTagStop())) {
+                        ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.FINISH_WAIT, "FINISH_WAIT", null);
+                    } else {
+                        // TODO: reserved
+//                        if (chargingCurrentData.getChargePointStatus() == ChargePointStatus.Reserved) {
+//
 //                        }
-//                    };
-//                    countHandler.postDelayed(countRunnable, 1000);
-//                }
-//            });
+                        processHandler.sendMessage(socketReceiveMessage.onMakeHandlerMessage(
+                                GlobalVariables.MESSAGE_HANDLER_AUTHORIZE,
+                                chargingCurrentData.getConnectorId(),
+                                0,
+                                uiSeq == UiSeq.CHARGING ? chargingCurrentData.getIdTagStop() : chargingCurrentData.getIdTag(),
+                                null,
+                                null,
+                                false
+                        ));
+                    }
+                } else {
+                    // 서버와 연결이 안된 경우
+                    // isLocalAuthorizeOffline: 서버 연결이 끊겼을 때 오프라인 로컬 인증 허용 여부
+                    if (GlobalVariables.isLocalAuthorizeOffline()) {
+                        // local authorization enabled --> local 인증
+                        idTagInfo = socketReceiveMessage.getLocalAuthorizationListStrings(uiSeq == UiSeq.CHARGING ? chargingCurrentData.getIdTagStop() : chargingCurrentData.getIdTag());
+                        if (Objects.equals(UiSeq.CHARGING, uiSeq)) {
+                            if (Objects.equals(chargingCurrentData.getParentIdTag(), idTagInfo[1]) ||
+                                    Objects.equals(chargingCurrentData.getIdTag(), chargingCurrentData.getIdTagStop())) {
+                                ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.FINISH_WAIT, "FINISH_WAIT", null);
+                            } else {
+                                classUiProcess.setUiSeq(UiSeq.CHARGING);
+                                ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.CHARGING, "CHARGING", null);
+                            }
+                        } else {
+                            // isAllowOfflineTxForUnknownId: 오프라인에서 미등록 IdTag도 거래 허용
+                            if (Objects.equals(idTagInfo[0], chargingCurrentData.getIdTag()) || GlobalVariables.isAllowOfflineTxForUnknownId() ||
+                                    GlobalVariables.isStopTransactionOnInvalidId()) {
+                                chargingCurrentData.setChargePointStatus(ChargePointStatus.Preparing);
+                                processHandler.sendMessage(socketReceiveMessage.onMakeHandlerMessage(
+                                        GlobalVariables.MESSAGE_HANDLER_STATUS_NOTIFICATION,
+                                        chargingCurrentData.getConnectorId(),
+                                        0,
+                                        null,
+                                        null,
+                                        null,
+                                        false
+                                ));
+                                // isStopTransactionOnInvalidId: 미등록 IdTag로 시작했으면 나중에 중단 사유 세팅
+                                chargingCurrentData.setStopReason(!Objects.equals(idTagInfo[0], chargingCurrentData.getIdTag()) &&
+                                        GlobalVariables.isStopTransactionOnInvalidId() ? Reason.DeAuthorized : chargingCurrentData.getStopReason());
+                                ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.CHARGING_WAIT);
+                                ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.CHARGING_WAIT, "CHARGING_WAIT", null);
+                            } else {
+                                // 인증 실패
+                                Toast.makeText(getActivity(), "인증 실패. ", Toast.LENGTH_SHORT).show();;
+                                ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).onHome();
+                            }
+                        }
+                    } else {
+                        Toast.makeText(getActivity(), "서버와 통신 DISCONNECT!!! 인증 실패. ", Toast.LENGTH_SHORT).show();
+                        if (Objects.equals(UiSeq.CHARGING, uiSeq)) {
+                            ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.CHARGING);
+                            ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel,UiSeq.CHARGING, "CHARGING", null);
+                        } else {
+                            ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).onHome();
+                        }
+                    }
+                }
+            }
         } catch (Exception e) {
             Log.e("MemberCheckWaitFragment", "onViewCreated error", e);
             logger.error("MemberCheckWaitFragment onViewCreated error : {}", e.getMessage());
