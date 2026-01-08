@@ -851,7 +851,6 @@ public class SocketReceiveMessage extends JSONCommunicator implements SocketInte
                                             );
                                     bootNotificationRequest.setFirmwareVersion(GlobalVariables.VERSION);
                                     bootNotificationRequest.setImsi(chargerConfiguration.getImsi());
-                                    bootNotificationRequest.setChargePointSerialNumber(chargerConfiguration.getChargePointSerialNumber());
                                     onSend(100, bootNotificationRequest.getActionName(), bootNotificationRequest);
                                 } catch (Exception e){
                                     logger.error("{}", e.getMessage());
