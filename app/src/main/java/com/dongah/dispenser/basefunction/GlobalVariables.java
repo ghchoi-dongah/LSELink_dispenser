@@ -87,6 +87,34 @@ public class GlobalVariables {
     public static int ClockAlignedDataInterval = 0;
     public static boolean LocalAuthorizeOffline = false;
     public static String AuthorizationKey = "";
+    public static boolean AuthorizationCacheEnabled = false;
+    public static int BlinkRepeat = 0;
+    public static int GetConfigurationMaxKeys = 1000;
+    public static int LightIntensity = 80;
+    public static int MaxEnergyOnInvalidId = 0;
+    public static String MeterValuesAlignedData = "";
+    public static int MeterValuesAlignedDataMaxLength = 2000;
+    public static String MeterValuesSampledData = "";
+    public static int MeterValuesSampledDataMaxLength = 2000;
+    public static int NumberOfConnectors = 3;
+    public static int ResetRetries = 3;
+    public static String StopTxnAlignedData = "";
+    public static String StopTxnSampledData = "";
+    public static String SupportedFeatureProfiles = "";
+    public static int TransactionMessageAttempts = 5;
+    public static int TransactionMessageRetryInterval = 30;
+    public static int LocalAuthListMaxLength = 100;
+    public static int SendLocalListMaxLength = 100;
+    public static int ChargeProfileMaxStackLevel = 5;
+    public static String ChargingScheduleAllowedChargingRateUnit = "";
+    public static int ChargingScheduleMaxPeriods = 24;
+    public static int MaxChargingProfilesInstalled = 3;
+
+    // LS E-link Configuration Key
+    public static int FullRechgAmt = 0;         // 충전기 완속기준 충전금액설정
+    public static String PersonUtztnLmtYn = ""; // 개인 사용 제한 설정 여부
+    public static int PersonUtztnLmtHr = 0;     // 개인 사용 제한 시간 설정
+    public static String webSocketURL = "";     // WebSocket 주소 변경(단, 충전 중인 경우 충전 종료시 적용)
 
 
     //Humax Configuration Key add
@@ -325,6 +353,214 @@ public class GlobalVariables {
         AuthorizationKey = authorizationKey;
     }
 
+    public static  boolean isAuthorizationCacheEnabled() {
+        return AuthorizationCacheEnabled;
+    }
+
+    public static void setAuthorizationCacheEnabled(boolean authorizationCacheEnabled) {
+        AuthorizationCacheEnabled = authorizationCacheEnabled;
+    }
+
+    public static int getBlinkRepeat() {
+        return BlinkRepeat;
+    }
+
+    public static void setBlinkRepeat(int blinkRepeat) {
+        BlinkRepeat = blinkRepeat;
+    }
+
+    public static int getGetConfigurationMaxKeys() {
+        return GetConfigurationMaxKeys;
+    }
+
+    public static void setGetConfigurationMaxKeys(int getConfigurationMaxKeys) {
+        GetConfigurationMaxKeys = getConfigurationMaxKeys;
+    }
+
+    public static int getLightIntensity() {
+        return LightIntensity;
+    }
+
+    public static void setLightIntensity(int lightIntensity) {
+        LightIntensity = lightIntensity;
+    }
+
+    public static int getMaxEnergyOnInvalidId() {
+        return MaxEnergyOnInvalidId;
+    }
+
+    public static void setMaxEnergyOnInvalidId(int maxEnergyOnInvalidId) {
+        MaxEnergyOnInvalidId = maxEnergyOnInvalidId;
+    }
+
+    public static String getMeterValuesAlignedData() {
+        return MeterValuesAlignedData;
+    }
+
+    public static void setMeterValuesAlignedData(String meterValuesAlignedData) {
+        MeterValuesAlignedData = meterValuesAlignedData;
+    }
+
+    public static int getMeterValuesAlignedDataMaxLength() {
+        return MeterValuesAlignedDataMaxLength;
+    }
+
+    public static void setMeterValuesAlignedDataMaxLength(int meterValuesAlignedDataMaxLength) {
+        MeterValuesAlignedDataMaxLength = meterValuesAlignedDataMaxLength;
+    }
+
+    public static String getMeterValuesSampledData() {
+        return MeterValuesSampledData;
+    }
+
+    public static void setMeterValuesSampledData(String meterValuesSampledData) {
+        MeterValuesSampledData = meterValuesSampledData;
+    }
+
+    public static int getMeterValuesSampledDataMaxLength() {
+        return MeterValuesSampledDataMaxLength;
+    }
+
+    public static void setMeterValuesSampledDataMaxLength(int meterValuesSampledDataMaxLength) {
+        MeterValuesSampledDataMaxLength = meterValuesSampledDataMaxLength;
+    }
+
+    public static int getNumberOfConnectors() {
+        return NumberOfConnectors;
+    }
+
+    public static void setNumberOfConnectors(int numberOfConnectors) {
+        NumberOfConnectors = numberOfConnectors;
+    }
+
+    public static int getResetRetries() {
+        return ResetRetries;
+    }
+
+    public static void setResetRetries(int resetRetries) {
+        ResetRetries = resetRetries;
+    }
+
+    public static String getStopTxnAlignedData() {
+        return StopTxnAlignedData;
+    }
+
+    public static void setStopTxnAlignedData(String stopTxnAlignedData) {
+        StopTxnAlignedData = stopTxnAlignedData;
+    }
+
+    public static String getStopTxnSampledData() {
+        return StopTxnSampledData;
+    }
+
+    public static void setStopTxnSampledData(String stopTxnSampledData) {
+        StopTxnSampledData = stopTxnSampledData;
+    }
+
+    public static String getSupportedFeatureProfiles() {
+        return SupportedFeatureProfiles;
+    }
+
+    public static void setSupportedFeatureProfiles(String supportedFeatureProfiles) {
+        SupportedFeatureProfiles = supportedFeatureProfiles;
+    }
+
+    public static int getTransactionMessageAttempts() {
+        return TransactionMessageAttempts;
+    }
+
+    public static void setTransactionMessageAttempts(int transactionMessageAttempts) {
+        TransactionMessageAttempts = transactionMessageAttempts;
+    }
+
+    public static int getTransactionMessageRetryInterval() {
+        return TransactionMessageRetryInterval;
+    }
+
+    public static void setTransactionMessageRetryInterval(int transactionMessageRetryInterval) {
+        TransactionMessageRetryInterval = transactionMessageRetryInterval;
+    }
+
+    public static int getLocalAuthListMaxLength() {
+        return LocalAuthListMaxLength;
+    }
+
+    public static void setLocalAuthListMaxLength(int localAuthListMaxLength) {
+        LocalAuthListMaxLength = localAuthListMaxLength;
+    }
+
+    public static int getSendLocalListMaxLength() {
+        return SendLocalListMaxLength;
+    }
+
+    public static void setSendLocalListMaxLength(int sendLocalListMaxLength) {
+        SendLocalListMaxLength = sendLocalListMaxLength;
+    }
+
+    public static int getChargeProfileMaxStackLevel() {
+        return ChargeProfileMaxStackLevel;
+    }
+
+    public static void setChargeProfileMaxStackLevel(int chargeProfileMaxStackLevel) {
+        ChargeProfileMaxStackLevel = chargeProfileMaxStackLevel;
+    }
+
+    public static String getChargingScheduleAllowedChargingRateUnit() {
+        return ChargingScheduleAllowedChargingRateUnit;
+    }
+
+    public static void setChargingScheduleAllowedChargingRateUnit(String chargingScheduleAllowedChargingRateUnit) {
+        ChargingScheduleAllowedChargingRateUnit = chargingScheduleAllowedChargingRateUnit;
+    }
+
+    public static int getChargingScheduleMaxPeriods() {
+        return ChargingScheduleMaxPeriods;
+    }
+
+    public static void setChargingScheduleMaxPeriods(int chargingScheduleMaxPeriods) {
+        ChargingScheduleMaxPeriods = chargingScheduleMaxPeriods;
+    }
+
+    public static int getMaxChargingProfilesInstalled() {
+        return MaxChargingProfilesInstalled;
+    }
+
+    public static void setMaxChargingProfilesInstalled(int maxChargingProfilesInstalled) {
+        MaxChargingProfilesInstalled = maxChargingProfilesInstalled;
+    }
+
+
+    public static int getFullRechgAmt() {
+        return FullRechgAmt;
+    }
+
+    public static void setFullRechgAmt(int fullRechgAmt) {
+        FullRechgAmt = fullRechgAmt;
+    }
+
+    public static String getPersonUtztnLmtYn() {
+        return PersonUtztnLmtYn;
+    }
+
+    public static void setPersonUtztnLmtYn(String personUtztnLmtYn) {
+        PersonUtztnLmtYn = personUtztnLmtYn;
+    }
+
+    public static int getPersonUtztnLmtHr() {
+        return PersonUtztnLmtHr;
+    }
+
+    public static void setPersonUtztnLmtHr(int personUtztnLmtHr) {
+        PersonUtztnLmtHr = personUtztnLmtHr;
+    }
+
+    public static String getWebSocketURL() {
+        return webSocketURL;
+    }
+
+    public static void setWebSocketURL(String webSocketUrl) {
+        webSocketURL = webSocketUrl;
+    }
 
     public static String getHmChargerMode() {
         return HmChargerMode;
