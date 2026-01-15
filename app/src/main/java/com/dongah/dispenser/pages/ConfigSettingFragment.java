@@ -56,8 +56,8 @@ public class ConfigSettingFragment extends Fragment implements View.OnClickListe
 
     ChargerConfiguration chargerConfiguration;
     InputMethodManager imm;
-    Spinner spinnerChargePointType, spinnerChargePointModel;
-    int spPosition = 0, spChargerPointModelCode = 0;
+    Spinner spinnerChargePointType, spinnerChargePointModel, spinnerAuthMode, spinnerOpMode;
+    int spPosition = 0, spChargerPointModelCode = 0, spAuthMode = 0, spOpMode = 0;
     EditText editChargeBoxSerialNumber, editChargerId;
     EditText editServerUrl, editServerPort, editControlPort, editRfPort, editCreditCardPort;
     EditText editTestPrice, editConnectorPriority;
@@ -67,11 +67,6 @@ public class ConfigSettingFragment extends Fragment implements View.OnClickListe
     EditText editIccid, editImsi;
     EditText editMeterSerialNumber, editMeterType;
     EditText editSoc, editDR;
-    RadioGroup radioGrpAuth, radioGrpOp;
-    RadioButton radioBtnMac, radioBtnMemberCard, radioBtnMacMemberCard;
-    RadioButton radioBtnTest, radioBtnServer;
-
-
     Button btnExit, btnSave, btnRebooting, btnKeyboardControl;
 
 
@@ -122,17 +117,6 @@ public class ConfigSettingFragment extends Fragment implements View.OnClickListe
             btnRebooting = view.findViewById(R.id.btnRebooting);
             btnRebooting.setOnClickListener(this);
 
-            radioBtnMac = view.findViewById(R.id.radioBtnMac);
-            radioBtnMac.setOnClickListener(this);
-            radioBtnMemberCard = view.findViewById(R.id.radioBtnMemberCard);
-            radioBtnMemberCard.setOnClickListener(this);
-            radioBtnMacMemberCard = view.findViewById(R.id.radioBtnMacMemberCard);
-            radioBtnMacMemberCard.setOnClickListener(this);
-            radioBtnTest = view.findViewById(R.id.radioBtnTest);
-            radioBtnTest.setOnClickListener(this);
-            radioBtnServer = view.findViewById(R.id.radioBtnServer);
-            radioBtnServer.setOnClickListener(this);
-
             // chargerPointType
             spinnerChargePointType = view.findViewById(R.id.spinnerChargePointType);
             ArrayAdapter<CharSequence> chargerTypeAdapter = ArrayAdapter.createFromResource(MainActivity.mContext, R.array.chargerType, R.layout.spinner_item);
@@ -173,6 +157,45 @@ public class ConfigSettingFragment extends Fragment implements View.OnClickListe
                 }
             });
 
+            // authMode
+            spinnerAuthMode = view.findViewById(R.id.spinnerAuthMode);
+            ArrayAdapter<CharSequence> authAdapter = ArrayAdapter.createFromResource(MainActivity.mContext, R.array.authMode, R.layout.spinner_item);
+            authAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            spinnerAuthMode.setAdapter(authAdapter);
+            spinnerAuthMode.setSelection(chargerConfiguration.getAuthMode());
+            spinnerAuthMode.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                    spAuthMode = position;
+                    chargerConfiguration.setAuthMode(spAuthMode);
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> parent) {
+
+                }
+            });
+
+            // opMode
+            spinnerOpMode = view.findViewById(R.id.spinnerOpMode);
+            ArrayAdapter<CharSequence> opAdapter = ArrayAdapter.createFromResource(MainActivity.mContext, R.array.opMode, R.layout.spinner_item);
+            opAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            spinnerOpMode.setAdapter(opAdapter);
+            spinnerOpMode.setSelection(chargerConfiguration.getOpMode());
+            spinnerOpMode.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                    spOpMode = position;
+                    chargerConfiguration.setOpMode(spOpMode);
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> parent) {
+
+                }
+            });
+
+
             InitializationComponents(view);
 
         } catch (Exception e) {
@@ -186,7 +209,6 @@ public class ConfigSettingFragment extends Fragment implements View.OnClickListe
     public void onClick(View v) {
         if (Objects.equals(v.getId(), R.id.btnExit)) {
             try {
-//                ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.ENVIRONMENT, "ENVIRONMENT", null);
                 FragmentTransaction transaction = ((MainActivity) MainActivity.mContext).getSupportFragmentManager().beginTransaction();
                 EnvironmentFragment environmentFragment = new EnvironmentFragment();
                 transaction.replace(R.id.frameFull, environmentFragment);
@@ -315,12 +337,6 @@ public class ConfigSettingFragment extends Fragment implements View.OnClickListe
             } catch (Exception e) {
                 logger.error("config - onClick {}", e.getMessage());
             }
-        } else if (Objects.equals(v.getId(), R.id.radioBtnMac)) {
-            chargerConfiguration.setAuthMode("0");
-        } else if (Objects.equals(v.getId(), R.id.radioBtnMemberCard)) {
-            chargerConfiguration.setAuthMode("1");
-        } else if (Objects.equals(v.getId(), R.id.radioBtnMacMemberCard)) {
-            chargerConfiguration.setAuthMode("2");
         }
     }
 
@@ -328,6 +344,8 @@ public class ConfigSettingFragment extends Fragment implements View.OnClickListe
         try {
             spPosition = chargerConfiguration.getChargerPointType();
             spChargerPointModelCode = chargerConfiguration.getChargerPointModelCode();
+            spAuthMode = chargerConfiguration.getAuthMode();
+            spOpMode = chargerConfiguration.getOpMode();
 
             editChargeBoxSerialNumber = v.findViewById(R.id.editChargeBoxSerialNumber);
             editChargeBoxSerialNumber.setText(chargerConfiguration.getChargeBoxSerialNumber());
@@ -371,49 +389,6 @@ public class ConfigSettingFragment extends Fragment implements View.OnClickListe
             editSoc.setText(String.valueOf(chargerConfiguration.getTargetSoc()));
             editDR = v.findViewById(R.id.editDR);
             editDR.setText(String.valueOf(chargerConfiguration.getDr()));
-
-            radioGrpAuth = v.findViewById(R.id.radioGrpAuth);
-            radioGrpOp = v.findViewById(R.id.radioGrpOp);
-
-            try {
-                /* 회원 인증 모드
-                 * 0: mac
-                 * 1: member
-                 * 2: mac + member
-                 * */
-                switch (Integer.parseInt(chargerConfiguration.getAuthMode())) {
-                    case 0:
-                        radioBtnMac.setChecked(true);
-                        break;
-                    case 1:
-                        radioBtnMemberCard.setChecked(true);
-                        break;
-                    case 2:
-                        radioBtnMacMemberCard.setChecked(true);
-                        break;
-                    default:
-                        break;
-                }
-
-                /* 운영모드
-                 * 0: test
-                 * 1: server
-                 * */
-                switch (Integer.parseInt(chargerConfiguration.getOpMode())) {
-                    case 0:
-                        radioBtnTest.setChecked(true);
-                        break;
-                    case 1:
-                        radioBtnServer.setChecked(true);
-                        break;
-                    default:
-                        break;
-                }
-            } catch (Exception e) {
-                Log.e("ConfigSettingFragment", "InitializationComponents try-catch fail", e);
-                logger.error("ConfigSettingFragment InitializationComponents try-catch fail : {}",  e.getMessage());
-            }
-
         } catch (Exception e) {
             Log.e("ConfigSettingFragment", "InitializationComponents error", e);
             logger.error("ConfigSettingFragment InitializationComponents error : {}",  e.getMessage());
@@ -435,6 +410,8 @@ public class ConfigSettingFragment extends Fragment implements View.OnClickListe
         try {
             chargerConfiguration.setChargerPointType(spPosition);
             chargerConfiguration.setChargerPointModelCode(spChargerPointModelCode);
+            chargerConfiguration.setAuthMode(spAuthMode);
+            chargerConfiguration.setOpMode(spOpMode);
 
             chargerConfiguration.setChargeBoxSerialNumber(editChargeBoxSerialNumber.getText().toString());
             chargerConfiguration.setChargerId(editChargerId.getText().toString());
@@ -457,30 +434,6 @@ public class ConfigSettingFragment extends Fragment implements View.OnClickListe
             chargerConfiguration.setMeterType(editMeterType.getText().toString());
             chargerConfiguration.setTargetSoc(Integer.parseInt(editSoc.getText().toString()));
             chargerConfiguration.setDr(Integer.parseInt(editDR.getText().toString()));
-
-
-            /* 회원 인증 모드
-             * 0: mac
-             * 1: member
-             * 2: mac + member
-             * */
-            if (radioBtnMac.isChecked()) {
-                chargerConfiguration.setAuthMode("0");
-            } else if (radioBtnMemberCard.isChecked()) {
-                chargerConfiguration.setAuthMode("1");
-            } else if (radioBtnMacMemberCard.isChecked()) {
-                chargerConfiguration.setAuthMode("2");
-            }
-
-            /* 운영모드
-             * 0: test
-             * 1: server
-             * */
-            if (radioBtnTest.isChecked()) {
-                chargerConfiguration.setOpMode("0");
-            } else if (radioBtnServer.isChecked()) {
-                chargerConfiguration.setOpMode("1");
-            }
         } catch (Exception e) {
             Log.e("ConfigSettingFragment", "onConfigurationUpdate error", e);
             logger.error("ConfigSettingFragment onConfigurationUpdate error : {}",  e.getMessage());

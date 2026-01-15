@@ -45,14 +45,14 @@ public class ChargerConfiguration {
      * 1: member
      * 2: mac + member
      * */
-    public String authMode = "2";
+    public int authMode = 2;
     public int authModeId;
 
     /** 운영모드
      * 0: test
      * 1: server
      * */
-    public String opMode = "0";
+    public int opMode = 0;
     public int opModeId;
 
 
@@ -104,9 +104,9 @@ public class ChargerConfiguration {
                 setChargerId(obj.getString("CHARGER_ID"));
                 setServerConnectingString(obj.getString("SERVER_CONNECTING_STRING"));
                 setServerPort(obj.getInt("SERVER_PORT"));
-                setAuthMode(obj.getString("AUTH_MODE"));
+                setAuthMode(obj.getInt("AUTH_MODE"));
                 setAuthModeId(obj.getInt("AUTH_MODE_ID"));
-                setOpMode(obj.getString("OP_MODE"));
+                setOpMode(obj.getInt("OP_MODE"));
                 setOpModeId(obj.getInt("OP_MODE_ID"));
                 setControlCom(obj.getString("CONTROL_COM"));
                 setRfCom(obj.getString("RF_COM"));
@@ -221,11 +221,11 @@ public class ChargerConfiguration {
         this.serverPort = serverPort;
     }
 
-    public String getAuthMode() {
+    public int getAuthMode() {
         return authMode;
     }
 
-    public void setAuthMode(String authMode) {
+    public void setAuthMode(int authMode) {
         this.authMode = authMode;
     }
 
@@ -237,11 +237,11 @@ public class ChargerConfiguration {
         this.authModeId = authModeId;
     }
 
-    public String getOpMode() {
+    public int getOpMode() {
         return opMode;
     }
 
-    public void setOpMode(String opMode) {
+    public void setOpMode(int opMode) {
         this.opMode = opMode;
     }
 

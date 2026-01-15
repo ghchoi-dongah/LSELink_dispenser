@@ -7,8 +7,8 @@
                     <solid android:color="@color/white"/>
                     <stroke android:color="#888888" android:width="2dp"/>
                     <padding
-                        android:top="5dp"
-                        android:bottom="5dp"
+                        android:top="2dp"
+                        android:bottom="2dp"
                         android:right="10dp"/>
                     <corners android:radius="3dp" />
                 </shape>
@@ -17,8 +17,8 @@
             <item
                 android:drawable="@drawable/ic_down"
                 android:gravity="center|end"
-                android:width="16dp"
-                android:height="16dp" />
+                android:width="10dp"
+                android:height="10dp" />
         </layer-list>
     </item>
 </selector>

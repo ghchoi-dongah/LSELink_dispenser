@@ -62,15 +62,15 @@
     <string name="imsi"><font color="#000">모뎀 IMSI</font></string>
     <string name="meterSerialNumber"><font color="#000">전력량계 Serial</font></string>
     <string name="meterType"><font color="#000">전력량계 타입</font></string>
-    <string name="authMode"><font color="#000">[회원인증모드]</font></string>
+    <string name="authMode"><font color="#000">회원인증모드</font></string>
     <string name="mac"><font color="#000">MAC</font></string>
     <string name="memberCard"><font color="#000">회원카드</font></string>
     <string name="macMemberCard"><font color="#000">MAC + 회원카드</font></string>
-    <string name="opMode"><font color="#000">[운영모드]</font></string>
+    <string name="opMode"><font color="#000">운영모드</font></string>
     <string name="test"><font color="#000">테스트</font></string>
     <string name="server"><font color="#000">서버</font></string>
     <string name="keyboardControl"><font color="#000">키보드 제어</font></string>
-    <string name="hidden"><font color="#000">HIDDEN</font></string>
+    <string name="hidden"><font color="#06377B">HIDDEN</font></string>
     <string name="off"><font color="#000">OFF</font></string>
     <string name="exit">EXIT</string>
     <string name="save">저장</string>

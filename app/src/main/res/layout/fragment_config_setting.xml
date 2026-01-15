@@ -11,15 +11,15 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
-        android:layout_marginStart="80dp"
+        android:layout_marginStart="100dp"
         android:text="@string/chargePointType"
-        android:textSize="24sp"
+        android:textSize="18sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"/>
 
     <Spinner
         android:id="@+id/spinnerChargePointType"
-        android:layout_width="320dp"
+        android:layout_width="260dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="10dp"
         android:dropDownWidth="300dp"
@@ -35,13 +35,13 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
         android:text="@string/chargePointModel"
-        android:textSize="24sp"
+        android:textSize="18sp"
         app:layout_constraintEnd_toEndOf="@id/textViewChargePointType"
         app:layout_constraintTop_toBottomOf="@id/textViewChargePointType" />
 
     <Spinner
         android:id="@+id/spinnerChargePointModel"
-        android:layout_width="320dp"
+        android:layout_width="260dp"
         android:layout_height="wrap_content"
         android:dropDownWidth="300dp"
         android:spinnerMode="dropdown"
@@ -56,7 +56,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
         android:text="@string/chargeBoxSerialNumber"
-        android:textSize="24sp"
+        android:textSize="18sp"
         app:layout_constraintEnd_toEndOf="@id/textViewChargePointType"
         app:layout_constraintTop_toBottomOf="@id/textViewChargePointModel" />
 
@@ -64,8 +64,8 @@
         android:id="@+id/editChargeBoxSerialNumber"
         android:layout_width="260dp"
         android:layout_height="wrap_content"
-        android:background="@drawable/selector_edit_text_disabled"
-        android:textSize="24sp"
+        android:background="@drawable/selector_edit_text_required"
+        android:textSize="18sp"
         android:textColor="#000"
         android:inputType="text"
         app:layout_constraintTop_toTopOf="@id/textViewChargeBoxSerialNumber"
@@ -78,7 +78,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
         android:text="@string/chargerId"
-        android:textSize="24sp"
+        android:textSize="18sp"
         app:layout_constraintEnd_toEndOf="@id/textViewChargePointType"
         app:layout_constraintTop_toBottomOf="@id/textViewChargeBoxSerialNumber" />
 
@@ -86,8 +86,8 @@
         android:id="@+id/editChargerId"
         android:layout_width="260dp"
         android:layout_height="wrap_content"
-        android:background="@drawable/selector_edit_text_disabled"
-        android:textSize="24sp"
+        android:background="@drawable/selector_edit_text_required"
+        android:textSize="18sp"
         android:textColor="#000"
         android:inputType="text"
         app:layout_constraintTop_toTopOf="@id/textViewChargerId"
@@ -100,16 +100,16 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
         android:text="@string/serverUrl"
-        android:textSize="24sp"
+        android:textSize="18sp"
         app:layout_constraintEnd_toEndOf="@id/textViewChargePointType"
         app:layout_constraintTop_toBottomOf="@id/textViewChargerId" />
 
     <EditText
         android:id="@+id/editServerUrl"
-        android:layout_width="768dp"
+        android:layout_width="520dp"
         android:layout_height="wrap_content"
         android:background="@drawable/selector_edit_text_required"
-        android:textSize="24sp"
+        android:textSize="18sp"
         android:textColor="#000"
         android:inputType="text"
         app:layout_constraintTop_toTopOf="@id/textViewServerUrl"
@@ -122,7 +122,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
         android:text="@string/serverPort"
-        android:textSize="24sp"
+        android:textSize="18sp"
         app:layout_constraintEnd_toEndOf="@id/textViewChargePointType"
         app:layout_constraintTop_toBottomOf="@id/textViewServerUrl" />
 
@@ -131,7 +131,7 @@
         android:layout_width="260dp"
         android:layout_height="wrap_content"
         android:background="@drawable/selector_edit_text_required"
-        android:textSize="24sp"
+        android:textSize="18sp"
         android:textColor="#000"
         android:inputType="text"
         app:layout_constraintTop_toTopOf="@id/textViewServerPort"
@@ -144,7 +144,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
         android:text="@string/controlPort"
-        android:textSize="24sp"
+        android:textSize="18sp"
         app:layout_constraintEnd_toEndOf="@id/textViewChargePointType"
         app:layout_constraintTop_toBottomOf="@id/textViewServerPort" />
 
@@ -153,7 +153,7 @@
         android:layout_width="260dp"
         android:layout_height="wrap_content"
         android:background="@drawable/selector_edit_text_required"
-        android:textSize="24sp"
+        android:textSize="18sp"
         android:textColor="#000"
         android:inputType="text"
         app:layout_constraintTop_toTopOf="@id/textViewControlPort"
@@ -166,7 +166,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
         android:text="@string/rfPort"
-        android:textSize="24sp"
+        android:textSize="18sp"
         app:layout_constraintEnd_toEndOf="@id/textViewChargePointType"
         app:layout_constraintTop_toBottomOf="@id/textViewControlPort" />
 
@@ -175,7 +175,7 @@
         android:layout_width="260dp"
         android:layout_height="wrap_content"
         android:background="@drawable/selector_edit_text_required"
-        android:textSize="24sp"
+        android:textSize="18sp"
         android:textColor="#000"
         android:inputType="text"
         app:layout_constraintTop_toTopOf="@id/textViewRfPort"
@@ -188,7 +188,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
         android:text="@string/creditCardPort"
-        android:textSize="24sp"
+        android:textSize="18sp"
         app:layout_constraintEnd_toEndOf="@id/textViewChargePointType"
         app:layout_constraintTop_toBottomOf="@id/textViewRfPort" />
 
@@ -197,7 +197,7 @@
         android:layout_width="260dp"
         android:layout_height="wrap_content"
         android:background="@drawable/selector_edit_text_required"
-        android:textSize="24sp"
+        android:textSize="18sp"
         android:textColor="#000"
         android:inputType="text"
         app:layout_constraintTop_toTopOf="@id/textViewCreditCardPort"
@@ -210,7 +210,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
         android:text="@string/testPrice"
-        android:textSize="24sp"
+        android:textSize="18sp"
         app:layout_constraintEnd_toEndOf="@id/textViewChargePointType"
         app:layout_constraintTop_toBottomOf="@id/textViewCreditCardPort" />
 
@@ -219,7 +219,7 @@
         android:layout_width="260dp"
         android:layout_height="wrap_content"
         android:background="@drawable/selector_edit_text_required"
-        android:textSize="24sp"
+        android:textSize="18sp"
         android:textColor="#000"
         android:inputType="text"
         app:layout_constraintTop_toTopOf="@id/textViewTestPrice"
@@ -232,7 +232,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
         android:text="@string/soc"
-        android:textSize="24sp"
+        android:textSize="18sp"
         app:layout_constraintEnd_toEndOf="@id/textViewChargePointType"
         app:layout_constraintTop_toBottomOf="@id/textViewTestPrice" />
 
@@ -241,7 +241,7 @@
         android:layout_width="260dp"
         android:layout_height="wrap_content"
         android:background="@drawable/selector_edit_text_required"
-        android:textSize="24sp"
+        android:textSize="18sp"
         android:textColor="#000"
         android:inputType="text"
         app:layout_constraintTop_toTopOf="@id/textViewSoc"
@@ -254,7 +254,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
         android:text="@string/connectorPriority"
-        android:textSize="24sp"
+        android:textSize="18sp"
         app:layout_constraintEnd_toEndOf="@id/textViewChargePointType"
         app:layout_constraintTop_toBottomOf="@id/textViewSoc" />
 
@@ -263,7 +263,7 @@
         android:layout_width="260dp"
         android:layout_height="wrap_content"
         android:background="@drawable/selector_edit_text_required"
-        android:textSize="24sp"
+        android:textSize="18sp"
         android:textColor="#000"
         android:inputType="text"
         app:layout_constraintTop_toTopOf="@id/textViewConnectorPriority"
@@ -276,7 +276,7 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="10dp"
         android:text="@string/chargePointSerialNumber"
-        android:textSize="24sp"
+        android:textSize="18sp"
         app:layout_constraintEnd_toStartOf="@id/editChargePointSerialNumber"
         app:layout_constraintTop_toTopOf="@id/textViewChargePointType" />
 
@@ -286,7 +286,7 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="50dp"
         android:background="@drawable/selector_edit_text_required"
-        android:textSize="24sp"
+        android:textSize="18sp"
         android:textColor="#000"
         android:inputType="text"
         app:layout_constraintTop_toTopOf="@id/textViewChargePointSerialNumber"
@@ -300,7 +300,7 @@
         android:layout_marginTop="12dp"
         android:layout_marginEnd="10dp"
         android:text="@string/chargePointVendor"
-        android:textSize="24sp"
+        android:textSize="18sp"
         app:layout_constraintEnd_toStartOf="@id/editChargePointVendor"
         app:layout_constraintTop_toBottomOf="@id/textViewChargePointSerialNumber" />
 
@@ -309,7 +309,7 @@
         android:layout_width="260dp"
         android:layout_height="wrap_content"
         android:background="@drawable/selector_edit_text_required"
-        android:textSize="24sp"
+        android:textSize="18sp"
         android:textColor="#000"
         android:inputType="text"
         app:layout_constraintTop_toTopOf="@id/textViewChargePointVendor"
@@ -322,7 +322,7 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="10dp"
         android:text="@string/mid"
-        android:textSize="24sp"
+        android:textSize="18sp"
         app:layout_constraintEnd_toStartOf="@id/editMid"
         app:layout_constraintTop_toTopOf="@id/textViewChargeBoxSerialNumber" />
 
@@ -331,7 +331,7 @@
         android:layout_width="260dp"
         android:layout_height="wrap_content"
         android:background="@drawable/selector_edit_text_required"
-        android:textSize="24sp"
+        android:textSize="18sp"
         android:textColor="#000"
         android:inputType="text"
         app:layout_constraintTop_toTopOf="@id/textViewMid"
@@ -345,7 +345,7 @@
         android:layout_marginTop="12dp"
         android:layout_marginEnd="10dp"
         android:text="@string/firmwareVersion"
-        android:textSize="24sp"
+        android:textSize="18sp"
         app:layout_constraintEnd_toStartOf="@id/editFirmwareVersion"
         app:layout_constraintTop_toBottomOf="@id/textViewMid" />
 
@@ -354,7 +354,7 @@
         android:layout_width="260dp"
         android:layout_height="wrap_content"
         android:background="@drawable/selector_edit_text_required"
-        android:textSize="24sp"
+        android:textSize="18sp"
         android:textColor="#000"
         android:inputType="text"
         app:layout_constraintTop_toTopOf="@id/textViewFirmwareVersion"
@@ -367,20 +367,20 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="10dp"
         android:text="@string/keyboardControl"
-        android:textSize="24sp"
+        android:textSize="18sp"
         app:layout_constraintEnd_toStartOf="@id/btnKeyboardControl"
         app:layout_constraintTop_toTopOf="@id/btnKeyboardControl"
         app:layout_constraintBottom_toBottomOf="@id/btnKeyboardControl" />
 
     <Button
         android:id="@+id/btnKeyboardControl"
-        android:layout_width="260dp"
-        android:layout_height="80dp"
+        android:layout_width="140dp"
+        android:layout_height="30dp"
         android:text="@string/hidden"
-        android:textSize="30sp"
-        android:background="@drawable/shape_btn_sky"
-        app:layout_constraintTop_toTopOf="@id/editServerPort"
-        app:layout_constraintStart_toStartOf="@id/editChargePointSerialNumber" />
+        android:textSize="16sp"
+        android:background="@drawable/shape_btn_white_stroke_blue"
+        app:layout_constraintTop_toTopOf="@id/editServerUrl"
+        app:layout_constraintEnd_toEndOf="@id/editFirmwareVersion" />
 
     <TextView
         android:id="@+id/textViewIccid"
@@ -388,16 +388,16 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="10dp"
         android:text="@string/iccid"
-        android:textSize="24sp"
+        android:textSize="18sp"
         app:layout_constraintEnd_toStartOf="@id/editIccid"
-        app:layout_constraintTop_toTopOf="@id/editRfPort" />
+        app:layout_constraintTop_toTopOf="@id/editServerPort" />
 
     <EditText
         android:id="@+id/editIccid"
         android:layout_width="260dp"
         android:layout_height="wrap_content"
         android:background="@drawable/selector_edit_text"
-        android:textSize="24sp"
+        android:textSize="18sp"
         android:textColor="#000"
         android:inputType="text"
         app:layout_constraintTop_toTopOf="@id/textViewIccid"
@@ -411,7 +411,7 @@
         android:layout_marginTop="12dp"
         android:layout_marginEnd="10dp"
         android:text="@string/imsi"
-        android:textSize="24sp"
+        android:textSize="18sp"
         app:layout_constraintEnd_toStartOf="@id/editImsi"
         app:layout_constraintTop_toBottomOf="@id/textViewIccid" />
 
@@ -420,7 +420,7 @@
         android:layout_width="260dp"
         android:layout_height="wrap_content"
         android:background="@drawable/selector_edit_text"
-        android:textSize="24sp"
+        android:textSize="18sp"
         android:textColor="#000"
         android:inputType="text"
         app:layout_constraintTop_toTopOf="@id/textViewImsi"
@@ -434,7 +434,7 @@
         android:layout_marginTop="12dp"
         android:layout_marginEnd="10dp"
         android:text="@string/meterSerialNumber"
-        android:textSize="24sp"
+        android:textSize="18sp"
         app:layout_constraintEnd_toStartOf="@id/editMeterSerialNumber"
         app:layout_constraintTop_toBottomOf="@id/textViewImsi" />
 
@@ -443,7 +443,7 @@
         android:layout_width="260dp"
         android:layout_height="wrap_content"
         android:background="@drawable/selector_edit_text"
-        android:textSize="24sp"
+        android:textSize="18sp"
         android:textColor="#000"
         android:inputType="text"
         app:layout_constraintTop_toTopOf="@id/textViewMeterSerialNumber"
@@ -457,7 +457,7 @@
         android:layout_marginTop="12dp"
         android:layout_marginEnd="10dp"
         android:text="@string/meterType"
-        android:textSize="24sp"
+        android:textSize="18sp"
         app:layout_constraintEnd_toStartOf="@id/editMeterType"
         app:layout_constraintTop_toBottomOf="@id/textViewMeterSerialNumber" />
 
@@ -466,7 +466,7 @@
         android:layout_width="260dp"
         android:layout_height="wrap_content"
         android:background="@drawable/selector_edit_text"
-        android:textSize="24sp"
+        android:textSize="18sp"
         android:textColor="#000"
         android:inputType="text"
         app:layout_constraintTop_toTopOf="@id/textViewMeterType"
@@ -474,113 +474,66 @@
         tools:ignore="Autofill,LabelFor,TextFields" />
 
     <TextView
+        android:id="@+id/textViewAuthMode"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/authMode"
+        android:textSize="18sp"
+        app:layout_constraintTop_toTopOf="@id/textViewTestPrice"
+        app:layout_constraintEnd_toEndOf="@id/textViewMeterType"/>
+
+    <Spinner
+        android:id="@+id/spinnerAuthMode"
+        android:layout_width="260dp"
+        android:layout_height="wrap_content"
+        android:dropDownWidth="300dp"
+        android:spinnerMode="dropdown"
+        android:theme="@style/SpinnerTheme"
+        android:background="@drawable/spinner_background"
+        app:layout_constraintTop_toTopOf="@id/textViewAuthMode"
+        app:layout_constraintStart_toStartOf="@id/editChargePointSerialNumber"/>
+
+    <TextView
+        android:id="@+id/textViewOpMode"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/opMode"
+        android:textSize="18sp"
+        app:layout_constraintTop_toTopOf="@id/editSoc"
+        app:layout_constraintEnd_toEndOf="@id/textViewMeterType"/>
+
+    <Spinner
+        android:id="@+id/spinnerOpMode"
+        android:layout_width="260dp"
+        android:layout_height="wrap_content"
+        android:dropDownWidth="300dp"
+        android:spinnerMode="dropdown"
+        android:theme="@style/SpinnerTheme"
+        android:background="@drawable/spinner_background"
+        app:layout_constraintTop_toTopOf="@id/textViewOpMode"
+        app:layout_constraintStart_toStartOf="@id/editChargePointSerialNumber"/>
+
+    <TextView
         android:id="@+id/textDR"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:layout_marginEnd="10dp"
         android:text="@string/dr"
-        android:textSize="24sp"
-        app:layout_constraintEnd_toStartOf="@id/editMeterType"
-        app:layout_constraintTop_toBottomOf="@id/textViewMeterType" />
+        android:textSize="18sp"
+        app:layout_constraintEnd_toEndOf="@id/textViewOpMode"
+        app:layout_constraintTop_toTopOf="@id/editConnectorPriority" />
 
     <EditText
         android:id="@+id/editDR"
         android:layout_width="260dp"
         android:layout_height="wrap_content"
         android:background="@drawable/selector_edit_text_required"
-        android:textSize="24sp"
+        android:textSize="18sp"
         android:textColor="#000"
         android:inputType="text"
-        app:layout_constraintTop_toTopOf="@id/textDR"
+        app:layout_constraintTop_toTopOf="@id/editConnectorPriority"
         app:layout_constraintStart_toStartOf="@id/editChargePointSerialNumber"
         tools:ignore="Autofill,LabelFor,TextFields" />
 
-    <RadioGroup
-        android:id="@+id/radioGrpAuth"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginTop="12dp"
-        android:layout_marginStart="-140dp"
-        app:layout_constraintStart_toStartOf="@id/editConnectorPriority"
-        app:layout_constraintTop_toBottomOf="@id/textViewConnectorPriority">
-
-        <TextView
-            android:id="@+id/textViewAuthMode"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/authMode"
-            android:textSize="24sp" />
-
-        <RadioButton
-            android:id="@+id/radioBtnMac"
-            android:layout_width="wrap_content"
-            android:layout_height="40dp"
-            android:layout_marginStart="10dp"
-            android:text="@string/mac"
-            android:textSize="24sp"
-            android:checked="false"
-            android:tag="0" />
-
-        <RadioButton
-            android:id="@+id/radioBtnMemberCard"
-            android:layout_width="wrap_content"
-            android:layout_height="40dp"
-            android:layout_marginStart="30dp"
-            android:text="@string/memberCard"
-            android:textSize="24sp"
-            android:checked="false"
-            android:tag="1" />
-
-        <RadioButton
-            android:id="@+id/radioBtnMacMemberCard"
-            android:layout_width="wrap_content"
-            android:layout_height="40dp"
-            android:layout_marginStart="30dp"
-            android:text="@string/macMemberCard"
-            android:textSize="24sp"
-            android:checked="true"
-            android:tag="2" />
-    </RadioGroup>
-
-    <RadioGroup
-        android:id="@+id/radioGrpOp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginTop="10dp"
-        android:layout_marginStart="46dp"
-        app:layout_constraintStart_toStartOf="@id/radioGrpAuth"
-        app:layout_constraintTop_toBottomOf="@id/radioGrpAuth">
-
-        <TextView
-            android:id="@+id/textViewOpMode"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/opMode"
-            android:textSize="24sp" />
-
-        <RadioButton
-            android:id="@+id/radioBtnTest"
-            android:layout_width="wrap_content"
-            android:layout_height="40dp"
-            android:layout_marginStart="10dp"
-            android:text="@string/test"
-            android:textSize="24sp"
-            android:checked="true"
-            android:tag="0" />
-
-        <RadioButton
-            android:id="@+id/radioBtnServer"
-            android:layout_width="wrap_content"
-            android:layout_height="40dp"
-            android:layout_marginStart="30dp"
-            android:text="@string/server"
-            android:textSize="24sp"
-            android:checked="false"
-            android:tag="1" />
-    </RadioGroup>
 
     <Button
         android:id="@+id/btnExit"
@@ -591,8 +544,8 @@
         android:text="@string/exit"
         android:textSize="36sp"
         android:textStyle="bold"
-        android:textColor="@color/black"
-        android:background="@drawable/shape_btn_white"
+        android:textColor="#06377B"
+        android:background="@drawable/shape_btn_white_stroke_blue"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintBottom_toBottomOf="parent" />
 

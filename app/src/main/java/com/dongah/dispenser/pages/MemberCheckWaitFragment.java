@@ -299,7 +299,7 @@ public class MemberCheckWaitFragment extends Fragment implements View.OnClickLis
             if (!isAdded()) return;
             stopAviAnim();
 
-            switch (Integer.parseInt(chargerConfiguration.getAuthMode())) {
+            switch (chargerConfiguration.getAuthMode()) {
                 case 0:
                 case 1:
                     ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.CHARGING_WAIT);

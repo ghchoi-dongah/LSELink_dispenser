@@ -163,14 +163,14 @@ public class InitFragment extends Fragment implements View.OnClickListener {
 
             if (!isAdded()) return;
 
-            if (Objects.equals(chargerConfiguration.getOpMode(), "0")) {
+            if (Objects.equals(chargerConfiguration.getOpMode(), 0)) {
                 // test mode
                 Log.d("InitFragment", "getOpMode(): test mode");
                 double testPrice = Double.parseDouble(((MainActivity) MainActivity.mContext).getChargerConfiguration().getTestPrice());
                 ((MainActivity) MainActivity.mContext).getChargingCurrentData(mChannel).setPowerUnitPrice(testPrice);
                 ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.CHARGING_WAIT);
                 ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.CHARGING_WAIT, "CHARGING_WAIT", null);
-            } else if (Objects.equals(chargerConfiguration.getOpMode(), "1")) {
+            } else if (Objects.equals(chargerConfiguration.getOpMode(), 1)) {
                 // server mode
                 Log.d("InitFragment", "getOpMode(): server mode");
                 if (!onUnitPrice()) {
@@ -180,7 +180,7 @@ public class InitFragment extends Fragment implements View.OnClickListener {
                 try {
                     SocketState socketState = ((MainActivity) MainActivity.mContext).getSocketReceiveMessage().getSocket().getState();
                     if (Objects.equals(socketState, SocketState.OPEN)) {
-                        switch (Integer.parseInt(chargerConfiguration.getAuthMode())) {
+                        switch (chargerConfiguration.getAuthMode()) {
                             case 0:
                             case 2:
                                 ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.MEMBER_CHECK_WAIT);
