@@ -177,8 +177,9 @@ public class ClassUiProcess  {
                         setUiSeq(UiSeq.CONNECT_CHECK);
                     }
                     break;
-                case CONNECT_CHECK:
                 case CHARGING_WAIT:
+                    break;
+                case CONNECT_CHECK:
                     // Test Mode
 //                    if (Objects.equals(chargerConfiguration.getOpMode(), "0") && !chargingCurrentData.isChgWait()) {
 //                        break;

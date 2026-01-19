@@ -431,8 +431,8 @@ public class SocketReceiveMessage extends JSONCommunicator implements SocketInte
                                         if (ocppMode && !Objects.equals(chargerConfiguration.getAuthMode(), 1)) {
                                             Log.d("SocketReceiveMessage", "ocpp check");
                                             chargingCurrentData.setPowerUnitPrice(Double.parseDouble(chargerConfiguration.getTestPrice()));
-                                            ((MainActivity) MainActivity.mContext).getClassUiProcess(getChannel()).setUiSeq(UiSeq.CHARGING_WAIT);
-                                            fragmentChange.onFragmentChange(getChannel(), UiSeq.CHARGING_WAIT, "CHARGING_WAIT", null);
+                                            ((MainActivity) MainActivity.mContext).getClassUiProcess(getChannel()).setUiSeq(UiSeq.CONNECT_CHECK);
+                                            fragmentChange.onFragmentChange(getChannel(), UiSeq.CONNECT_CHECK, "CONNECT_CHECK", null);
                                         }
 
                                         if (!Objects.equals(chargingCurrentData.getChargePointStatus(), ChargePointStatus.Preparing) &&

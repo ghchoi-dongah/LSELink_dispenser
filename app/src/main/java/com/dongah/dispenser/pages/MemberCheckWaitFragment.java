@@ -297,13 +297,12 @@ public class MemberCheckWaitFragment extends Fragment implements View.OnClickLis
 
             switch (chargerConfiguration.getAuthMode()) {
                 case 0:
-                case 1:
-                    ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.CHARGING_WAIT);
-                    ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.CHARGING_WAIT, "CHARGING_WAIT", null);
-                    break;
                 case 2:
-                    ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.MEMBER_CARD_NO_MAC);
-                    ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.MEMBER_CARD_NO_MAC, "MEMBER_CARD_NO_MAC", null);
+                    ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.CHARGING);
+                    ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.CHARGING, "CHARGING", null);
+                case 1:
+                    ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.CONNECT_CHECK);
+                    ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.CONNECT_CHECK, "CONNECT_CHECK", null);
                     break;
                 default:
                     logger.error("MemberCheckWaitFragment onClick error >> Invalid value");

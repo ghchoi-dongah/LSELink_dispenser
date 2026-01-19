@@ -30,6 +30,7 @@ import com.dongah.dispenser.controlboard.RxData;
 import com.dongah.dispenser.utils.SharedModel;
 import com.dongah.dispenser.websocket.ocpp.core.ChargePointErrorCode;
 import com.dongah.dispenser.websocket.ocpp.core.ChargePointStatus;
+import com.google.android.material.progressindicator.CircularProgressIndicator;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,28 +56,13 @@ public class ChargingWaitFragment extends Fragment implements View.OnClickListen
     private String mParam2;
     private int mChannel;
 
-    Handler handler;
-    View[] dots;
-    Drawable[] dotDrawables;
-    LinearLayout linearLayoutLoadingContainer;
-    final String[] colors = { "#B4C7E7", "#8FA3C6", "#6A8EA6", "#455C85", "#203864" };
-    final int[] dotIds = { R.id.dot1, R.id.dot2, R.id.dot3, R.id.dot4, R.id.dot5 };
-    int currentStep = -1;
-    boolean running = false;
-
-    private static final int STEP_DELAY_MS  = 600;  // 점 하나씩 표시 간격
-    private static final int CYCLE_PAUSE_MS = 1000;  // 한 사이클 끝난 뒤 쉬는 시간
-    private static final int TIME_OUT = 10;
-
-    int cnt = 0;
-    RxData rxData;
     Handler countHandler;
     Runnable countRunnable;
     SharedModel sharedModel;
     String[] requestStrings = new String[1];
     ChargerConfiguration chargerConfiguration;
     ChargingCurrentData chargingCurrentData;
-
+    CircularProgressIndicator progressCircular;
 
     public ChargingWaitFragment() {
         // Required empty public constructor
@@ -114,25 +100,9 @@ public class ChargingWaitFragment extends Fragment implements View.OnClickListen
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_charging_wait, container, false);
-        linearLayoutLoadingContainer = view.findViewById(R.id.linearLayoutLoadingContainer);
-        handler = new Handler(Looper.getMainLooper());
-
-        // 점 뷰/드로어블 캐싱
-        dots = new View[dotIds.length];
-        dotDrawables = new Drawable[dotIds.length];
-        for (int i = 0; i < dotIds.length; i++) {
-            dots[i] = view.findViewById(dotIds[i]);
-            dots[i].setVisibility(View.INVISIBLE);
-
-            GradientDrawable gd = new GradientDrawable();
-            gd.setShape(GradientDrawable.OVAL);
-            gd.setColor(Color.parseColor(colors[i]));
-            dotDrawables[i] = gd;
-        }
-
-        cnt = 0;
         chargerConfiguration = ((MainActivity) MainActivity.mContext).getChargerConfiguration();
         chargingCurrentData = ((MainActivity) MainActivity.mContext).getChargingCurrentData(mChannel);
+        progressCircular = view.findViewById(R.id.progressCircular);
         return view;
     }
 
@@ -143,55 +113,7 @@ public class ChargingWaitFragment extends Fragment implements View.OnClickListen
             sharedModel = new ViewModelProvider(requireActivity()).get(SharedModel.class);
             requestStrings[0] = String.valueOf(mChannel);
             sharedModel.setMutableLiveData(requestStrings);
-            rxData = ((MainActivity) MainActivity.mContext).getControlBoard().getRxData(mChannel);
-
-            // connection time out
-            ((MainActivity) MainActivity.mContext).runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    countHandler = new Handler();
-                    countRunnable = new Runnable() {
-                        @Override
-                        public void run() {
-                            cnt++;
-
-//                            if (Objects.equals(chargerConfiguration.getAuthMode(), "0") && Objects.equals(cnt, TIME_OUT)) {
-//                                chargingCurrentData.setChgWait(true);
-//                            }
-
-                            if (Objects.equals(cnt, GlobalVariables.getConnectionTimeOut())) {
-                                countHandler.removeCallbacks(countRunnable);
-                                countHandler.removeCallbacksAndMessages(null);
-                                countHandler.removeMessages(0);
-                                // 충전기 종료
-                                ((MainActivity) MainActivity.mContext).getControlBoard().getTxData(mChannel).setStart(false);
-                                ((MainActivity) MainActivity.mContext).getControlBoard().getTxData(mChannel).setStop(false);
-
-                                // preparing
-                                if (Objects.equals(chargingCurrentData.getChargePointStatus(), ChargePointStatus.Preparing) &&
-                                        Objects.equals(chargerConfiguration.getOpMode(), 1) &&
-                                        !((MainActivity) MainActivity.mContext).getControlBoard().getRxData(mChannel).isCsPilot()) {
-                                    chargingCurrentData.setChargePointStatus(ChargePointStatus.Available);
-                                    chargingCurrentData.setChargePointErrorCode(ChargePointErrorCode.NoError);
-                                    ((MainActivity) MainActivity.mContext).getProcessHandler().sendMessage(((MainActivity) MainActivity.mContext).getSocketReceiveMessage()
-                                            .onMakeHandlerMessage(
-                                                    GlobalVariables.MESSAGE_HANDLER_STATUS_NOTIFICATION,
-                                                    chargingCurrentData.getConnectorId(),
-                                                    0,
-                                                    null,
-                                                    null,
-                                                    null,
-                                                    false));
-                                }
-                                ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).onHome();
-                            } else {
-                                countHandler.postDelayed(countRunnable, 1000);
-                            }
-                        }
-                    };
-                    countHandler.postDelayed(countRunnable, 1000);
-                }
-            });
+            showLoading();
         } catch (Exception e) {
             Log.e("ChargingWaitFragment", "onViewCreated error", e);
             logger.error("ChargingWaitFragment onViewCreated error : {}", e.getMessage());
@@ -201,73 +123,32 @@ public class ChargingWaitFragment extends Fragment implements View.OnClickListen
     @Override
     public void onClick(View v) {
         if (!isAdded()) return;
-
-        stopDotLoop(); // 애니메이션 중지
         ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.CHARGING);
         ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.CHARGING, "CHARGING", null);
     }
 
-    private final Runnable loop = new Runnable() {
-        @Override public void run() {
-            if (!isAdded() || getView() == null) return;
-            if (!running || dots == null) return;
+    private void showLoading() {
+        progressCircular.setVisibility(View.VISIBLE);
+        progressCircular.setIndeterminate(true);
+    }
 
-            currentStep++;
-
-            if (currentStep < dots.length) {
-                // 현재 단계까지 누적해서 표시
-                for (int i = 0; i <= currentStep; i++) {
-                    dots[i].setVisibility(View.VISIBLE);
-                    dots[i].setBackground(dotDrawables[i]);
-                }
-                handler.postDelayed(this, STEP_DELAY_MS);
-            } else {
-                // 사이클 종료: 전부 숨기고 다시 시작
-                for (View d : dots) d.setVisibility(View.INVISIBLE);
-                currentStep = -1;
-                handler.postDelayed(this, CYCLE_PAUSE_MS);
-            }
-        }
-    };
+    private void hideLoading() {
+        progressCircular.setVisibility(View.GONE);
+    }
 
     @Override
     public void onDetach() {
         super.onDetach();
         try {
-            if (handler != null) handler.removeCallbacksAndMessages(null);
             if (countHandler != null) {
                 countHandler.removeCallbacks(countRunnable);
                 countHandler.removeCallbacksAndMessages(null);
                 countHandler.removeMessages(0);
             }
+            hideLoading();
         } catch (Exception e) {
             Log.e("ChargingWaitFragment", "onDetach error", e);
             logger.error("ChargingWaitFragment onDetach error : {}", e.getMessage());
         }
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        startDotLoop();
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        stopDotLoop();
-    }
-
-    private void startDotLoop() {
-        if (running) return;
-        running = true;
-        currentStep = -1;
-        handler.post(loop);
-    }
-
-    private void stopDotLoop() {
-        running = false;
-        handler.removeCallbacks(loop);
-        if (dots != null) for (View d : dots) d.setVisibility(View.INVISIBLE);
     }
 }
