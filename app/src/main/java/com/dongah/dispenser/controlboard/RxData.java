@@ -236,16 +236,16 @@ public class RxData {
 
             // Vehicle_EvccId
             csmVehicleEvccId = (((long) data[19] << 32) | ((long) data[20] << 24) | (data[21] << 16) | (data[22] & 0xffff));
-            Log.d("MAC ADD", "data[19]: " + data[19]);
-            Log.d("MAC ADD", "data[20]: " + data[20]);
-            Log.d("MAC ADD", "data[21]: " + data[21]);
-            Log.d("MAC ADD", "data[22]: " + data[22]);
-            Log.d("MAC ADD", "MAC ADD: " + csmVehicleEvccId);
-            Log.d("MAC ADD", "data[19] HEX: " + String.format("0x%04X", data[19]));
-            Log.d("MAC ADD", "data[20] HEX: " + String.format("0x%04X", data[20]));
-            Log.d("MAC ADD", "data[21] HEX: " + String.format("0x%04X", data[21]));
-            Log.d("MAC ADD", "data[22] HEX: " + String.format("0x%04X", data[22]));
-            Log.d("MAC ADD", "MAC ADD HEX: " + BitUtilities.toHexString(csmVehicleEvccId));
+//            Log.d("MAC ADD", "data[19]: " + data[19]);
+//            Log.d("MAC ADD", "data[20]: " + data[20]);
+//            Log.d("MAC ADD", "data[21]: " + data[21]);
+//            Log.d("MAC ADD", "data[22]: " + data[22]);
+//            Log.d("MAC ADD", "MAC ADD: " + csmVehicleEvccId);
+//            Log.d("MAC ADD", "data[19] HEX: " + String.format("0x%04X", data[19]));
+//            Log.d("MAC ADD", "data[20] HEX: " + String.format("0x%04X", data[20]));
+//            Log.d("MAC ADD", "data[21] HEX: " + String.format("0x%04X", data[21]));
+//            Log.d("MAC ADD", "data[22] HEX: " + String.format("0x%04X", data[22]));
+//            Log.d("MAC ADD", "MAC ADD HEX: " + BitUtilities.toHexString(csmVehicleEvccId));
 
 
             // Vehicle_Charging_Service
