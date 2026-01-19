@@ -10,7 +10,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AccelerateDecelerateInterpolator;
-import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.R;
@@ -38,7 +38,7 @@ public class ConnectionFailedFragment extends Fragment implements View.OnClickLi
     private String mParam2;
     private int mChannel;
 
-    ImageView imageViewConnectionFailed;
+    TextView textViewFailed;
     ObjectAnimator fadeAnimator;
 
     public ConnectionFailedFragment() {
@@ -78,10 +78,10 @@ public class ConnectionFailedFragment extends Fragment implements View.OnClickLi
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_connection_failed, container, false);
         view.setOnClickListener(this);
-        imageViewConnectionFailed = view.findViewById(R.id.imageViewConnectionFailed);
+        textViewFailed = view.findViewById(R.id.textViewFailed);
 
-        // imageViewConnectionFailed animation
-        fadeAnimator = ObjectAnimator.ofFloat(imageViewConnectionFailed, "alpha", 1f, 0.2f);
+        // textViewFailed animation
+        fadeAnimator = ObjectAnimator.ofFloat(textViewFailed, "alpha", 1f, 0.2f);
         fadeAnimator.setDuration(1000);
         fadeAnimator.setRepeatCount(ValueAnimator.INFINITE);
         fadeAnimator.setRepeatMode(ValueAnimator.REVERSE);
@@ -94,7 +94,7 @@ public class ConnectionFailedFragment extends Fragment implements View.OnClickLi
     @Override
     public void onClick(View v) {
         if (!isAdded()) return;
-        ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.MEMBER_CARD_NO_MAC);
-        ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.MEMBER_CARD_NO_MAC, "MEMBER_CARD_NO_MAC", null);
+        ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.INIT);
+        ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.INIT, "INIT", null);
     }
 }
