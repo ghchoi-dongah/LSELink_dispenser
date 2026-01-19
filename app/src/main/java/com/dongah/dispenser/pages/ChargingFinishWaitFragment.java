@@ -1,8 +1,5 @@
 package com.dongah.dispenser.pages;
 
-import android.graphics.Color;
-import android.graphics.drawable.Drawable;
-import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -10,17 +7,15 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
 
 import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.R;
 import com.dongah.dispenser.basefunction.ChargingCurrentData;
-import com.dongah.dispenser.basefunction.UiSeq;
+import com.wang.avi.AVLoadingIndicatorView;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +27,7 @@ import java.util.Objects;
  * Use the {@link ChargingFinishWaitFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class ChargingFinishWaitFragment extends Fragment implements View.OnClickListener {
+public class ChargingFinishWaitFragment extends Fragment {
     private static final Logger logger = LoggerFactory.getLogger(ChargingFinishWaitFragment.class);
 
     // TODO: Rename parameter arguments, choose names that match
@@ -46,23 +41,11 @@ public class ChargingFinishWaitFragment extends Fragment implements View.OnClick
     private String mParam2;
     private int mChannel;
 
-    Handler handler;
-    View[] dots;
-    Drawable[] dotDrawables;
-    LinearLayout linearLayoutLoadingContainer;
-    final String[] colors = { "#FFD6BA", "#FABD8C", "#F5A55D", "#EF8C2F", "#EA7300" };
-    final int[] dotIds = { R.id.dot1, R.id.dot2, R.id.dot3, R.id.dot4, R.id.dot5 };
-    int currentStep = -1;
-    boolean running = false;
-
-    private static final int STEP_DELAY_MS  = 600;  // 점 하나씩 표시 간격
-    private static final int CYCLE_PAUSE_MS = 1000;  // 한 사이클 끝난 뒤 쉬는 시간
     private static final int TIME_OUT = 10;
-
     int cnt;
+    AVLoadingIndicatorView aviCheck;
     Handler countHandler;
     Runnable countRunnable;
-
     ChargingCurrentData chargingCurrentData;
 
     public ChargingFinishWaitFragment() {
@@ -101,24 +84,8 @@ public class ChargingFinishWaitFragment extends Fragment implements View.OnClick
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_charging_finish_wait, container, false);
-        view.setOnClickListener(this);
-
-        linearLayoutLoadingContainer = view.findViewById(R.id.linearLayoutLoadingContainer);
-        handler = new Handler(Looper.getMainLooper());
-
-        // 점 뷰/드로어블 캐싱
-        dots = new View[dotIds.length];
-        dotDrawables = new Drawable[dotIds.length];
-        for (int i = 0; i < dotIds.length; i++) {
-            dots[i] = view.findViewById(dotIds[i]);
-            dots[i].setVisibility(View.INVISIBLE);
-
-            GradientDrawable gd = new GradientDrawable();
-            gd.setShape(GradientDrawable.OVAL);
-            gd.setColor(Color.parseColor(colors[i]));
-            dotDrawables[i] = gd;
-        }
-
+        chargingCurrentData = ((MainActivity) MainActivity.mContext).getChargingCurrentData(mChannel);
+        aviCheck = view.findViewById(R.id.avi);
         return view;
     }
 
@@ -126,8 +93,8 @@ public class ChargingFinishWaitFragment extends Fragment implements View.OnClick
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         try {
-            chargingCurrentData = ((MainActivity) MainActivity.mContext).getChargingCurrentData(mChannel);
             cnt = 0;
+            startAviAnim();
 
             ((MainActivity) MainActivity.mContext).runOnUiThread(new Runnable() {
                 @Override
@@ -141,10 +108,7 @@ public class ChargingFinishWaitFragment extends Fragment implements View.OnClick
                                 countHandler.removeCallbacks(countRunnable);
                                 countHandler.removeCallbacksAndMessages(null);
                                 countHandler.removeMessages(0);
-
-                                stopDotLoop();  // animation stop
                                 chargingCurrentData.setChgFinishWait(true);
-//                                ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.FINISH_WAIT);
                             } else {
                                 countHandler.postDelayed(countRunnable, 1000);
                             }
@@ -159,72 +123,27 @@ public class ChargingFinishWaitFragment extends Fragment implements View.OnClick
         }
     }
 
-    @Override
-    public void onClick(View v) {
-
+    void startAviAnim() {
+        aviCheck.show();
     }
 
-    private final Runnable loop = new Runnable() {
-        @Override public void run() {
-            if (!isAdded() || getView() == null) return;
-            if (!running || dots == null) return;
-
-            currentStep++;
-
-            if (currentStep < dots.length) {
-                // 현재 단계까지 누적해서 표시
-                for (int i = 0; i <= currentStep; i++) {
-                    dots[i].setVisibility(View.VISIBLE);
-                    dots[i].setBackground(dotDrawables[i]);
-                }
-                handler.postDelayed(this, STEP_DELAY_MS);
-            } else {
-                // 사이클 종료: 전부 숨기고 다시 시작
-                for (View d : dots) d.setVisibility(View.INVISIBLE);
-                currentStep = -1;
-                handler.postDelayed(this, CYCLE_PAUSE_MS);
-            }
-        }
-    };
+    void stopAviAnim() {
+        aviCheck.hide();
+    }
 
     @Override
     public void onDetach() {
         super.onDetach();
         try {
-            if (handler != null) handler.removeCallbacksAndMessages(null);
             if (countHandler != null) {
                 countHandler.removeCallbacks(countRunnable);
                 countHandler.removeCallbacksAndMessages(null);
                 countHandler.removeMessages(0);
             }
+            stopAviAnim();
         } catch (Exception e) {
             Log.e("ChargingFinishWaitFragment", "onDetach error", e);
             logger.error("ChargingFinishWaitFragment onDetach error : {}", e.getMessage());
         }
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        startDotLoop();
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        stopDotLoop();
-    }
-
-    private void startDotLoop() {
-        if (running) return;
-        running = true;
-        currentStep = -1;
-        handler.post(loop);
-    }
-
-    private void stopDotLoop() {
-        running = false;
-        handler.removeCallbacks(loop);
-        if (dots != null) for (View d : dots) d.setVisibility(View.INVISIBLE);
     }
 }
