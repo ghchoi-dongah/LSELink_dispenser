@@ -18,6 +18,7 @@ import android.widget.TextView;
 
 import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.R;
+import com.dongah.dispenser.basefunction.ChargerConfiguration;
 import com.dongah.dispenser.basefunction.ChargingCurrentData;
 
 import org.slf4j.Logger;
@@ -47,9 +48,11 @@ public class ChargingFinishFragment extends Fragment implements View.OnClickList
 
     Button btnCheck;
     TextView textViewSocValue, textViewChargingAmtValue, textViewChargingTimeValue;
+    TextView textViewLimitSocValue, textViewLimitKwValue;
 
     MediaPlayer mediaPlayer;
     Handler uiCheckHandler;
+    ChargerConfiguration chargerConfiguration;
     ChargingCurrentData chargingCurrentData;
     DecimalFormat powerFormatter = new DecimalFormat("#,###,##0.00");
 
@@ -90,20 +93,25 @@ public class ChargingFinishFragment extends Fragment implements View.OnClickList
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_charging_finish, container, false);
+        chargerConfiguration = ((MainActivity) MainActivity.mContext).getChargerConfiguration();
+        chargingCurrentData = ((MainActivity) MainActivity.mContext).getChargingCurrentData(mChannel);
         btnCheck = view.findViewById(R.id.btnCheck);
         btnCheck.setOnClickListener(this);
         textViewSocValue = view.findViewById(R.id.textViewSocValue);
         textViewChargingAmtValue = view.findViewById(R.id.textViewChargingAmtValue);
         textViewChargingTimeValue = view.findViewById(R.id.textViewChargingTimeValue);
+        textViewLimitSocValue = view.findViewById(R.id.textViewLimitSocValue);
+        textViewLimitKwValue = view.findViewById(R.id.textViewLimitKwValue);
         return view;
     }
 
+    @SuppressLint("SetTextI18n")
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         try {
-            chargingCurrentData = ((MainActivity) MainActivity.mContext).getChargingCurrentData(mChannel);
-
+            textViewLimitSocValue.setText(chargerConfiguration.getTargetSoc() + "%");
+            textViewLimitKwValue.setText(chargerConfiguration.getDr() + "kW");
             mediaPlayer();
 
             // unplug check 후 초기 화면
@@ -171,8 +179,10 @@ public class ChargingFinishFragment extends Fragment implements View.OnClickList
     public void onDetach() {
         super.onDetach();
         try {
-            uiCheckHandler.removeCallbacksAndMessages(null);
-            uiCheckHandler.removeMessages(0);
+            if (uiCheckHandler != null) {
+                uiCheckHandler.removeCallbacksAndMessages(null);
+                uiCheckHandler.removeMessages(0);
+            }
         } catch (Exception e) {
             Log.e("ChargingFinishFragment", "onDetach error", e);
             logger.error("ChargingFinishFragment onDetach error : {}", e.getMessage());
