@@ -4,85 +4,51 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/initLayout"
     android:layout_width="512dp"
-    android:layout_height="692dp"
+    android:layout_height="662dp"
     tools:context=".pages.InitFragment">
+
+    <View
+        android:id="@+id/viewCircle"
+        android:layout_width="440dp"
+        android:layout_height="440dp"
+        android:background="@drawable/layer_list_oval_blue"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+    <ImageView
+        android:id="@+id/imageViewBus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="90dp"
+        android:background="@drawable/bus_blue"
+        app:layout_constraintTop_toTopOf="@id/viewCircle"
+        app:layout_constraintStart_toStartOf="@id/viewCircle"
+        app:layout_constraintEnd_toEndOf="@id/viewCircle"
+        tools:ignore="contentDescription" />
+
+    <TextView
+        android:id="@+id/textViewConnector"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="30dp"
+        android:text="@string/connector"
+        android:textSize="36sp"
+        android:textColor="@color/black"
+        app:layout_constraintTop_toBottomOf="@id/imageViewBus"
+        app:layout_constraintStart_toStartOf="@id/imageViewBus"
+        app:layout_constraintEnd_toEndOf="@id/imageViewBus" />
 
     <TextView
         android:id="@+id/textViewInitMessage"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="40dp"
         android:gravity="center"
         android:text="@string/initMessage"
-        android:textSize="36sp"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <ImageView
-        android:id="@+id/imageViewConnectorBg"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:background="@drawable/ccs2_bg"
-        app:layout_constraintTop_toTopOf="@id/imageViewConnector"
-        app:layout_constraintStart_toStartOf="@id/imageViewConnector"
-        app:layout_constraintBottom_toBottomOf="@id/imageViewConnector"
-        app:layout_constraintEnd_toEndOf="@id/imageViewConnector"
-        tools:ignore="contentDescription"/>
-
-    <ImageView
-        android:id="@+id/imageViewConnector"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="80dp"
-        android:background="@drawable/ccs2"
-        app:layout_constraintTop_toBottomOf="@id/textViewInitMessage"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        tools:ignore="contentDescription"/>
-
-    <TextView
-        android:id="@+id/textViewLimitSoc"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/limitSoc"
-        android:textSize="28sp"
-        app:layout_constraintBottom_toTopOf="@id/textViewLimitKw"
-        app:layout_constraintLeft_toLeftOf="@id/textViewLimitKw"/>
-
-    <TextView
-        android:id="@+id/textViewLimitSocValue"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
-        android:text="90%"
-        android:textSize="28sp"
-        android:textColor="@color/black"
-        app:layout_constraintStart_toEndOf="@id/textViewLimitSoc"
-        app:layout_constraintTop_toTopOf="@id/textViewLimitSoc" />
-
-    <TextView
-        android:id="@+id/textViewLimitKw"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="30dp"
-        android:layout_marginBottom="50dp"
-        android:text="@string/limitKw"
-        android:textSize="28sp"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent" />
-
-    <TextView
-        android:id="@+id/textViewLimitKwValue"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
-        android:text="0kW"
-        android:textSize="28sp"
-        android:textColor="@color/black"
-        app:layout_constraintStart_toEndOf="@id/textViewLimitKw"
-        app:layout_constraintTop_toTopOf="@id/textViewLimitKw" />
-
-
+        android:textSize="20sp"
+        app:layout_constraintTop_toBottomOf="@id/textViewConnector"
+        app:layout_constraintStart_toStartOf="@id/textViewConnector"
+        app:layout_constraintEnd_toEndOf="@id/textViewConnector" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

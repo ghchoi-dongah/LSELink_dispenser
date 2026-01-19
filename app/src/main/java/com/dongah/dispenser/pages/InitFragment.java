@@ -1,21 +1,17 @@
 package com.dongah.dispenser.pages;
 
-import android.animation.ObjectAnimator;
-import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProvider;
 
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -55,10 +51,9 @@ public class InitFragment extends Fragment implements View.OnClickListener {
     private String mParam2;
     private int mChannel;
 
-    TextView textViewInitMessage;
-    TextView textViewLimitSocValue, textViewLimitKwValue;
-    ImageView imageViewConnector, imageViewConnectorBg;
-    ObjectAnimator fadeAnimator;
+    View viewCircle;
+    TextView textViewInitMessage, textViewConnector;
+    ImageView imageViewBus;
 
     ChargerConfiguration chargerConfiguration;
     ChargingCurrentData chargingCurrentData;
@@ -106,30 +101,20 @@ public class InitFragment extends Fragment implements View.OnClickListener {
 
         chargerConfiguration = ((MainActivity) MainActivity.mContext).getChargerConfiguration();
         textViewInitMessage = view.findViewById(R.id.textViewInitMessage);
-        imageViewConnector = view.findViewById(R.id.imageViewConnector);
-        imageViewConnectorBg = view.findViewById(R.id.imageViewConnectorBg);
-        textViewLimitSocValue = view.findViewById(R.id.textViewLimitSocValue);
-        textViewLimitSocValue.setText(chargerConfiguration.getTargetSoc() + "%");
-        textViewLimitKwValue = view.findViewById(R.id.textViewLimitKwValue);
-        textViewLimitKwValue.setText(chargerConfiguration.getDr() + "kW");
+        textViewConnector = view.findViewById(R.id.textViewConnector);
+        imageViewBus = view.findViewById(R.id.imageViewBus);
+        viewCircle = view.findViewById(R.id.viewCircle);
+        viewCircle.setOnClickListener(this);
 
         try {
             // ch0, ch1 구분 => 이미지 위치 조절
             if (mChannel == 0) {
-                imageViewConnector.setScaleX(-1f);
-                imageViewConnectorBg.setScaleX(-1f);
+                imageViewBus.setScaleX(1f);
+                textViewConnector.setText("1 커넥터");
             } else {
-                imageViewConnector.setScaleX(1f);
-                imageViewConnectorBg.setScaleX(1f);
+                imageViewBus.setScaleX(-1f);
+                textViewConnector.setText("2 커넥터");
             }
-
-            // imageViewConnectorBg animation
-            fadeAnimator = ObjectAnimator.ofFloat(imageViewConnectorBg, "alpha", 1f, 0.2f);
-            fadeAnimator.setDuration(1000);
-            fadeAnimator.setRepeatCount(ValueAnimator.INFINITE);
-            fadeAnimator.setRepeatMode(ValueAnimator.REVERSE);
-            fadeAnimator.setInterpolator(new AccelerateDecelerateInterpolator());
-            fadeAnimator.start();
         } catch (Exception e) {
             Log.e("InitFragment", "onCreateView error", e);
             logger.error("InitFragment onCreateView error : {}", e.getMessage());
@@ -158,18 +143,19 @@ public class InitFragment extends Fragment implements View.OnClickListener {
             chargingCurrentData.onCurrentDataClear();   // clear
             chargingCurrentData.setConnectorId(mChannel + 1);
 
+            if (!Objects.equals(v.getId(), R.id.viewCircle)) return;
+
             ((MainActivity) MainActivity.mContext).getChargingCurrentData(mChannel).setChargerPointType(ChargerPointType.COMBO);
             ((MainActivity) MainActivity.mContext).getChargingCurrentData(mChannel).setConnectorId(mChannel + 1);
 
-            if (!isAdded()) return;
 
             if (Objects.equals(chargerConfiguration.getOpMode(), 0)) {
                 // test mode
                 Log.d("InitFragment", "getOpMode(): test mode");
                 double testPrice = Double.parseDouble(((MainActivity) MainActivity.mContext).getChargerConfiguration().getTestPrice());
                 ((MainActivity) MainActivity.mContext).getChargingCurrentData(mChannel).setPowerUnitPrice(testPrice);
-                ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.CHARGING_WAIT);
-                ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.CHARGING_WAIT, "CHARGING_WAIT", null);
+                ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.PLUG_CHECK);
+                ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.PLUG_CHECK, "PLUG_CHECK", null);
             } else if (Objects.equals(chargerConfiguration.getOpMode(), 1)) {
                 // server mode
                 Log.d("InitFragment", "getOpMode(): server mode");
@@ -214,7 +200,7 @@ public class InitFragment extends Fragment implements View.OnClickListener {
         boolean result = false;
         try {
             File file = new File(GlobalVariables.getRootPath() + File.separator + GlobalVariables.UNIT_FILE_NAME);
-            result = file.exists() || !Objects.equals(chargerConfiguration.getOpMode(), "1");
+            result = file.exists() || !Objects.equals(chargerConfiguration.getOpMode(), 1);
         } catch (Exception e) {
             logger.error("InitFragment onUnitPrice error : {}" ,e.getMessage());
         }
@@ -225,16 +211,6 @@ public class InitFragment extends Fragment implements View.OnClickListener {
     public void onDetach() {
         super.onDetach();
         try {
-            if (fadeAnimator != null) {
-                fadeAnimator.cancel();  // animation stop
-                fadeAnimator.removeAllListeners();  // listener remove
-                fadeAnimator = null;
-            }
-
-            if (imageViewConnectorBg != null) {
-                imageViewConnectorBg.clearAnimation();
-            }
-
             requestStrings[0] = String.valueOf(mChannel);
             sharedModel.setMutableLiveData(requestStrings);
         } catch (Exception e) {
