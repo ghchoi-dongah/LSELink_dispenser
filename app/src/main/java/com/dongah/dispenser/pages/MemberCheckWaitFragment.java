@@ -55,7 +55,7 @@ public class MemberCheckWaitFragment extends Fragment implements View.OnClickLis
     private String mParam2;
     private int mChannel;
 
-    AVLoadingIndicatorView aviMemberCheck;
+    AVLoadingIndicatorView avi;
     int cnt = 0;
 
     MediaPlayer mediaPlayer;
@@ -103,10 +103,10 @@ public class MemberCheckWaitFragment extends Fragment implements View.OnClickLis
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_member_check_wait, container, false);
         view.setOnClickListener(this);
-
-        aviMemberCheck = view.findViewById(R.id.aviMemberCheck);
-        startAviAnim();
-
+        avi = view.findViewById(R.id.avi);
+        classUiProcess = ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel);
+        chargerConfiguration = ((MainActivity) MainActivity.mContext).getChargerConfiguration();
+        chargingCurrentData = ((MainActivity) MainActivity.mContext).getChargingCurrentData(mChannel);
         return view;
     }
 
@@ -114,10 +114,7 @@ public class MemberCheckWaitFragment extends Fragment implements View.OnClickLis
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         try {
-            classUiProcess = ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel);
-            chargerConfiguration = ((MainActivity) MainActivity.mContext).getChargerConfiguration();
-            chargingCurrentData = ((MainActivity) MainActivity.mContext).getChargingCurrentData(mChannel);
-
+            startAviAnim();
             mediaPlayer();   // media player
 
             ((MainActivity) MainActivity.mContext).runOnUiThread(new Runnable() {
@@ -169,7 +166,7 @@ public class MemberCheckWaitFragment extends Fragment implements View.OnClickLis
                     }
                 } else {
                     if (!Objects.equals(chargingCurrentData.getChargePointStatus(), ChargePointStatus.Preparing) &&
-                            Objects.equals(chargerConfiguration.getOpMode(), "1")) {
+                            Objects.equals(chargerConfiguration.getOpMode(), 1)) {
                         chargingCurrentData.setChargePointStatus(ChargePointStatus.Preparing);
                         processHandler.sendMessage(socketReceiveMessage.onMakeHandlerMessage(
                                 GlobalVariables.MESSAGE_HANDLER_STATUS_NOTIFICATION,
@@ -185,8 +182,8 @@ public class MemberCheckWaitFragment extends Fragment implements View.OnClickLis
                     if (Objects.equals(idTagInfo[0], chargingCurrentData.getIdTag())) {
                         chargingCurrentData.setAuthorizeResult(true);
                         chargingCurrentData.setParentIdTag(idTagInfo[1]);
-                        ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.CHARGING_WAIT);
-                        ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.CHARGING_WAIT, "CHARGING_WAIT", null);
+                        ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.PLUG_CHECK);
+                        ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.PLUG_CHECK, "PLUG_CHECK", null);
                     } else if (Objects.equals(idTagInfo[0], "notFound")) {
                         processHandler.sendMessage(socketReceiveMessage.onMakeHandlerMessage(
                                 GlobalVariables.MESSAGE_HANDLER_AUTHORIZE,
@@ -202,7 +199,7 @@ public class MemberCheckWaitFragment extends Fragment implements View.OnClickLis
                         ((MainActivity) MainActivity.mContext).getChargingCurrentData(mChannel).setAuthorizeResult(false);
                         ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).onHome();
                         RxData rxData = ((MainActivity) MainActivity.mContext).getControlBoard().getRxData(mChannel);
-                        if (!rxData.isCsPilot() && Objects.equals(chargerConfiguration.getOpMode(), "1")) {
+                        if (!rxData.isCsPilot() && Objects.equals(chargerConfiguration.getOpMode(), 1)) {
                             chargingCurrentData.setChargePointStatus(ChargePointStatus.Available);
                             processHandler.sendMessage(socketReceiveMessage.onMakeHandlerMessage(
                                     GlobalVariables.MESSAGE_HANDLER_STATUS_NOTIFICATION,
@@ -268,11 +265,11 @@ public class MemberCheckWaitFragment extends Fragment implements View.OnClickLis
                                 // isStopTransactionOnInvalidId: 미등록 IdTag로 시작했으면 나중에 중단 사유 세팅
                                 chargingCurrentData.setStopReason(!Objects.equals(idTagInfo[0], chargingCurrentData.getIdTag()) &&
                                         GlobalVariables.isStopTransactionOnInvalidId() ? Reason.DeAuthorized : chargingCurrentData.getStopReason());
-                                ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.CHARGING_WAIT);
-                                ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.CHARGING_WAIT, "CHARGING_WAIT", null);
+                                ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.PLUG_CHECK);
+                                ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.PLUG_CHECK, "PLUG_CHECK", null);
                             } else {
                                 // 인증 실패
-                                Toast.makeText(getActivity(), "인증 실패. ", Toast.LENGTH_SHORT).show();;
+                                Toast.makeText(getActivity(), "인증 실패. ", Toast.LENGTH_SHORT).show();
                                 ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).onHome();
                             }
                         }
@@ -297,7 +294,6 @@ public class MemberCheckWaitFragment extends Fragment implements View.OnClickLis
     public void onClick(View v) {
         try {
             if (!isAdded()) return;
-            stopAviAnim();
 
             switch (chargerConfiguration.getAuthMode()) {
                 case 0:
@@ -345,11 +341,11 @@ public class MemberCheckWaitFragment extends Fragment implements View.OnClickLis
     }
 
     void startAviAnim() {
-        aviMemberCheck.show();
+        avi.show();
     }
 
     void stopAviAnim() {
-        aviMemberCheck.hide();
+        avi.hide();
     }
 
     @Override
@@ -359,6 +355,7 @@ public class MemberCheckWaitFragment extends Fragment implements View.OnClickLis
 //            countHandler.removeCallbacks(countRunnable);
 //            countHandler.removeCallbacksAndMessages(null);
 //            countHandler.removeMessages(0);
+            stopAviAnim();
         } catch (Exception e) {
             Log.e("MemberCheckWaitFragment", "onDetach error", e);
             logger.error("MemberCheckWaitFragment onDetach error : {}", e.getMessage());

@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="512dp"
-    android:layout_height="692dp"
+    android:layout_height="662dp"
     tools:context=".pages.MemberCheckWaitFragment">
 
     <TextView
@@ -18,29 +18,16 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <ImageView
-        android:id="@+id/imageViewMember"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="100dp"
-        android:layout_marginStart="60dp"
-        android:background="@drawable/member"
-        app:layout_constraintTop_toBottomOf="@id/textViewMemberWaitMessage"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        tools:ignore="contentDescription"/>
-
     <com.wang.avi.AVLoadingIndicatorView
-        android:id="@+id/aviMemberCheck"
-        android:layout_width="80dp"
-        android:layout_height="80dp"
-        android:layout_marginTop="24dp"
-        android:layout_marginEnd="24dp"
+        android:id="@+id/avi"
+        android:layout_width="180dp"
+        android:layout_height="180dp"
         android:visibility="visible"
         app:indicatorName="BallSpinFadeLoaderIndicator"
-        app:indicatorColor="#0F569A"
-        app:layout_constraintTop_toTopOf="@id/imageViewMember"
-        app:layout_constraintEnd_toEndOf="@id/imageViewMember"
-        tools:ignore="MissingClass" />
+        app:indicatorColor="@color/primary"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
