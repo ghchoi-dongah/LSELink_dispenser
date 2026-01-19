@@ -25,9 +25,9 @@ import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.R;
 import com.dongah.dispenser.basefunction.ChargerConfiguration;
 import com.dongah.dispenser.basefunction.ChargingCurrentData;
-import com.dongah.dispenser.basefunction.UiSeq;
 import com.dongah.dispenser.utils.SharedModel;
 import com.dongah.dispenser.websocket.ocpp.utilities.ZonedDateTimeConvert;
+import com.google.android.material.progressindicator.CircularProgressIndicator;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,19 +56,10 @@ public class ChargingFragment extends Fragment implements View.OnClickListener {
     private int mChannel;
 
     Button btnChargingStop;
-    ImageView imageViewBattery, imageViewBatteryValue;
-    TextView textViewSocValue;
+    TextView textViewSocValue, textViewLimitSocValue, textViewLimitKwValue, textViewCarNum;
     TextView textViewChargingAmtValue, textViewChargingTimeRemainValue, textViewChargingTimeValue;
     TextView textViewChargingVoltageValue, textViewChargingPowerValue, textViewChargingCurrentValue, textViewRequestCurrentValue;
-
-
-    private final Handler handler = new Handler(Looper.getMainLooper());
-    private boolean blinkVisible = true;
-    private boolean running = false;
-
-    int soc = 0;
-    private static final int MAX_SOC = 90;
-    private static final int BLINK_INTERVAL = 500;  // 깜빡임 간격(ms)
+    CircularProgressIndicator progressCircular;
 
     MediaPlayer mediaPlayer;
     SharedModel sharedModel;
@@ -118,10 +109,10 @@ public class ChargingFragment extends Fragment implements View.OnClickListener {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_charging, container, false);
+        chargerConfiguration = ((MainActivity) MainActivity.mContext).getChargerConfiguration();
+        chargingCurrentData = ((MainActivity) MainActivity.mContext).getChargingCurrentData(mChannel);
         btnChargingStop = view.findViewById(R.id.btnChargingStop);
         btnChargingStop.setOnClickListener(this);
-        imageViewBattery = view.findViewById(R.id.imageViewBattery);
-        imageViewBatteryValue = view.findViewById(R.id.imageViewBatteryValue);
         textViewSocValue = view.findViewById(R.id.textViewSocValue);
         textViewChargingAmtValue = view.findViewById(R.id.textViewChargingAmtValue);
         textViewChargingTimeRemainValue = view.findViewById(R.id.textViewChargingTimeRemainValue);
@@ -130,26 +121,29 @@ public class ChargingFragment extends Fragment implements View.OnClickListener {
         textViewChargingPowerValue = view.findViewById(R.id.textViewChargingPowerValue);
         textViewChargingCurrentValue = view.findViewById(R.id.textViewChargingCurrentValue);
         textViewRequestCurrentValue = view.findViewById(R.id.textViewRequestCurrentValue);
+        textViewLimitSocValue = view.findViewById(R.id.textViewLimitSocValue);
+        textViewLimitKwValue = view.findViewById(R.id.textViewLimitKwValue);
+        progressCircular = view.findViewById(R.id.progressCircular);
+        textViewCarNum = view.findViewById(R.id.textViewCarNum);
         return view;
     }
 
+    @SuppressLint("SetTextI18n")
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         try {
-            chargerConfiguration = ((MainActivity) MainActivity.mContext).getChargerConfiguration();
-            chargingCurrentData = ((MainActivity) MainActivity.mContext).getChargingCurrentData(mChannel);
-            setSoc(chargingCurrentData.getSoc());
-
-            updateBatteryUI();  // soc에 따른 이미지 갱신
-            startBlink();       // 깜빡임 시작
-            mediaPlayer();      // media player
-
             sharedModel = new ViewModelProvider(requireActivity()).get(SharedModel.class);
             requestStrings[0] = String.valueOf(mChannel);
             sharedModel.setMutableLiveData(requestStrings);
+            textViewLimitSocValue.setText(chargerConfiguration.getTargetSoc() + "%");
+            textViewLimitKwValue.setText(chargerConfiguration.getDr() + "kW");
+            progressCircular.isIndeterminate();
+            mediaPlayer();      // media player
 
             try {
+                textViewSocValue.setText(chargingCurrentData.getSoc() + "%");
+                progressCircular.setProgress(chargingCurrentData.getSoc(), true);
                 startTime = zonedDateTimeConvert.doStringDateToDate(chargingCurrentData.getChargingStartTime());
             } catch (Exception e) {
                 throw new RuntimeException(e);
@@ -164,8 +158,6 @@ public class ChargingFragment extends Fragment implements View.OnClickListener {
     public void onClick(View v) {
         if (Objects.equals(v.getId(), R.id.btnChargingStop)) {
             ((MainActivity) MainActivity.mContext).getChargingCurrentData(mChannel).setUserStop(true);
-            ((MainActivity) MainActivity.mContext).getControlBoard().getTxData(mChannel).setStop(true);
-            ((MainActivity) MainActivity.mContext).getControlBoard().getTxData(mChannel).setStart(false);
         }
     }
     
@@ -201,8 +193,7 @@ public class ChargingFragment extends Fragment implements View.OnClickListener {
                                  textViewChargingTimeRemainValue.setText(String.format("%02d", rHour) + ":" + String.format("%02d", rMinute) + ":" + String.format("%02d", rSecond));
 
                                  textViewSocValue.setText(chargingCurrentData.getSoc() + "%");
-                                 setSoc(chargingCurrentData.getSoc());
-                                 updateBatteryUI();
+                                 progressCircular.setProgress(chargingCurrentData.getSoc(), true);
 
                                  textViewChargingVoltageValue.setText(voltageFormatter.format(chargingCurrentData.getOutPutVoltage() * 0.1) + " V");
                                  textViewChargingCurrentValue.setText(powerFormatter.format(chargingCurrentData.getOutPutCurrent() * 0.1) + " A");
@@ -243,64 +234,6 @@ public class ChargingFragment extends Fragment implements View.OnClickListener {
             }
             mediaPlayer = null;
         }
-    }
-
-    // 깜빡임 루프
-    private final Runnable blinkRunnable = new Runnable() {
-        @Override
-        public void run() {
-            if (!running) return;
-            imageViewBatteryValue.setVisibility(blinkVisible ? View.VISIBLE : View.INVISIBLE);
-            blinkVisible = !blinkVisible;
-            handler.postDelayed(this, BLINK_INTERVAL);
-        }
-    };
-
-    private void updateBatteryUI() {
-        // SOC 구간별 이미지 설정
-        if (soc < 25) {
-            imageViewBattery.setBackgroundResource(R.drawable.battery0);
-            imageViewBatteryValue.setBackgroundResource(R.drawable.battery1);
-        } else if (soc < 50) {
-            imageViewBattery.setBackgroundResource(R.drawable.battery1);
-            imageViewBatteryValue.setBackgroundResource(R.drawable.battery2);
-        } else if (soc < 75) {
-            imageViewBattery.setBackgroundResource(R.drawable.battery2);
-            imageViewBatteryValue.setBackgroundResource(R.drawable.battery3);
-        } else if (soc <= MAX_SOC) {
-            imageViewBattery.setBackgroundResource(R.drawable.battery3);
-            imageViewBatteryValue.setBackgroundResource(R.drawable.battery4);
-        }
-    }
-
-    private void startBlink() {
-        if (running) return;
-        running = true;
-        handler.post(blinkRunnable);
-    }
-
-    private void stopBlink() {
-        running = false;
-        handler.removeCallbacks(blinkRunnable);
-        imageViewBatteryValue.setVisibility(View.VISIBLE); // 마지막엔 보이게 유지
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        startBlink();
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        stopBlink();
-    }
-
-    // SOC 값 변경 메서드
-    public void setSoc(int socValue) {
-        this.soc = Math.min(socValue, MAX_SOC);
-        updateBatteryUI();
     }
 
     @Override
