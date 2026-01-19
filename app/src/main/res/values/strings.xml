@@ -1,37 +1,37 @@
 <resources>
     <string name="app_name">Dispenser</string>
     <string name="hello_blank_fragment">Hello blank fragment</string>
-    <string name="initMessage"><font color="#000">커넥터를 차량에 연결시\n자동으로 충전이 시작됩니다.</font></string>
+    <string name="initMessage"><font color="#000">차량에 커넥터 연결 시 자동 충전</font></string>
     <string name="sequentialMessage"><font color="#000">커넥터를 꽂아 두시면,\n앞선 차량의 충전이 끝난 뒤\n자동으로 충전이 시작됩니다.</font></string>
     <string name="estimatedChargingTime"><font color="#000">예상 충전 시작: </font></string>
     <string name="authSelectMessage"><font color="#000">회원 유형을 선택해 주세요.</font></string>
     <string name="memberCardTagMessage"><font color="#000">회원카드를 접촉해 주세요.</font></string>
     <string name="memberCardTagNoMacMessage"><font color="#000">차량이 등록된 회원이 아닙니다.\n회원일 경우 회원카드를 접촉해 주세요.</font></string>
     <string name="vehicleRegistMessage"><font color="#000">차량 등록은 관리자에게 문의해 주세요.</font></string>
-    <string name="memberCheckWaitMessage"><font color="#000">회원 확인 중입니다.\n잠시만 기다려주세요.</font></string>
-    <string name="memberCheckFailedMessage"><font color="#000">회원 인증에 실패했습니다.\n커넥터를 제거해 주세요.</font></string>
+    <string name="memberCheckWaitMessage"><font color="#000">회원 확인 중</font></string>
+    <string name="memberCheckFailedMessage"><font color="#000">회원 인증 실패</font></string>
     <string name="memberRegistMessage"><font color="#000">회원 등록은 관리자에게 문의해 주세요.</font></string>
     <string name="chargingWaitMessage"><font color="#000">회원 인증이 완료됐습니다.\n충전 시작 준비 중이오니\n잠시만 기다려 주세요.</font></string>
     <string name="chargingMessage"><font color="#000">충전 중</font></string>
-    <string name="chargingFinishMessage"><font color="#000">충전이 완료됐습니다.</font></string>
+    <string name="chargingFinishMessage"><font color="#000">충전 완료</font></string>
     <string name="chargingTime"><font color="#000">충전시간</font></string>
-    <string name="limitSoc"><font color="#000">SOC 제한:</font></string>
     <string name="useYn"><font color="#000">사용가능여부:</font></string>
-    <string name="limitKw"><font color="#000">출력 제한:</font></string>
-    <string name="connectionFailedMessage"><font color="#000">차량과 통신이 실패했습니다.\n커넥터를 다시 연결해 주세요.</font></string>
+    <string name="limitSoc">최대 충전량</string>
+    <string name="limitKw">출력 제한</string>
+    <string name="connectionFailedMessage"><font color="#000">차량과 통신 실패</font></string>
     <string name="chargeOfAmount"><font color="#000">충전량</font></string>
     <string name="chargingTimeRemain"><font color="#000">남은시간</font></string>
     <string name="chargingVoltage">충전전압</string>
     <string name="chargingCurrent">충전전류</string>
     <string name="chargingPower">충전전력</string>
     <string name="requestCurrent">요청전류</string>
-    <string name="chargingStop">충전중지</string>
-    <string name="chargingFinishWaitMessage"><font color="#000">충전 종료 중입니다.\n잠시만 기다려 주세요.</font></string>
+    <string name="chargingStop">충전종료</string>
+    <string name="chargingFinishWaitMessage"><font color="#000">충전 종료 중</font></string>
     <string name="check">확인</string>
     <string name="cancel">취소</string>
-    <string name="faultMessage"><font color="#000">오류가 발생했습니다.\n고객센터에 문의해 주세요.</font></string>
+    <string name="faultMessage"><font color="#000">오류 발생</font></string>
     <string name="faultCodeMessage"> </string>
-    <string name="carNum">차량번호</string>
+    <string name="carNum"><font color="#000">차량번호 : </font></string>
     <string name="voltageUnit">V</string>
     <string name="currentUnit">A</string>
     <string name="powerUnit">kW</string>
@@ -39,6 +39,12 @@
     <string name="adminMessage">패스워드를 입력한 후 확인 버튼을 눌러주세요.</string>
     <string name="opStopMessage"><font color="#000">운영 중지</font></string>
     <string name="screenSaverMessage">현재 화면 보호기가 실행 중입니다.\n충전을 시작하려면 화면을 터치해 주세요.</string>
+    <string name="connector"><font color="#000">커넥터</font></string>
+    <string name="connectorCheckMessage"><font color="#000">커넥터 연결 확인 중</font></string>
+    <string name="EVCheckMessage"><font color="#000">차량과 통신 확인 중</font></string>
+    <string name="connectorRetryMessage"><font color="#000">커넥터를 다시 연결해 주세요.</font></string>
+    <string name="connectorDisconnectMessage"><font color="#000">커넥터를 분리하여 정리해 주세요.</font></string>
+
 
     <!-- config setting -->
     <string name="chargePointType"><font color="#000">커플러 타입</font></string>
