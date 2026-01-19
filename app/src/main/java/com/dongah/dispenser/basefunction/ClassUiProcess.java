@@ -170,14 +170,19 @@ public class ClassUiProcess  {
                 case MEMBER_CARD_NO_MAC:
                 case MEMBER_CHECK_WAIT:
                     break;
+                case PLUG_CHECK:
+                    if (rxData.isCsPilot()) {
+                        controlBoard.getTxData(getCh()).setStart(true);
+                        controlBoard.getTxData(getCh()).setStop(false);
+                        setUiSeq(UiSeq.CONNECT_CHECK);
+                    }
+                    break;
+                case CONNECT_CHECK:
                 case CHARGING_WAIT:
                     // Test Mode
 //                    if (Objects.equals(chargerConfiguration.getOpMode(), "0") && !chargingCurrentData.isChgWait()) {
 //                        break;
 //                    }
-                    if (!rxData.isCsPilot()) break;
-                    controlBoard.getTxData(getCh()).setStart(true);
-                    controlBoard.getTxData(getCh()).setStop(false);
 
                     if (rxData.isCsStart()) {
                         chargingCurrentData.setChargePointStatus(ChargePointStatus.Charging);
@@ -188,15 +193,20 @@ public class ClassUiProcess  {
                         // Auto 및 Test mode
                         // socket receive message get instance
                         socketReceiveMessage = ((MainActivity) MainActivity.mContext).getSocketReceiveMessage();
-                        if (!Objects.equals(chargerConfiguration.getOpMode(), "1") ||
+                        if (!Objects.equals(chargerConfiguration.getOpMode(), 1) ||
                                 (SocketState.OPEN != socketReceiveMessage.getSocket().getState() && !GlobalVariables.isStopTransactionOnInvalidId())) {
                             setUiSeq(UiSeq.CHARGING);
                             ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(getCh(), UiSeq.CHARGING, "CHARGING", null);
                         }
                         // server mode
-                        if (Objects.equals(chargerConfiguration.getOpMode(), "1")) {
+                        if (Objects.equals(chargerConfiguration.getOpMode(), 1)) {
 
                         }
+                    } else if (rxData.isCsStop()) {
+                        controlBoard.getTxData(getCh()).setStop(true);
+                        controlBoard.getTxData(getCh()).setStart(false);
+                        // 충전 실패 사유 toast
+                        onHome();
                     }
                     break;
                 case CHARGING:
@@ -253,7 +263,7 @@ public class ClassUiProcess  {
                         chargingCurrentData.setChargePointStatus(ChargePointStatus.Finishing);
                         //socket receive message get instance
                         socketReceiveMessage = ((MainActivity) MainActivity.mContext).getSocketReceiveMessage();
-                        if (Objects.equals(chargerConfiguration.getOpMode(), "1")) {
+                        if (Objects.equals(chargerConfiguration.getOpMode(), 1)) {
                             processHandler.sendMessage(socketReceiveMessage.onMakeHandlerMessage(
                                     GlobalVariables.MESSAGE_HANDLER_STOP_TRANSACTION,
                                     chargingCurrentData.getConnectorId(),

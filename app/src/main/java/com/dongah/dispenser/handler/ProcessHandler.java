@@ -117,7 +117,7 @@ public class ProcessHandler extends Handler {
     public void handleMessage(@NonNull Message msg) {
         super.handleMessage(msg);
         // server mode(1) 가 아니면 return
-        if (!Objects.equals(chargerConfiguration.getOpMode(), "1")) return;
+        if (!Objects.equals(chargerConfiguration.getOpMode(), 1)) return;
 
         bundle = msg.getData();
         // All : 100 , 채널 정보로 connectorId 설정함.

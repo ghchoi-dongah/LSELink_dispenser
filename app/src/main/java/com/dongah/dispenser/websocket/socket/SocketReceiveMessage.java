@@ -428,7 +428,7 @@ public class SocketReceiveMessage extends JSONCommunicator implements SocketInte
                                         //OCPP 인증이 연부 확인
 
                                         // test mode
-                                        if (ocppMode && !Objects.equals(chargerConfiguration.getAuthMode(), "1")) {
+                                        if (ocppMode && !Objects.equals(chargerConfiguration.getAuthMode(), 1)) {
                                             Log.d("SocketReceiveMessage", "ocpp check");
                                             chargingCurrentData.setPowerUnitPrice(Double.parseDouble(chargerConfiguration.getTestPrice()));
                                             ((MainActivity) MainActivity.mContext).getClassUiProcess(getChannel()).setUiSeq(UiSeq.CHARGING_WAIT);
@@ -436,7 +436,7 @@ public class SocketReceiveMessage extends JSONCommunicator implements SocketInte
                                         }
 
                                         if (!Objects.equals(chargingCurrentData.getChargePointStatus(), ChargePointStatus.Preparing) &&
-                                                Objects.equals(chargerConfiguration.getAuthMode(), "1")) {
+                                                Objects.equals(chargerConfiguration.getAuthMode(), 1)) {
                                             chargingCurrentData.setChargePointStatus(ChargePointStatus.Preparing);
                                             processHandler.sendMessage(onMakeHandlerMessage(
                                                     GlobalVariables.MESSAGE_HANDLER_STATUS_NOTIFICATION,

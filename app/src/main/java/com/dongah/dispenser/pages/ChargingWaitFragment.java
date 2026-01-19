@@ -169,7 +169,7 @@ public class ChargingWaitFragment extends Fragment implements View.OnClickListen
 
                                 // preparing
                                 if (Objects.equals(chargingCurrentData.getChargePointStatus(), ChargePointStatus.Preparing) &&
-                                        Objects.equals(chargerConfiguration.getOpMode(), "1") &&
+                                        Objects.equals(chargerConfiguration.getOpMode(), 1) &&
                                         !((MainActivity) MainActivity.mContext).getControlBoard().getRxData(mChannel).isCsPilot()) {
                                     chargingCurrentData.setChargePointStatus(ChargePointStatus.Available);
                                     chargingCurrentData.setChargePointErrorCode(ChargePointErrorCode.NoError);

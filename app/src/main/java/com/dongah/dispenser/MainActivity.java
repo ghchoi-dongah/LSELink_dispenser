@@ -16,6 +16,8 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -44,6 +46,7 @@ import com.dongah.dispenser.utils.ToastPositionMake;
 import com.dongah.dispenser.websocket.ocpp.core.Reason;
 import com.dongah.dispenser.websocket.socket.HttpClientHelper;
 import com.dongah.dispenser.websocket.socket.SocketReceiveMessage;
+import com.dongah.dispenser.websocket.socket.SocketState;
 import com.dongah.dispenser.websocket.socket.TripleDES;
 import com.dongah.dispenser.websocket.tcpsocket.ClientSocket;
 
@@ -53,7 +56,11 @@ import org.slf4j.LoggerFactory;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 import java.util.Objects;
+import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -67,6 +74,9 @@ public class MainActivity extends AppCompatActivity {
 
     Handler handler = new Handler();
     Runnable runnable;
+
+    TextView textViewVersion, textViewTime;
+    ImageView imgNetwork;
 
     SQLiteHelper sqLiteHelper;
     SQLiteDatabase sqLiteDatabase;
@@ -193,12 +203,16 @@ public class MainActivity extends AppCompatActivity {
         chargerConfiguration = new ChargerConfiguration();
         chargerConfiguration.onLoadConfiguration();
 
+        textViewVersion = findViewById(R.id.textViewVersionValue);
+        textViewVersion.setText("VER-DEVD " + chargerConfiguration.getFirmwareVersion() + " | ");
+        textViewTime = findViewById(R.id.textViewTime);
+
         // 2. fragment change management
         fragmentChange = new FragmentChange();
         fragmentSeq = new UiSeq[GlobalVariables.maxChannel];
         for (int i = 0; i < GlobalVariables.maxChannel; i++) {
             fragmentChange.onFragmentChange(i, UiSeq.INIT, "INIT", "");
-            fragmentChange.onFragmentFooterChange(i, "Footer");
+            fragmentChange.onFragmentHeaderChange(i, "Header");
         }
 
         // 3. control board
@@ -270,7 +284,7 @@ public class MainActivity extends AppCompatActivity {
 //                });
 
         // server mode
-        if (Objects.equals(chargerConfiguration.getAuthMode(), "1")) {
+        if (Objects.equals(chargerConfiguration.getAuthMode(), 1)) {
             sendOcppAuthInfoRequest();
         }
 
@@ -302,6 +316,42 @@ public class MainActivity extends AppCompatActivity {
         // 9. 전류 제한 설정
         for (int i = 0; i <GlobalVariables.maxChannel; i++) {
             ((MainActivity) MainActivity.mContext).getControlBoard().getTxData(i).setOutPowerLimit((short) chargerConfiguration.getDr());
+        }
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        runnable = new Runnable() {
+            @Override
+            public void run() {
+                updateTime();
+                // 1초마다 실행
+                handler.postDelayed(this, 1000);
+                try {
+                    if (socketReceiveMessage.getSocket().getState() != null) {
+                        imgNetwork.setBackgroundResource(socketReceiveMessage.getSocket().getState() == SocketState.OPEN ?
+                                R.drawable.network : R.drawable.nonetwork);
+                    }
+                } catch (Exception e) {
+                    logger.error("MainActivity onStart error : {}", e.getMessage());
+                }
+            }
+        };
+        runnable.run();
+    }
+
+    private void updateTime() {
+        try {
+            if (textViewTime != null) {
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+                sdf.setTimeZone(TimeZone.getTimeZone("Asia/Seoul"));
+                String currentTime = sdf.format(new Date());
+                textViewTime.setText(currentTime);
+            }
+        } catch (Exception e) {
+            logger.error("MainActivity updateTime error : {}", e.getMessage());
         }
     }
 
@@ -393,6 +443,7 @@ public class MainActivity extends AppCompatActivity {
         for (int i = 0; i < GlobalVariables.maxChannel; i++) {
             ((MainActivity) MainActivity.mContext).getClassUiProcess(i).onCustomStatusNotificationStop();
         }
+        handler.removeCallbacks(runnable);
     }
 
     /**

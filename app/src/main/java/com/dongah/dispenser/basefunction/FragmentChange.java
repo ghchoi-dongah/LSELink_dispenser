@@ -18,10 +18,11 @@ import com.dongah.dispenser.pages.ChargingSequentialFragment;
 import com.dongah.dispenser.pages.ChargingWaitFragment;
 import com.dongah.dispenser.pages.ConfigSettingFragment;
 import com.dongah.dispenser.pages.ConnectionFailedFragment;
+import com.dongah.dispenser.pages.ConnectorCheckFragment;
 import com.dongah.dispenser.pages.ControlDebugFragment;
 import com.dongah.dispenser.pages.EnvironmentFragment;
 import com.dongah.dispenser.pages.FaultFragment;
-import com.dongah.dispenser.pages.FooterFragment;
+import com.dongah.dispenser.pages.HeaderFragment;
 import com.dongah.dispenser.pages.InitFragment;
 import com.dongah.dispenser.pages.MemberCardFragment;
 import com.dongah.dispenser.pages.MemberCardNoMacFragment;
@@ -119,6 +120,17 @@ public class FragmentChange {
                     transaction.commit();
                 } catch (Exception e) {
                     logger.error("onFragmentChange error : MEMBER_CHECK_FAILED {}", e.getMessage());
+                }
+                break;
+            case PLUG_CHECK:
+                try {
+                    onFrameLayoutChange(false);
+                    ConnectorCheckFragment connectorCheckFragment = new ConnectorCheckFragment();
+                    connectorCheckFragment.setArguments(bundle);
+                    transaction.replace(frameLayoutId, connectorCheckFragment, "PLUG_CHECK");
+                    transaction.commit();
+                } catch (Exception e) {
+                    logger.error("onFragmentChange error : PLUG_CHECK {}", e.getMessage());
                 }
                 break;
             case CHARGING_WAIT:
@@ -276,8 +288,7 @@ public class FragmentChange {
             FrameLayout frameLayout0 = ((MainActivity) MainActivity.mContext).findViewById(R.id.ch0);
             FrameLayout frameLayout1 = ((MainActivity) MainActivity.mContext).findViewById(R.id.ch1);
             FrameLayout fullScreen = ((MainActivity) MainActivity.mContext).findViewById(R.id.frameFull);
-            FrameLayout frameFooter = ((MainActivity) MainActivity.mContext).findViewById(R.id.frameFooter);
-            View viewLine = ((MainActivity) MainActivity.mContext).findViewById(R.id.viewLine);
+            FrameLayout frameHeader = ((MainActivity) MainActivity.mContext).findViewById(R.id.frameHeader);
 
             /**
              * true: full screen
@@ -287,33 +298,31 @@ public class FragmentChange {
                 fullScreen.setVisibility(View.VISIBLE);
                 frameLayout0.setVisibility(View.INVISIBLE);
                 frameLayout1.setVisibility(View.INVISIBLE);
-                frameFooter.setVisibility(View.INVISIBLE);
-                viewLine.setVisibility(View.INVISIBLE);
+                frameHeader.setVisibility(View.INVISIBLE);
             } else {
                 onFrameLayoutRemove();
                 fullScreen.setVisibility(View.INVISIBLE);
                 frameLayout0.setVisibility(View.VISIBLE);
                 frameLayout1.setVisibility(View.VISIBLE);
-                frameFooter.setVisibility(View.VISIBLE);
-                viewLine.setVisibility(View.VISIBLE);
+                frameHeader.setVisibility(View.VISIBLE);
             }
         } catch (Exception e) {
             logger.error("onFrameLayoutChange error : {}", e.getMessage());
         }
     }
 
-    public void onFragmentFooterChange(int channel, String sendText) {
+    public void onFragmentHeaderChange(int channel, String sendText) {
         try {
             Bundle bundle = new Bundle();
             bundle.putInt("CHANNEL", channel);
-            int frameLayoutId = R.id.frameFooter;
+            int frameLayoutId = R.id.frameHeader;
             FragmentTransaction transaction = ((MainActivity) MainActivity.mContext).getSupportFragmentManager().beginTransaction();
-            FooterFragment footerFragment = new FooterFragment();
-            transaction.replace(frameLayoutId, footerFragment, sendText);
-            footerFragment.setArguments(bundle);
+            HeaderFragment headerFragment = new HeaderFragment();
+            transaction.replace(frameLayoutId, headerFragment, sendText);
+            headerFragment.setArguments(bundle);
             transaction.commit();
         } catch (Exception e) {
-            logger.error("onFragmentFooterChange error : {}", e.getMessage());
+            logger.error("onFragmentHeaderChange error : {}", e.getMessage());
         }
     }
 
