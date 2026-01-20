@@ -15,13 +15,13 @@
     <string name="chargingWaitSubMessage"><font color="#000">앞선 차량의 충전이 끝난 뒤 충전이 시작됩니다.</font></string>
     <string name="chargingMessage"><font color="#000">충전 중</font></string>
     <string name="chargingFinishMessage"><font color="#000">충전 완료</font></string>
-    <string name="chargingTime"><font color="#000">충전시간</font></string>
+    <string name="chargingTime">충전시간</string>
     <string name="useYn"><font color="#000">사용가능여부:</font></string>
     <string name="limitSoc">최대 충전량</string>
     <string name="limitKw">출력 제한</string>
     <string name="connectionFailedMessage"><font color="#000">차량과 통신 실패</font></string>
-    <string name="chargeOfAmount"><font color="#000">충전량</font></string>
-    <string name="chargingTimeRemain"><font color="#000">남은시간</font></string>
+    <string name="chargeOfAmount">충전량</string>
+    <string name="chargingTimeRemain">남은시간</string>
     <string name="chargingVoltage">충전전압</string>
     <string name="chargingCurrent">충전전류</string>
     <string name="chargingPower">충전전력</string>
@@ -45,6 +45,8 @@
     <string name="EVCheckMessage"><font color="#000">차량과 통신 확인 중</font></string>
     <string name="connectorRetryMessage"><font color="#000">커넥터를 다시 연결해 주세요.</font></string>
     <string name="connectorDisconnectMessage"><font color="#000">커넥터를 분리하여 정리해 주세요.</font></string>
+    <string name="etcInfo">기타정보</string>
+    <string name="chargingInfo">충전정보</string>
 
 
     <!-- config setting -->
