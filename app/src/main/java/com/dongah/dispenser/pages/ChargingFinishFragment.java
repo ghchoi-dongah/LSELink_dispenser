@@ -20,6 +20,7 @@ import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.R;
 import com.dongah.dispenser.basefunction.ChargerConfiguration;
 import com.dongah.dispenser.basefunction.ChargingCurrentData;
+import com.google.android.material.progressindicator.CircularProgressIndicator;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,7 +49,7 @@ public class ChargingFinishFragment extends Fragment implements View.OnClickList
 
     Button btnCheck;
     TextView textViewSocValue, textViewChargingAmtValue, textViewChargingTimeValue;
-    TextView textViewLimitSocValue, textViewLimitKwValue;
+    CircularProgressIndicator progressCircular;
 
     MediaPlayer mediaPlayer;
     Handler uiCheckHandler;
@@ -100,8 +101,7 @@ public class ChargingFinishFragment extends Fragment implements View.OnClickList
         textViewSocValue = view.findViewById(R.id.textViewSocValue);
         textViewChargingAmtValue = view.findViewById(R.id.textViewChargingAmtValue);
         textViewChargingTimeValue = view.findViewById(R.id.textViewChargingTimeValue);
-        textViewLimitSocValue = view.findViewById(R.id.textViewLimitSocValue);
-        textViewLimitKwValue = view.findViewById(R.id.textViewLimitKwValue);
+        progressCircular = view.findViewById(R.id.progressCircular);
         return view;
     }
 
@@ -110,8 +110,7 @@ public class ChargingFinishFragment extends Fragment implements View.OnClickList
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         try {
-            textViewLimitSocValue.setText(chargerConfiguration.getTargetSoc() + "%");
-            textViewLimitKwValue.setText(chargerConfiguration.getDr() + "kW");
+            progressCircular.isIndeterminate();
             mediaPlayer();
 
             // unplug check 후 초기 화면
@@ -132,6 +131,7 @@ public class ChargingFinishFragment extends Fragment implements View.OnClickList
                 @Override
                 public void run() {
                     textViewSocValue.setText(chargingCurrentData.getSoc() + "%");
+                    progressCircular.setProgress(chargingCurrentData.getSoc(), true);
                     textViewChargingAmtValue.setText(powerFormatter.format(chargingCurrentData.getPowerMeterUse() * 0.01) + "kWh");
                     textViewChargingTimeValue.setText(chargingCurrentData.getChargingUseTime());
                 }
