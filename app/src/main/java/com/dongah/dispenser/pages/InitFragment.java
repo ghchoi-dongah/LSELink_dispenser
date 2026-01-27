@@ -8,6 +8,8 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -23,6 +25,7 @@ import com.dongah.dispenser.basefunction.ChargerPointType;
 import com.dongah.dispenser.basefunction.ChargingCurrentData;
 import com.dongah.dispenser.basefunction.GlobalVariables;
 import com.dongah.dispenser.basefunction.UiSeq;
+import com.dongah.dispenser.controlboard.RxData;
 import com.dongah.dispenser.utils.SharedModel;
 import com.dongah.dispenser.websocket.socket.SocketState;
 
@@ -59,6 +62,10 @@ public class InitFragment extends Fragment implements View.OnClickListener {
     ChargingCurrentData chargingCurrentData;
     SharedModel sharedModel;
     String[] requestStrings = new String[1];
+
+    Handler handler;
+    Runnable runnable;
+    RxData rxData;
 
     public InitFragment() {
         // Required empty public constructor
@@ -105,6 +112,7 @@ public class InitFragment extends Fragment implements View.OnClickListener {
         imageViewBus = view.findViewById(R.id.imageViewBus);
         viewCircle = view.findViewById(R.id.viewCircle);
         viewCircle.setOnClickListener(this);
+        rxData = ((MainActivity) MainActivity.mContext).getControlBoard().getRxData(mChannel);
 
         try {
             // ch0, ch1 구분 => 이미지 위치 조절
@@ -131,6 +139,23 @@ public class InitFragment extends Fragment implements View.OnClickListener {
             sharedModel = new ViewModelProvider(requireActivity()).get(SharedModel.class);
             requestStrings[0] = String.valueOf(0);
             sharedModel.setMutableLiveData(requestStrings);
+
+            // 커넥터 연결 확인 시 자동 충전 진행
+            // 테스트 모드일 때, csPilot이 항상 ture로 인해 자동 충전 제거
+//            ((MainActivity) MainActivity.mContext).runOnUiThread(() -> {
+//                handler = new Handler(Looper.getMainLooper());
+//                runnable = new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        if (chargingCurrentData.isConnectAuto() && rxData.isCsPilot()) {
+//                            chargingCurrentData.setConnectAuto(false);
+//                            changeFragment();
+//                        }
+//                        handler.postDelayed(this, 1000);
+//                    }
+//                };
+//                handler.post(runnable);
+//            });
         } catch (Exception e) {
             Log.e("InitFragment", "onViewCreated error", e);
             logger.error("InitFragment onViewCreated : {}", e.getMessage());
@@ -139,15 +164,17 @@ public class InitFragment extends Fragment implements View.OnClickListener {
 
     @Override
     public void onClick(View v) {
+        if (!Objects.equals(v.getId(), R.id.viewCircle)) return;
+        changeFragment();
+    }
+
+    private void changeFragment() {
         try {
             chargingCurrentData.onCurrentDataClear();   // clear
             chargingCurrentData.setConnectorId(mChannel + 1);
 
-            if (!Objects.equals(v.getId(), R.id.viewCircle)) return;
-
             ((MainActivity) MainActivity.mContext).getChargingCurrentData(mChannel).setChargerPointType(ChargerPointType.COMBO);
             ((MainActivity) MainActivity.mContext).getChargingCurrentData(mChannel).setConnectorId(mChannel + 1);
-
 
             if (Objects.equals(chargerConfiguration.getOpMode(), 0)) {
                 // test mode
@@ -177,7 +204,7 @@ public class InitFragment extends Fragment implements View.OnClickListener {
                                 ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.MEMBER_CARD, "MEMBER_CARD", null);
                                 break;
                             default:
-                                logger.error("InitFragment onClick error >> Invalid value");
+                                logger.error("InitFragment changeFragment error >> Invalid value");
                                 break;
                         }
                     } else {
@@ -189,10 +216,9 @@ public class InitFragment extends Fragment implements View.OnClickListener {
                     logger.error("InitFragment server disconnect error : {}", e.getMessage());
                 }
             }
-
         } catch (Exception e) {
-            Log.e("InitFragment", "onClick error", e);
-            logger.error("InitFragment onClick error : {}", e.getMessage());
+            Log.e("InitFragment", "changeFragment error", e);
+            logger.error("InitFragment changeFragment error : {}", e.getMessage());
         }
     }
 
@@ -213,6 +239,12 @@ public class InitFragment extends Fragment implements View.OnClickListener {
         try {
             requestStrings[0] = String.valueOf(mChannel);
             sharedModel.setMutableLiveData(requestStrings);
+
+            if (handler != null) {
+                handler.removeCallbacks(runnable);
+                handler.removeCallbacksAndMessages(null);
+                handler.removeMessages(0);
+            }
         } catch (Exception e) {
             Log.e("InitFragment", "onDetach error", e);
             logger.error("InitFragment onDetach error : {}", e.getMessage());

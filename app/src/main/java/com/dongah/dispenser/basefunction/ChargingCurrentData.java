@@ -136,6 +136,9 @@ public class ChargingCurrentData {
     public boolean chgWait = false;
     public boolean chgFinishWait = false;
 
+    /* 커넥터 자동 충전 확인 */
+    public boolean connectAuto = true;
+
     public ChargingCurrentData() {
         sampleValueData = new SampleValueData();
     }
@@ -194,6 +197,7 @@ public class ChargingCurrentData {
         setSoc(0);
         setTargetSoc(80);
         setTargetCurrent(0);
+        setConnectAuto(true);
         remoteSmartChargingJsonArray = null;
     }
 
@@ -819,5 +823,13 @@ public class ChargingCurrentData {
 
     public void setChgFinishWait(boolean chgFinishWait) {
         this.chgFinishWait = chgFinishWait;
+    }
+
+    public boolean isConnectAuto() {
+        return connectAuto;
+    }
+
+    public void setConnectAuto(boolean connectAuto) {
+        this.connectAuto = connectAuto;
     }
 }

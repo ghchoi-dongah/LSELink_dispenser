@@ -83,6 +83,8 @@
         android:layout_marginBottom="90dp"
         android:text="@string/chargeOfAmount"
         android:textSize="18sp"
+        android:textColor="@color/primary"
+        android:textStyle="bold"
         app:layout_constraintStart_toStartOf="@id/progressCircular"
         app:layout_constraintBottom_toBottomOf="@id/progressCircular"
         app:layout_constraintEnd_toEndOf="@id/progressCircular" />

@@ -17,6 +17,7 @@ import com.dongah.dispenser.handler.ProcessHandler;
 import com.dongah.dispenser.pages.FaultFragment;
 import com.dongah.dispenser.rfcard.RfCardReaderListener;
 import com.dongah.dispenser.rfcard.RfCardReaderReceive;
+import com.dongah.dispenser.websocket.ocpp.core.ChargePointErrorCode;
 import com.dongah.dispenser.websocket.ocpp.core.ChargePointStatus;
 import com.dongah.dispenser.websocket.ocpp.core.Reason;
 import com.dongah.dispenser.websocket.ocpp.core.ResetType;
@@ -44,6 +45,7 @@ public class ClassUiProcess  {
     FragmentChange fragmentChange;
     TLS3800 tls3800;
     ControlBoard controlBoard;
+    NotifyFaultCheck notifyFaultCheck;
     RfCardReaderReceive rfCardReaderReceive;
     SocketReceiveMessage socketReceiveMessage;
     ProcessHandler processHandler;
@@ -103,7 +105,8 @@ public class ClassUiProcess  {
             fragmentChange = ((MainActivity) MainActivity.mContext).getFragmentChange();
             // control board
             controlBoard = ((MainActivity) MainActivity.mContext).getControlBoard();
-            // TODO: alarm check
+            // alarm check
+            notifyFaultCheck = new NotifyFaultCheck(ch);
             // process handler
             processHandler = ((MainActivity) MainActivity.mContext).getProcessHandler();
             // loop
@@ -138,6 +141,7 @@ public class ClassUiProcess  {
             chargingCurrentData = ((MainActivity) MainActivity.mContext).getChargingCurrentData(channel);
             chargingCurrentData.setIntegratedPower(rxData.getPowerMeter());
             getId = ((MainActivity) MainActivity.mContext).getFragmentSeq(getCh()).getValue();
+            if (((MainActivity) MainActivity.mContext).getFragmentSeq(getCh()).getValue() < 18) onFaultCheck(rxData);
 
             // sequence check
             switch (getUiSeq()) {
@@ -401,6 +405,31 @@ public class ClassUiProcess  {
             customStatusNotificationThread.interrupt();
             customStatusNotificationThread.setStopped(true);
             customStatusNotificationThread = null;
+        }
+    }
+
+    private void onFaultCheck(RxData rxData) {
+        try {
+            //충전중 일 때 fault 가 발생한 경우
+            if (controlBoard.isDisconnected() || rxData.csFault) {
+                if (Objects.equals(getUiSeq(), UiSeq.CHARGING)) {
+                    controlBoard.getTxData(getCh()).setStop(true);
+                    controlBoard.getTxData(getCh()).setStart(false);
+                    chargingCurrentData.setChargePointStatus(ChargePointStatus.Faulted);
+                    chargingCurrentData.setChargePointErrorCode(ChargePointErrorCode.OtherError);
+                    //비회원 충전 요금 단가 조정을 한다.
+                    if (Objects.equals(chargingCurrentData.getPaymentType().value(), 2) &&
+                            chargingCurrentData.getPrePayment() <= chargingCurrentData.getPowerMeterUsePay()) {
+                        chargingCurrentData.setPowerMeterUsePay(chargingCurrentData.getPrePayment());
+                    }
+                }
+                // fault 발생하기 전에 충전 스퀀스 저장
+                if (getUiSeq() != UiSeq.FAULT) setoSeq(getUiSeq());
+                setUiSeq(UiSeq.FAULT);
+            }
+            notifyFaultCheck.onErrorMessageMake(rxData);
+        } catch (Exception e) {
+            logger.error("onFaultCheck error.... : {}", e.toString());
         }
     }
 

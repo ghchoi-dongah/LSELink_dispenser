@@ -19,7 +19,7 @@ public enum UiSeq {
     FINISH_WAIT(15),
     FINISH(16),
     CHANGE_MODE(17),
-    SMS(18),
+    CHARGING_WAIT(18),
     ADMIN_PASS(19),
     MESSAGE(20),
     REBOOTING(21),
@@ -34,7 +34,7 @@ public enum UiSeq {
     CONNECTION_FAILED(30),
     MEMBER_CARD_NO_MAC(31),
     MEMBER_CHECK_FAILED(32),
-    CHARGING_WAIT(33),
+    SMS(33),
     SEQUENTIAL_CHARGING(34),
     OP_STOP(35),
     SCREEN_SAVER(36);
