@@ -204,7 +204,8 @@ public class MainActivity extends AppCompatActivity {
         chargerConfiguration.onLoadConfiguration();
 
         textViewVersion = findViewById(R.id.textViewVersionValue);
-        textViewVersion.setText("VER-DEVD " + chargerConfiguration.getFirmwareVersion() + " | ");
+//        textViewVersion.setText("VER-DEVD " + chargerConfiguration.getFirmwareVersion() + " | ");
+        textViewVersion.setText("VER-" + GlobalVariables.VERSION + " | ");
         textViewTime = findViewById(R.id.textViewTime);
 
         // 2. fragment change management
