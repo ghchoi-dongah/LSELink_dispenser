@@ -242,11 +242,9 @@ public class ChargingFragment extends Fragment implements View.OnClickListener {
         try {
             requestStrings[0] = String.valueOf(mChannel);
             sharedModel.setMutableLiveData(requestStrings);
-            if (uiUpdateHandler != null) {
-                uiUpdateHandler.removeCallbacksAndMessages(null);
-                uiUpdateHandler.removeMessages(0);
-                uiUpdateHandler = null;
-            }
+            uiUpdateHandler.removeCallbacksAndMessages(null);
+            uiUpdateHandler.removeMessages(0);
+            if (uiUpdateHandler != null) uiUpdateHandler = null;
         } catch (Exception e) {
             Log.e("ChargingFragment", "onDetach error", e);
             logger.error("ChargingFragment onDetach error : {}", e.getMessage());
