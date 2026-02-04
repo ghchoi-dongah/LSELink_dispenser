@@ -351,9 +351,11 @@ public class MemberCheckWaitFragment extends Fragment implements View.OnClickLis
     public void onDetach() {
         super.onDetach();
         try {
-//            countHandler.removeCallbacks(countRunnable);
-//            countHandler.removeCallbacksAndMessages(null);
-//            countHandler.removeMessages(0);
+            if (countHandler != null) {
+                countHandler.removeCallbacks(countRunnable);
+                countHandler.removeCallbacksAndMessages(null);
+                countHandler.removeMessages(0);
+            }
             stopAviAnim();
         } catch (Exception e) {
             Log.e("MemberCheckWaitFragment", "onDetach error", e);

@@ -5,7 +5,8 @@
     <string name="sequentialMessage"><font color="#000">커넥터를 꽂아 두시면,\n앞선 차량의 충전이 끝난 뒤\n자동으로 충전이 시작됩니다.</font></string>
     <string name="estimatedChargingTime"><font color="#000">예상 충전 시작: </font></string>
     <string name="authSelectMessage"><font color="#000">회원 유형을 선택해 주세요.</font></string>
-    <string name="memberCardTagMessage"><font color="#000">회원카드를 접촉해 주세요.</font></string>
+    <string name="memberCardTagMessage"><font color="#000">회원카드 태깅</font></string>
+    <string name="noMacMessage"><font color="#000">등록되지 않은 차량입니다.\n차량 등록은 관리자에게 문의해 주세요.</font></string>
     <string name="memberCardTagNoMacMessage"><font color="#000">차량이 등록된 회원이 아닙니다.\n회원일 경우 회원카드를 접촉해 주세요.</font></string>
     <string name="vehicleRegistMessage"><font color="#000">차량 등록은 관리자에게 문의해 주세요.</font></string>
     <string name="memberCheckWaitMessage"><font color="#000">회원 확인 중</font></string>

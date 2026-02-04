@@ -124,11 +124,17 @@ public class MemberCardFragment extends Fragment {
     @Override
     public void onDetach() {
         super.onDetach();
-        animationDrawable.stop();
-        ((AnimationDrawable) imageViewMemberCard.getBackground()).stop();
-        imageViewMemberCard.setBackground(null);
-        countHandler.removeCallbacks(countRunnable);
-        countHandler.removeCallbacksAndMessages(null);
-        countHandler.removeMessages(0);
+        try {
+            animationDrawable.stop();
+            ((AnimationDrawable) imageViewMemberCard.getBackground()).stop();
+            imageViewMemberCard.setBackground(null);
+            if (countHandler != null) {
+                countHandler.removeCallbacks(countRunnable);
+                countHandler.removeCallbacksAndMessages(null);
+                countHandler.removeMessages(0);
+            }
+        } catch (Exception e) {
+            logger.error("MemberCardFragment onDetach : {}", e.getMessage());
+        }
     }
 }

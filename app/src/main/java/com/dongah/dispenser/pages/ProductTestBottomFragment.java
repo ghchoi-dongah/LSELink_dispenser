@@ -154,7 +154,7 @@ public class ProductTestBottomFragment extends Fragment implements View.OnClickL
                     transaction.replace(R.id.operationDisplay, productTestTotalLoadFragment, sendText);
                     transaction.commit();
                 } catch (Exception e) {
-                    logger.error("LOAD_TEST_TOTAL error : " + e.getMessage());
+                    logger.error("LOAD_TEST_TOTAL error : {}", e.getMessage());
                 }
                 break;
         }
