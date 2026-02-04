@@ -161,7 +161,10 @@ public class ConnectorCheckFragment extends Fragment {
 
                             // connecting wait
                             if (rxData.isCsPilot()) {
-                                textViewConnectorCheckMessage.setText(R.string.EVCheckMessage);
+                                if (textViewConnectorCheckMessage.getTag() == null || !(boolean) textViewConnectorCheckMessage.getTag()) {
+                                    textViewConnectorCheckMessage.setText(R.string.EVCheckMessage);
+                                    textViewConnectorCheckMessage.setTag(true);
+                                }
                             }
                         }
                     };
