@@ -33,4 +33,44 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
+    <ImageView
+        android:id="@+id/imageViewConnectionFailed"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="80dp"
+        android:background="@drawable/car_error"
+        android:visibility="invisible"
+        app:layout_constraintTop_toBottomOf="@id/textViewConnectorCheckMessage"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:ignore="contentDescription" />
+
+    <TextView
+        android:id="@+id/textViewFailed"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:text="!"
+        android:textSize="60sp"
+        android:textColor="#9A0C0C"
+        android:textStyle="bold"
+        android:visibility="invisible"
+        app:layout_constraintStart_toStartOf="@id/imageViewConnectionFailed"
+        app:layout_constraintEnd_toEndOf="@id/imageViewConnectionFailed"
+        app:layout_constraintTop_toTopOf="@id/imageViewConnectionFailed"
+        tools:ignore="contentDescription"/>
+
+    <TextView
+        android:id="@+id/textViewConnector"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="50dp"
+        android:gravity="center"
+        android:text="@string/connectorRetryMessage"
+        android:textSize="20sp"
+        android:visibility="invisible"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/imageViewConnectionFailed" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

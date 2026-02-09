@@ -1,5 +1,7 @@
 package com.dongah.dispenser.pages;
 
+import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -14,6 +16,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -39,7 +42,7 @@ import java.util.Objects;
  * Use the {@link ConnectorCheckFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class ConnectorCheckFragment extends Fragment {
+public class ConnectorCheckFragment extends Fragment implements View.OnClickListener {
     private static final Logger logger = LoggerFactory.getLogger(ConnectorCheckFragment.class);
 
     // TODO: Rename parameter arguments, choose names that match
@@ -55,9 +58,11 @@ public class ConnectorCheckFragment extends Fragment {
 
 
     int cnt = 0;
-    TextView textViewConnectorCheckMessage;
-    ImageView imageViewLoading;
+    boolean isFlag = false;
+    TextView textViewConnectorCheckMessage, textViewFailed, textViewConnector;
+    ImageView imageViewLoading, imageViewConnectionFailed;
     AnimationDrawable animationDrawable;
+    ObjectAnimator fadeAnimator;
     RxData rxData;
     Handler countHandler;
     Runnable countRunnable;
@@ -102,10 +107,22 @@ public class ConnectorCheckFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_connector_check, container, false);
+        view.setOnClickListener(this);
         textViewConnectorCheckMessage = view.findViewById(R.id.textViewConnectorCheckMessage);
         imageViewLoading = view.findViewById(R.id.imageViewLoading);
         imageViewLoading.setBackgroundResource(R.drawable.ani_loading);
         animationDrawable = (AnimationDrawable) imageViewLoading.getBackground();
+        imageViewConnectionFailed = view.findViewById(R.id.imageViewConnectionFailed);
+        textViewFailed = view.findViewById(R.id.textViewFailed);
+
+        // textViewFailed animation
+        fadeAnimator = ObjectAnimator.ofFloat(textViewFailed, "alpha", 1f, 0.2f);
+        fadeAnimator.setDuration(1000);
+        fadeAnimator.setRepeatCount(ValueAnimator.INFINITE);
+        fadeAnimator.setRepeatMode(ValueAnimator.REVERSE);
+        fadeAnimator.setInterpolator(new AccelerateDecelerateInterpolator());
+
+        textViewConnector = view.findViewById(R.id.textViewConnector);
         chargerConfiguration = ((MainActivity) MainActivity.mContext).getChargerConfiguration();
         chargingCurrentData = ((MainActivity) MainActivity.mContext).getChargingCurrentData(mChannel);
         return view;
@@ -120,6 +137,7 @@ public class ConnectorCheckFragment extends Fragment {
             sharedModel.setMutableLiveData(requestStrings);
             rxData = ((MainActivity) MainActivity.mContext).getControlBoard().getRxData(mChannel);
             cnt = 0;
+            isFlag = false;
             animationDrawable.start();
 
             // connection time out
@@ -132,9 +150,6 @@ public class ConnectorCheckFragment extends Fragment {
                         public void run() {
                             cnt++;
                             if (Objects.equals(cnt, GlobalVariables.getConnectionTimeOut())) {
-                                countHandler.removeCallbacks(countRunnable);
-                                countHandler.removeCallbacksAndMessages(null);
-                                countHandler.removeMessages(0);
                                 // 충전기 종료
                                 ((MainActivity) MainActivity.mContext).getControlBoard().getTxData(mChannel).setStart(false);
                                 ((MainActivity) MainActivity.mContext).getControlBoard().getTxData(mChannel).setStop(false);
@@ -156,7 +171,15 @@ public class ConnectorCheckFragment extends Fragment {
                                                     false));
                                 }
 //                                ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).onHome();
-                                ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.CONNECTION_FAILED, "CONNECTION_FAILED", null);
+//                                ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.CONNECTION_FAILED, "CONNECTION_FAILED", null);
+                                textViewConnectorCheckMessage.setText(R.string.connectorRetryMessage);
+                                imageViewLoading.setVisibility(View.INVISIBLE);
+                                imageViewConnectionFailed.setVisibility(View.VISIBLE);
+                                textViewFailed.setVisibility(View.VISIBLE);
+                                textViewConnector.setVisibility(View.VISIBLE);
+                                animationDrawable.stop();
+                                fadeAnimator.start();
+                                isFlag = true;
                             } else {
                                 countHandler.postDelayed(countRunnable, 1000);
                             }
@@ -180,8 +203,19 @@ public class ConnectorCheckFragment extends Fragment {
     }
 
     @Override
+    public void onClick(View v) {
+        if (!isAdded() && !isFlag) return;
+        ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).onHome();
+    }
+
+    @Override
     public void onDestroyView() {
         try {
+            if (fadeAnimator != null) {
+                fadeAnimator.cancel();
+                fadeAnimator = null;
+            }
+
             if (animationDrawable != null) {
                 animationDrawable.stop();
             }
