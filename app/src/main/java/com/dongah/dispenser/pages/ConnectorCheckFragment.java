@@ -1,5 +1,7 @@
 package com.dongah.dispenser.pages;
 
+import android.graphics.drawable.AnimationDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -12,6 +14,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.dongah.dispenser.MainActivity;
@@ -50,9 +53,11 @@ public class ConnectorCheckFragment extends Fragment {
     private String mParam2;
     private int mChannel;
 
-    AVLoadingIndicatorView aviCheck;
-    TextView textViewConnectorCheckMessage;
+
     int cnt = 0;
+    TextView textViewConnectorCheckMessage;
+    ImageView imageViewLoading;
+    AnimationDrawable animationDrawable;
     RxData rxData;
     Handler countHandler;
     Runnable countRunnable;
@@ -98,7 +103,9 @@ public class ConnectorCheckFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_connector_check, container, false);
         textViewConnectorCheckMessage = view.findViewById(R.id.textViewConnectorCheckMessage);
-        aviCheck = view.findViewById(R.id.avi);
+        imageViewLoading = view.findViewById(R.id.imageViewLoading);
+        imageViewLoading.setBackgroundResource(R.drawable.ani_loading);
+        animationDrawable = (AnimationDrawable) imageViewLoading.getBackground();
         chargerConfiguration = ((MainActivity) MainActivity.mContext).getChargerConfiguration();
         chargingCurrentData = ((MainActivity) MainActivity.mContext).getChargingCurrentData(mChannel);
         return view;
@@ -113,7 +120,7 @@ public class ConnectorCheckFragment extends Fragment {
             sharedModel.setMutableLiveData(requestStrings);
             rxData = ((MainActivity) MainActivity.mContext).getControlBoard().getRxData(mChannel);
             cnt = 0;
-            startAviAnim();
+            animationDrawable.start();
 
             // connection time out
             ((MainActivity) MainActivity.mContext).runOnUiThread(new Runnable() {
@@ -124,11 +131,6 @@ public class ConnectorCheckFragment extends Fragment {
                         @Override
                         public void run() {
                             cnt++;
-
-//                            if (Objects.equals(chargerConfiguration.getAuthMode(), "0") && Objects.equals(cnt, TIME_OUT)) {
-//                                chargingCurrentData.setChgWait(true);
-//                            }
-
                             if (Objects.equals(cnt, GlobalVariables.getConnectionTimeOut())) {
                                 countHandler.removeCallbacks(countRunnable);
                                 countHandler.removeCallbacksAndMessages(null);
@@ -177,12 +179,32 @@ public class ConnectorCheckFragment extends Fragment {
         }
     }
 
-    void startAviAnim() {
-        aviCheck.show();
-    }
+    @Override
+    public void onDestroyView() {
+        try {
+            if (animationDrawable != null) {
+                animationDrawable.stop();
+            }
 
-    void stopAviAnim() {
-        aviCheck.hide();
+            if (imageViewLoading != null) {
+                Drawable bg = imageViewLoading.getBackground();
+                if (bg instanceof AnimationDrawable) {
+                    ((AnimationDrawable) bg).stop();
+                }
+                imageViewLoading.setBackground(null);
+            }
+
+            if (countHandler != null) {
+                countHandler.removeCallbacksAndMessages(null);
+                countHandler = null;
+            }
+            countRunnable = null;
+
+        } catch (Exception e) {
+            Log.e("ConnectorCheckFragment", "onDestroyView error", e);
+            logger.error("ConnectorCheckFragment onDestroyView error : {}", e.getMessage());
+        }
+        super.onDestroyView();
     }
 
     @Override
@@ -194,7 +216,6 @@ public class ConnectorCheckFragment extends Fragment {
                 countHandler.removeCallbacksAndMessages(null);
                 countHandler.removeMessages(0);
             }
-            stopAviAnim();
         } catch (Exception e) {
             Log.e("ConnectorCheckFragment", "onDetach error", e);
             logger.error("ConnectorCheckFragment onDetach error : {}", e.getMessage());

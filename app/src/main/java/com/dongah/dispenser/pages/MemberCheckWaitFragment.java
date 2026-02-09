@@ -1,5 +1,7 @@
 package com.dongah.dispenser.pages;
 
+import android.graphics.drawable.AnimationDrawable;
+import android.graphics.drawable.Drawable;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 
@@ -12,6 +14,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.dongah.dispenser.MainActivity;
@@ -55,8 +58,9 @@ public class MemberCheckWaitFragment extends Fragment implements View.OnClickLis
     private String mParam2;
     private int mChannel;
 
-    AVLoadingIndicatorView avi;
     int cnt = 0;
+    ImageView imageViewLoading;
+    AnimationDrawable animationDrawable;
 
     MediaPlayer mediaPlayer;
     ClassUiProcess classUiProcess;
@@ -102,8 +106,9 @@ public class MemberCheckWaitFragment extends Fragment implements View.OnClickLis
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_member_check_wait, container, false);
-        view.setOnClickListener(this);
-        avi = view.findViewById(R.id.avi);
+        imageViewLoading = view.findViewById(R.id.imageViewLoading);
+        imageViewLoading.setBackgroundResource(R.drawable.ani_loading);
+        animationDrawable = (AnimationDrawable) imageViewLoading.getBackground();
         classUiProcess = ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel);
         chargerConfiguration = ((MainActivity) MainActivity.mContext).getChargerConfiguration();
         chargingCurrentData = ((MainActivity) MainActivity.mContext).getChargingCurrentData(mChannel);
@@ -114,7 +119,7 @@ public class MemberCheckWaitFragment extends Fragment implements View.OnClickLis
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         try {
-            startAviAnim();
+            animationDrawable.start();
             mediaPlayer();   // media player
 
             ((MainActivity) MainActivity.mContext).runOnUiThread(new Runnable() {
@@ -133,7 +138,7 @@ public class MemberCheckWaitFragment extends Fragment implements View.OnClickLis
                                 }
                                 // authorize result check
                                 if (!chargingCurrentData.isAuthorizeResult()) {
-                                    if (handler != null) handler.removeCallbacksAndMessages(null);
+                                    //
                                 }
                             } catch (Exception e) {
                                 Log.e("MemberCheckWaitFragment", "runOnUiThread error", e);
@@ -339,12 +344,32 @@ public class MemberCheckWaitFragment extends Fragment implements View.OnClickLis
         }
     }
 
-    void startAviAnim() {
-        avi.show();
-    }
+    @Override
+    public void onDestroyView() {
+        try {
+            if (animationDrawable != null) {
+                animationDrawable.stop();
+            }
 
-    void stopAviAnim() {
-        avi.hide();
+            if (imageViewLoading != null) {
+                Drawable bg = imageViewLoading.getBackground();
+                if (bg instanceof AnimationDrawable) {
+                    ((AnimationDrawable) bg).stop();
+                }
+                imageViewLoading.setBackground(null);
+            }
+
+            if (countHandler != null) {
+                countHandler.removeCallbacksAndMessages(null);
+                countHandler = null;
+            }
+            countRunnable = null;
+
+        } catch (Exception e) {
+            Log.e("MemberCheckWaitFragment", "onDestroyView error", e);
+            logger.error("MemberCheckWaitFragment onDestroyView error : {}", e.getMessage());
+        }
+        super.onDestroyView();
     }
 
     @Override
@@ -356,7 +381,6 @@ public class MemberCheckWaitFragment extends Fragment implements View.OnClickLis
                 countHandler.removeCallbacksAndMessages(null);
                 countHandler.removeMessages(0);
             }
-            stopAviAnim();
         } catch (Exception e) {
             Log.e("MemberCheckWaitFragment", "onDetach error", e);
             logger.error("MemberCheckWaitFragment onDetach error : {}", e.getMessage());

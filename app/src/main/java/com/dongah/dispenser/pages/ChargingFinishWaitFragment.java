@@ -1,5 +1,7 @@
 package com.dongah.dispenser.pages;
 
+import android.graphics.drawable.AnimationDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -11,6 +13,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 
 import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.R;
@@ -43,7 +46,8 @@ public class ChargingFinishWaitFragment extends Fragment {
 
     private static final int TIME_OUT = 10;
     int cnt;
-    AVLoadingIndicatorView aviCheck;
+    ImageView imageViewLoading;
+    AnimationDrawable animationDrawable;
     Handler countHandler;
     Runnable countRunnable;
     ChargingCurrentData chargingCurrentData;
@@ -85,7 +89,9 @@ public class ChargingFinishWaitFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_charging_finish_wait, container, false);
         chargingCurrentData = ((MainActivity) MainActivity.mContext).getChargingCurrentData(mChannel);
-        aviCheck = view.findViewById(R.id.avi);
+        imageViewLoading = view.findViewById(R.id.imageViewLoading);
+        imageViewLoading.setBackgroundResource(R.drawable.ani_loading);
+        animationDrawable = (AnimationDrawable) imageViewLoading.getBackground();
         return view;
     }
 
@@ -94,7 +100,7 @@ public class ChargingFinishWaitFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         try {
             cnt = 0;
-            startAviAnim();
+            animationDrawable.start();
 
             ((MainActivity) MainActivity.mContext).runOnUiThread(new Runnable() {
                 @Override
@@ -105,9 +111,6 @@ public class ChargingFinishWaitFragment extends Fragment {
                         public void run() {
                             cnt++;
                             if (Objects.equals(cnt, TIME_OUT)) {
-                                countHandler.removeCallbacks(countRunnable);
-                                countHandler.removeCallbacksAndMessages(null);
-                                countHandler.removeMessages(0);
                                 chargingCurrentData.setChgFinishWait(true);
                             } else {
                                 countHandler.postDelayed(countRunnable, 1000);
@@ -123,12 +126,32 @@ public class ChargingFinishWaitFragment extends Fragment {
         }
     }
 
-    void startAviAnim() {
-        aviCheck.show();
-    }
+    @Override
+    public void onDestroyView() {
+        try {
+            if (animationDrawable != null) {
+                animationDrawable.stop();
+            }
 
-    void stopAviAnim() {
-        aviCheck.hide();
+            if (imageViewLoading != null) {
+                Drawable bg = imageViewLoading.getBackground();
+                if (bg instanceof AnimationDrawable) {
+                    ((AnimationDrawable) bg).stop();
+                }
+                imageViewLoading.setBackground(null);
+            }
+
+            if (countHandler != null) {
+                countHandler.removeCallbacksAndMessages(null);
+                countHandler = null;
+            }
+            countRunnable = null;
+
+        } catch (Exception e) {
+            Log.e("ChargingFinishWaitFragment", "onDestroyView error", e);
+            logger.error("ChargingFinishWaitFragment onDestroyView error : {}", e.getMessage());
+        }
+        super.onDestroyView();
     }
 
     @Override
@@ -140,7 +163,6 @@ public class ChargingFinishWaitFragment extends Fragment {
                 countHandler.removeCallbacksAndMessages(null);
                 countHandler.removeMessages(0);
             }
-            stopAviAnim();
         } catch (Exception e) {
             Log.e("ChargingFinishWaitFragment", "onDetach error", e);
             logger.error("ChargingFinishWaitFragment onDetach error : {}", e.getMessage());
