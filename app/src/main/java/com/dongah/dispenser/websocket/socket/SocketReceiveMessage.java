@@ -248,7 +248,7 @@ public class SocketReceiveMessage extends JSONCommunicator implements SocketInte
         onSocketInitialize();
     }
 
-    private void onSocketInitialize() {
+    public void onSocketInitialize() {
         try {
             socket = new Socket(url);
             socket.getInstance(this);

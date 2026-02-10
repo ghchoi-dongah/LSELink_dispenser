@@ -1,3 +1,4 @@
+
 package com.dongah.dispenser.websocket.socket;
 
 import android.os.Build;
@@ -26,6 +27,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.KeyStore;
+import java.util.Collections;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
@@ -35,9 +37,11 @@ import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 
 import okhttp3.CipherSuite;
+import okhttp3.ConnectionSpec;
 import okhttp3.Handshake;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
+import okhttp3.Protocol;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.TlsVersion;
@@ -47,6 +51,7 @@ import okio.ByteString;
 
 
 public class Socket extends WebSocketListener {
+
     private static final Logger logger = LoggerFactory.getLogger(Socket.class);
 
     private static final String KEYSTORE_PATH = GlobalVariables.getRootPath() + File.separator  + "keystore.bks";
@@ -130,13 +135,53 @@ public class Socket extends WebSocketListener {
         super.onClosed(webSocket, code, reason);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public void onFailure(@NonNull WebSocket webSocket, @NonNull Throwable t, Response response) {
         super.onFailure(webSocket, t, response);
         socketInterface.onGetFailure(webSocket, t);
         setState(SocketState.CONNECT_ERROR);
-        close();
-        reconnect();
+        this.webSocket = null;
+        saveFailureLog(webSocket, t, response);
+        scheduleReconnect();
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private void saveFailureLog(WebSocket webSocket,
+                                Throwable t,
+                                Response response) {
+        try {
+            JSONObject log = new JSONObject();
+
+            log.put("time", zonedDateTimeConvert.doGetUtcDatetimeAsStringSimple());
+            log.put("state", state.name());
+            log.put("url", url);
+
+            // Exception 정보
+            log.put("exception", t.getClass().getSimpleName());
+            log.put("message", t.getMessage());
+
+            // HTTP / TLS 정보
+            if (response != null) {
+                log.put("httpCode", response.code());
+                log.put("httpMessage", response.message());
+
+                if (response.handshake() != null) {
+                    log.put("tlsVersion", response.handshake().tlsVersion().javaName());
+                    log.put("cipherSuite", response.handshake().cipherSuite().javaName());
+                }
+            }
+            // JSON append 저장
+            fileManagement.stringToFileSave(
+                    GlobalVariables.getRootPath(),
+                    FILE_NAME,
+                    log.toString(),
+                    true
+            );
+            logger.error("WebSocket Failure logged : {}", log.toString());
+        } catch (Exception e) {
+            logger.error("saveFailureLog error : {}", e.getMessage());
+        }
     }
 
     private void connect(String url) {
@@ -160,45 +205,89 @@ public class Socket extends WebSocketListener {
                         .addHeader("Sec-WebSocket-Protocol", "ocpp1.6")
                         .build();
             }
-
             webSocket = client.newWebSocket(request, this);
         } catch (Exception e) {
             logger.error("connect fail {}", e.getMessage());
-            reconnect();
         }
     }
 
-    private void reconnect() {
-        setState(SocketState.RECONNECT_ATTEMPT);
-        int collision = Math.min(reconnectingAttempts, MAX_COLLISION);
-        long delayTime = Math.round((Math.pow(3, collision) - 1) / 2) * 1000;
-        reconnectHandler.removeCallbacks(null);
-        reconnectHandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                setState(SocketState.RECONNECTING);
-                if (reconnectingAttempts++ > MAX_COLLISION * 2) reconnectingAttempts = 0;
-                connect(url);
-            }
-        }, delayTime);
+    private static final int MAX_RECONNECT_ATTEMPTS = 500;
+    private static final long BASE_RECONNECT_DELAY_MS = 3000;
+
+    private void scheduleReconnect() {
+        reconnect();
     }
 
-    private void close() {
-        if (webSocket != null) {
-            webSocket.close(1000, "Connection closed");
+    private void reconnect() {
+        if (reconnectingAttempts >= MAX_RECONNECT_ATTEMPTS) {
+            logger.error("Reconnect max attempts reached");
+            reconnectingAttempts = 0;
+            return;
+        }
+        setState(SocketState.RECONNECT_ATTEMPT);
+
+        long delay = BASE_RECONNECT_DELAY_MS * (reconnectingAttempts + 1);
+        delay = Math.min(5000, 30000); // 최대 30초
+
+        reconnectHandler.removeCallbacks(reconnectRunnable);
+        reconnectHandler.postDelayed(reconnectRunnable, delay);
+    }
+
+    private final Runnable reconnectRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if (state == SocketState.OPEN || state == SocketState.OPENING) return;
+
+            setState(SocketState.RECONNECTING);
+            logger.warn("WebSocket reconnect attempt : {}", reconnectingAttempts);
+
+            try {
+                reconnectingAttempts++;
+                ((MainActivity) MainActivity.mContext).getSocketReceiveMessage().onSocketInitialize();
+            } catch (Exception e) {
+                scheduleReconnect();
+                logger.error("Reconnect error : {}", e.getMessage());
+            }
+        }
+    };
+
+    public synchronized void fullClose() {
+        try {
+            logger.warn("Socket FULL close");
+
+            // WebSocket 종료
+            if (webSocket != null) {
+                webSocket.close(1000, "full-close");
+                webSocket.cancel();
+                webSocket = null;
+            }
+
+            // OkHttpClient 완전 폐기
+            if (client != null) {
+                client.dispatcher().executorService().shutdown();
+                client.connectionPool().evictAll();
+                client = null;
+            }
+
+            // 상태 초기화
+            setState(SocketState.NONE);
+            ((MainActivity) MainActivity.mContext).getProcessHandler().onHeartBeatStop();
+        } catch (Exception e) {
+            logger.error("fullClose error", e);
         }
     }
 
     public void disconnect() {
         try {
-            webSocket.close(1000, null);
-            client.connectionPool().evictAll();
-            reconnect();
+            if (webSocket != null) {
+                webSocket.close(1000, "disconnect");
+                webSocket = null;
+            }
+            closeClient();
         } catch (Exception e) {
             logger.error("disconnect error {}", e.getMessage());
         }
     }
-
     /**
      * blue ocpp web socket instance
      *
@@ -232,8 +321,21 @@ public class Socket extends WebSocketListener {
                 truststoreInputStream = new FileInputStream(TRUSTSTORE_PATH);
                 X509TrustManager trustManager = getTrustManager(truststoreInputStream);
 
+                //2025.12.09 add
+                // Cipher + TLS 설정
+                ConnectionSpec tlsSpec = new ConnectionSpec.Builder(ConnectionSpec.MODERN_TLS)
+                        .tlsVersions(TlsVersion.TLS_1_2)
+                        .cipherSuites(
+                                CipherSuite.TLS_RSA_WITH_AES_128_GCM_SHA256,  // 환경부 SP2 필수 cipher
+                                CipherSuite.TLS_RSA_WITH_AES_256_GCM_SHA384
+                        )
+                        .build();
+
                 client = new OkHttpClient.Builder()
                         .sslSocketFactory(sslContext.getSocketFactory(), trustManager)
+                        .hostnameVerifier((hostname, session) -> true)
+                        .connectionSpecs(Collections.singletonList(tlsSpec))
+                        .protocols(Collections.singletonList(Protocol.HTTP_1_1))                //2025.12.09 add
                         .pingInterval(30, TimeUnit.SECONDS)
                         .readTimeout(30, TimeUnit.SECONDS)
                         .connectTimeout(30, TimeUnit.SECONDS)
@@ -249,11 +351,21 @@ public class Socket extends WebSocketListener {
                         .addInterceptor(new LoggingInterceptor())
                         .build();
             }
-
+            closeClient();
             connect(url);
-            client.connectionPool().evictAll();
         } catch (Exception e) {
             logger.error(e.getMessage());
+        }
+    }
+
+    private void closeClient() {
+        try {
+            if (webSocket != null) {
+                webSocket.close(1000, "reconnect");
+                webSocket = null;
+            }
+        } catch (Exception e) {
+            logger.error("closeClient error : {}", e.getMessage());
         }
     }
 
@@ -399,3 +511,4 @@ public class Socket extends WebSocketListener {
     }
 
 }
+
