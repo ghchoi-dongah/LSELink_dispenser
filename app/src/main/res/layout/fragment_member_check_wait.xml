@@ -29,4 +29,54 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
+    <ImageView
+        android:id="@+id/imageViewMemberFailed"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="80dp"
+        android:background="@drawable/auth_error"
+        android:visibility="invisible"
+        app:layout_constraintTop_toBottomOf="@id/textViewMemberWaitMessage"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:ignore="contentDescription" />
+
+    <TextView
+        android:id="@+id/textViewFailed"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:text="!"
+        android:textSize="60sp"
+        android:textColor="#9A0C0C"
+        android:textStyle="bold"
+        android:visibility="invisible"
+        app:layout_constraintStart_toStartOf="@id/imageViewMemberFailed"
+        app:layout_constraintEnd_toEndOf="@id/imageViewMemberFailed"
+        app:layout_constraintTop_toTopOf="@id/imageViewMemberFailed"
+        tools:ignore="contentDescription"/>
+
+    <TextView
+        android:id="@+id/textViewConnectorRetryMessage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="50dp"
+        android:gravity="center"
+        android:text="@string/connectorRetryMessage"
+        android:textSize="20sp"
+        android:visibility="invisible"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/imageViewMemberFailed" />
+
+    <TextView
+        android:id="@+id/textViewMemberRegistMessage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="@string/memberRegistMessage"
+        android:textSize="20sp"
+        android:visibility="invisible"
+        app:layout_constraintTop_toBottomOf="@id/textViewConnectorRetryMessage" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

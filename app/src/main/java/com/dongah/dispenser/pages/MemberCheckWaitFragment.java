@@ -1,5 +1,7 @@
 package com.dongah.dispenser.pages;
 
+import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.Drawable;
 import android.media.MediaPlayer;
@@ -14,7 +16,9 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.dongah.dispenser.MainActivity;
@@ -30,7 +34,6 @@ import com.dongah.dispenser.websocket.ocpp.core.ChargePointStatus;
 import com.dongah.dispenser.websocket.ocpp.core.Reason;
 import com.dongah.dispenser.websocket.socket.SocketReceiveMessage;
 import com.dongah.dispenser.websocket.socket.SocketState;
-import com.wang.avi.AVLoadingIndicatorView;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,15 +62,18 @@ public class MemberCheckWaitFragment extends Fragment implements View.OnClickLis
     private int mChannel;
 
     int cnt = 0;
-    ImageView imageViewLoading;
+    boolean isFlag = false;
+    TextView textViewMemberWaitMessage, textViewFailed, textViewConnectorRetryMessage, textViewMemberRegistMessage;
+    ImageView imageViewLoading, imageViewMemberFailed;
     AnimationDrawable animationDrawable;
+    ObjectAnimator fadeAnimator;
 
     MediaPlayer mediaPlayer;
     ClassUiProcess classUiProcess;
     ChargingCurrentData chargingCurrentData;
     ChargerConfiguration chargerConfiguration;
 
-    Handler countHandler, handler;
+    Handler countHandler;
     Runnable countRunnable;
 
     public MemberCheckWaitFragment() {
@@ -112,6 +118,19 @@ public class MemberCheckWaitFragment extends Fragment implements View.OnClickLis
         classUiProcess = ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel);
         chargerConfiguration = ((MainActivity) MainActivity.mContext).getChargerConfiguration();
         chargingCurrentData = ((MainActivity) MainActivity.mContext).getChargingCurrentData(mChannel);
+        textViewMemberWaitMessage = view.findViewById(R.id.textViewMemberWaitMessage);
+        imageViewMemberFailed = view.findViewById(R.id.imageViewMemberFailed);
+        textViewFailed = view.findViewById(R.id.textViewFailed);
+
+        // textViewFailed animation
+        fadeAnimator = ObjectAnimator.ofFloat(textViewFailed, "alpha", 1f, 0.2f);
+        fadeAnimator.setDuration(1000);
+        fadeAnimator.setRepeatCount(ValueAnimator.INFINITE);
+        fadeAnimator.setRepeatMode(ValueAnimator.REVERSE);
+        fadeAnimator.setInterpolator(new AccelerateDecelerateInterpolator());
+
+        textViewConnectorRetryMessage = view.findViewById(R.id.textViewConnectorRetryMessage);
+        textViewMemberRegistMessage = view.findViewById(R.id.textViewMemberRegistMessage);
         return view;
     }
 
@@ -119,6 +138,7 @@ public class MemberCheckWaitFragment extends Fragment implements View.OnClickLis
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         try {
+            isFlag = false;
             animationDrawable.start();
             mediaPlayer();   // media player
 
@@ -138,7 +158,7 @@ public class MemberCheckWaitFragment extends Fragment implements View.OnClickLis
                                 }
                                 // authorize result check
                                 if (!chargingCurrentData.isAuthorizeResult()) {
-                                    //
+                                    authorizeFailed();
                                 }
                             } catch (Exception e) {
                                 Log.e("MemberCheckWaitFragment", "runOnUiThread error", e);
@@ -274,8 +294,9 @@ public class MemberCheckWaitFragment extends Fragment implements View.OnClickLis
                                 ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.PLUG_CHECK, "PLUG_CHECK", null);
                             } else {
                                 // 인증 실패
-                                Toast.makeText(getActivity(), "인증 실패. ", Toast.LENGTH_SHORT).show();
-                                ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).onHome();
+                                authorizeFailed();
+//                                Toast.makeText(getActivity(), "인증 실패. ", Toast.LENGTH_SHORT).show();
+//                                ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).onHome();
                             }
                         }
                     } else {
@@ -284,7 +305,8 @@ public class MemberCheckWaitFragment extends Fragment implements View.OnClickLis
                             ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.CHARGING);
                             ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel,UiSeq.CHARGING, "CHARGING", null);
                         } else {
-                            ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).onHome();
+                            authorizeFailed();
+//                            ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).onHome();
                         }
                     }
                 }
@@ -298,21 +320,22 @@ public class MemberCheckWaitFragment extends Fragment implements View.OnClickLis
     @Override
     public void onClick(View v) {
         try {
-            if (!isAdded()) return;
+            if (!isAdded() && !isFlag) return;
+            ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).onHome();
 
-            switch (chargerConfiguration.getAuthMode()) {
-                case 0:
-                case 2:
-                    ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.CHARGING);
-                    ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.CHARGING, "CHARGING", null);
-                case 1:
-                    ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.CONNECT_CHECK);
-                    ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.CONNECT_CHECK, "CONNECT_CHECK", null);
-                    break;
-                default:
-                    logger.error("MemberCheckWaitFragment onClick error >> Invalid value");
-                    break;
-            }
+//            switch (chargerConfiguration.getAuthMode()) {
+//                case 0:
+//                case 2:
+//                    ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.CHARGING);
+//                    ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.CHARGING, "CHARGING", null);
+//                case 1:
+//                    ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.CONNECT_CHECK);
+//                    ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.CONNECT_CHECK, "CONNECT_CHECK", null);
+//                    break;
+//                default:
+//                    logger.error("MemberCheckWaitFragment onClick error >> Invalid value");
+//                    break;
+//            }
         } catch (Exception e) {
             Log.e("MemberCheckWaitFragment", "onClick error", e);
             logger.error("MemberCheckWaitFragment onClick error : {}", e.getMessage());
@@ -344,9 +367,31 @@ public class MemberCheckWaitFragment extends Fragment implements View.OnClickLis
         }
     }
 
+    private void authorizeFailed() {
+        try {
+            textViewMemberWaitMessage.setText(R.string.memberCheckFailedMessage);
+            animationDrawable.stop();
+            imageViewLoading.setVisibility(View.INVISIBLE);
+            imageViewMemberFailed.setVisibility(View.VISIBLE);
+            textViewFailed.setVisibility(View.VISIBLE);
+            textViewConnectorRetryMessage.setVisibility(View.VISIBLE);
+            textViewMemberRegistMessage.setVisibility(View.VISIBLE);
+            fadeAnimator.start();
+            isFlag = true;
+        } catch (Exception e) {
+            Log.e("MemberCheckWaitFragment", "authorizeFailed error", e);
+            logger.error("MemberCheckWaitFragment authorizeFailed : {}", e.getMessage());
+        }
+    }
+
     @Override
     public void onDestroyView() {
         try {
+            if (fadeAnimator != null) {
+                fadeAnimator.cancel();
+                fadeAnimator = null;
+            }
+
             if (animationDrawable != null) {
                 animationDrawable.stop();
             }
