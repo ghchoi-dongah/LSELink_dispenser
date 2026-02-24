@@ -11,7 +11,7 @@ import java.util.Objects;
 public class RechgrsocscheduleConfirm implements Confirmation {
 
 
-    private static final String ACTION_NAME = "changemode.req";
+    private static final String ACTION_NAME = "rechgrsocschedule.req";
     private DataTransferStatus status;
     private String data;
 
