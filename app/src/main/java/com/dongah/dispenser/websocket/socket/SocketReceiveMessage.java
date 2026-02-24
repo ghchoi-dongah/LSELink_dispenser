@@ -27,7 +27,6 @@ import com.dongah.dispenser.websocket.socket.handler.handlerreceive.GetLocalList
 import com.dongah.dispenser.websocket.socket.handler.handlerreceive.HeartbeatHandler;
 import com.dongah.dispenser.websocket.socket.handler.handlerreceive.MeterValuesHandler;
 import com.dongah.dispenser.websocket.socket.handler.handlerreceive.RechgrsocscheduleHandler;
-import com.dongah.dispenser.websocket.socket.handler.handlerreceive.RechgsocscheduleHandler;
 import com.dongah.dispenser.websocket.socket.handler.handlerreceive.RemoteStartTransactionHandler;
 import com.dongah.dispenser.websocket.socket.handler.handlerreceive.RemoteStopTransactionHandler;
 import com.dongah.dispenser.websocket.socket.handler.handlerreceive.ResetHandler;
@@ -162,9 +161,8 @@ public class SocketReceiveMessage extends JSONCommunicator implements SocketInte
         handlerMap.put("fullrechgsoc.req", new FullRechgSocHandler());
         handlerMap.put("changeelecmode.req", new ChangeElecModeHandler());
         handlerMap.put("changemode.req", new ChangeModeHandler());
-        handlerMap.put("rechgsocschedule.req", new RechgsocscheduleHandler());
-        handlerMap.put("MeterValues", new MeterValuesHandler());
         handlerMap.put("rechgrsocschedule.req", new RechgrsocscheduleHandler());
+        handlerMap.put("MeterValues", new MeterValuesHandler());
     }
 
     @Override
