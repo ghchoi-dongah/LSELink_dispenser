@@ -186,7 +186,7 @@ public class SampledValue implements Validatable {
 
     @XmlElement
     public void setPhase(String phase) {
-        if (phase != null && isValidPhase(phase)) {
+        if (phase != null && !isValidPhase(phase)) {
             throw new PropertyConstraintException(phase, "phase is not properly defined");
         }
         this.phase = phase;

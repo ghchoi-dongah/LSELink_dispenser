@@ -1,0 +1,90 @@
+package com.dongah.dispenser.websocket.socket.handler.handlersend;
+
+import android.os.Build;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+public class ProcessHandler extends Handler {
+    private static final Logger logger = LoggerFactory.getLogger(ProcessHandler.class);
+
+    Bundle bundle;
+    HeartbeatThread heartbeatThread;
+    BootNotificationThread bootNotificationThread;
+    StatusNotificationThread statusNotificationThread;
+
+    @Override
+    public void handleMessage(@NonNull Message msg) {
+        super.handleMessage(msg);
+        bundle = msg.getData();
+    }
+
+
+    /**
+     * Heart beat thread
+     *
+     * @param delay delay time
+     */
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    public void onHeartBeatStart(int delay) {
+        if (heartbeatThread == null || heartbeatThread.getState() != Thread.State.RUNNABLE) {
+            heartbeatThread = new HeartbeatThread(delay);
+            heartbeatThread.start();
+        }
+    }
+
+    public void onHeartBeatStop() {
+        if (heartbeatThread != null) {
+            heartbeatThread.interrupt();
+            heartbeatThread.stopThread();
+            heartbeatThread = null;
+        }
+    }
+
+    /**
+     * boot notification
+     *
+     * @param delay delay time
+     */
+    public void onBootNotificationStart(int delay) {
+        onBootNotificationStop();
+        bootNotificationThread = new BootNotificationThread(delay);
+        bootNotificationThread.start();
+    }
+
+    public void onBootNotificationStop() {
+        if (bootNotificationThread != null) {
+            bootNotificationThread.interrupt();
+            bootNotificationThread.stopThread();
+            bootNotificationThread = null;
+        }
+    }
+
+    //StatusNotificationThread
+
+    /**
+     * Status Notification
+     * @param delay 5분
+     */
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    public void onStatusNotificationStart(int delay) {
+        onStatusNotificationStop();
+        statusNotificationThread = new StatusNotificationThread(delay);
+        statusNotificationThread.start();
+    }
+
+    public void onStatusNotificationStop() {
+        if (statusNotificationThread != null) {
+            statusNotificationThread.interrupt();
+            statusNotificationThread.stopThread();
+            statusNotificationThread = null;
+        }
+    }
+}

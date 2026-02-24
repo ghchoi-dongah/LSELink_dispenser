@@ -32,12 +32,11 @@ public enum UiSeq {
     LOAD_TEST_TOTAL(28),
     LOAD_TEST_IO(29),
     CONNECTION_FAILED(30),
-    MEMBER_CARD_NO_MAC(31),
-    MEMBER_CHECK_FAILED(32),
-    SMS(33),
-    SEQUENTIAL_CHARGING(34),
-    OP_STOP(35),
-    SCREEN_SAVER(36);
+    MEMBER_CHECK_FAILED(31),
+    SMS(32),
+    SEQUENTIAL_CHARGING(33),
+    OP_STOP(34),
+    SCREEN_SAVER(35);
 
     private final int value;
 

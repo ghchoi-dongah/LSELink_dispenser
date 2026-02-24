@@ -13,6 +13,7 @@ import javax.xml.bind.annotation.XmlType;
 @XmlType(propOrder = {"type", "timestamp", "techInfo"})
 public class SecurityEventNotificationRequest implements Request {
 
+    private static final String ACTION_NAME = "SecurityEventNotification";
     private String type;
     private ZonedDateTime timestamp;
     private String techInfo;
@@ -25,6 +26,10 @@ public class SecurityEventNotificationRequest implements Request {
     public SecurityEventNotificationRequest(String type, ZonedDateTime timestamp) {
         this.type = type;
         this.timestamp = timestamp;
+    }
+
+    public String getActionName() {
+        return ACTION_NAME;
     }
 
     public String getType() {

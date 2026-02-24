@@ -145,6 +145,12 @@ public class ChargingFragment extends Fragment implements View.OnClickListener {
                 textViewSocValue.setText(chargingCurrentData.getSoc() + "%");
                 progressCircular.setProgress(chargingCurrentData.getSoc(), true);
                 startTime = zonedDateTimeConvert.doStringDateToDate(chargingCurrentData.getChargingStartTime());
+
+                if (Objects.equals(chargerConfiguration.getOpMode(), 1)) {
+                    textViewCarNum.setText(getString(R.string.carNum) + chargingCurrentData.getParentIdTag());
+                } else {
+                    textViewCarNum.setText(getString(R.string.carNum) + "테스트 모드");
+                }
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }

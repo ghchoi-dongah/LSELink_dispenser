@@ -1,0 +1,109 @@
+package com.dongah.dispenser.websocket.socket.handler.handlerreceive;
+
+import android.os.Build;
+
+import androidx.annotation.RequiresApi;
+
+import com.dongah.dispenser.MainActivity;
+import com.dongah.dispenser.basefunction.GlobalVariables;
+import com.dongah.dispenser.utils.DataTransformation;
+import com.dongah.dispenser.utils.FileManagement;
+import com.dongah.dispenser.websocket.ocpp.core.ChangeConfigurationConfirmation;
+import com.dongah.dispenser.websocket.ocpp.core.ConfigurationStatus;
+import com.dongah.dispenser.websocket.socket.OcppHandler;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.util.Objects;
+
+public class ChangeConfigurationHandler implements OcppHandler {
+    private static final Logger logger = LoggerFactory.getLogger(ChangeConfigurationHandler.class);
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    @Override
+    public void handle(JSONObject payload, int connectorId, String messageId) throws Exception {
+        try {
+            boolean result;
+            MainActivity activity = (MainActivity) MainActivity.mContext;
+            GlobalVariables.setNotSupportedKey(false);
+            String key = payload.has("key") ? payload.getString("key") : "";
+            String value = payload.has("value") ? payload.getString("value") : "0";
+            //valid check
+
+            if (Objects.equals(key, "MeterValueSampleInterval") && Integer.parseInt(value) == -1) {
+                result = false;
+            }  else if (Objects.equals(key, "SecurityProfile")) {
+                result = Integer.parseInt(GlobalVariables.getSecurityProfile()) <= Integer.parseInt(value);
+                if (result) setConfigurationValue(key, value);
+            } else {
+                result = setConfigurationValue(key, value);
+            }
+
+            if (result) ((MainActivity) MainActivity.mContext).getConfigurationKeyRead().onRead();
+
+            //response
+            ConfigurationStatus configurationStatus = GlobalVariables.isNotSupportedKey() ? ConfigurationStatus.NotSupported :
+                    result ? ConfigurationStatus.Accepted : ConfigurationStatus.Rejected;
+            ChangeConfigurationConfirmation changeConfigurationConfirmation = new ChangeConfigurationConfirmation(configurationStatus);
+            activity.getSocketReceiveMessage().onResultSend(changeConfigurationConfirmation.getActionName(), messageId, changeConfigurationConfirmation);
+        } catch (Exception e) {
+            logger.error("ChangeConfigurationHandler error :  {}", e.getMessage());
+        }
+    }
+
+    public boolean setConfigurationValue(String key, String value) {
+        boolean result = false;
+        try {
+            FileManagement fileManagement = new FileManagement();
+            String configurationString = fileManagement.getStringFromFile(GlobalVariables.getRootPath() + File.separator + "ConfigurationKey");
+
+            JSONArray jsonArrayContent = new JSONObject(configurationString).getJSONArray("values");
+            JSONArray jsonArray = new JSONArray();
+            boolean notFond = true;
+            for (int i = 0; i < jsonArrayContent.length(); i++) {
+                JSONObject contDetail = jsonArrayContent.getJSONObject(i);
+                if (Objects.equals(contDetail.get("key"), key)) {
+                    if (contDetail.getBoolean("readonly")) {
+                        notFond = true;
+                    } else {
+                        JSONObject obj = new JSONObject();
+                        obj.put("key", key);
+                        obj.put("readonly", contDetail.getBoolean("readonly"));
+                        obj.put("value", doAuthorizationKeyConvert(key, value));
+                        jsonArray.put(obj);
+                        notFond = false;
+                    }
+                } else {
+                    jsonArray.put(contDetail);
+                }
+            }
+            if (jsonArray.length() > 0) {
+                GlobalVariables.setNotSupportedKey(notFond);
+                JSONObject sObject = new JSONObject();
+                sObject.put("values", jsonArray);
+                result = fileManagement.stringToFileSave(GlobalVariables.getRootPath(), "ConfigurationKey", sObject.toString(), false);
+            }
+        } catch (Exception e) {
+            logger.error("SetConfigurationValue {}", e.getMessage());
+        }
+        return result;
+    }
+
+    private String doAuthorizationKeyConvert(String key, String value) {
+        try {
+            if (Objects.equals(key, "AuthorizationKey")) {
+                DataTransformation dataTransformation = new DataTransformation();
+                return dataTransformation.hexToString(value);
+            } else {
+                return value;
+            }
+        } catch (Exception e) {
+            logger.error(" doAuthorizationKeyConvert error : {}", e.getMessage());
+            return "0";
+        }
+    }
+}

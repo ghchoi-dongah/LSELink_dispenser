@@ -139,6 +139,13 @@ public class ChargingCurrentData {
     /* 커넥터 자동 충전 확인 */
     public boolean connectAuto = true;
 
+    /**
+     * 인증타입(MAC Address or Membership Card)
+     * M: MAC Address
+     * C: Membership Card
+     * */
+    public String authType = "M";
+
     public ChargingCurrentData() {
         sampleValueData = new SampleValueData();
     }
@@ -831,5 +838,13 @@ public class ChargingCurrentData {
 
     public void setConnectAuto(boolean connectAuto) {
         this.connectAuto = connectAuto;
+    }
+
+    public String getAuthType() {
+        return authType;
+    }
+
+    public void setAuthType(String authType) {
+        this.authType = authType;
     }
 }

@@ -6,6 +6,11 @@
     android:layout_height="662dp"
     tools:context=".pages.MemberCheckWaitFragment">
 
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/layer_list_rect" />
+
     <TextView
         android:id="@+id/textViewMemberWaitMessage"
         android:layout_width="match_parent"

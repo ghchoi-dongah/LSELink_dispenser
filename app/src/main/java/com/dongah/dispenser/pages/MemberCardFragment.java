@@ -2,6 +2,7 @@ package com.dongah.dispenser.pages;
 
 import android.annotation.SuppressLint;
 import android.graphics.drawable.AnimationDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -17,7 +18,7 @@ import android.widget.TextView;
 
 import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.R;
-import com.dongah.dispenser.basefunction.UiSeq;
+import com.dongah.dispenser.basefunction.ChargingCurrentData;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,10 +45,11 @@ public class MemberCardFragment extends Fragment {
     private String mParam2;
     private int mChannel;
 
-    int timer = 10;
-    TextView textViewTagTimer;
+    int timer = 20;
+    TextView textViewTagTimer, textViewMessage;
     ImageView imageViewMemberCard;
     AnimationDrawable animationDrawable;
+    ChargingCurrentData chargingCurrentData;
     Handler countHandler;
     Runnable countRunnable;
 
@@ -88,9 +90,15 @@ public class MemberCardFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_member_card, container, false);
         textViewTagTimer = view.findViewById(R.id.textViewTagTimer);
+        textViewMessage = view.findViewById(R.id.textViewMessage);
         imageViewMemberCard = view.findViewById(R.id.imageViewMemberCard);
         imageViewMemberCard.setBackgroundResource(R.drawable.membercardtagging);
         animationDrawable = (AnimationDrawable) imageViewMemberCard.getBackground();
+        chargingCurrentData = ((MainActivity) MainActivity.mContext).getChargingCurrentData(mChannel);
+
+        // rfCard ready
+        ((MainActivity) MainActivity.mContext).getRfCardReaderReceive().rfCardReadRequest();
+
         return view;
     }
 
@@ -101,6 +109,8 @@ public class MemberCardFragment extends Fragment {
         try {
             animationDrawable.start();
             textViewTagTimer.setText(timer + "초");
+            textViewMessage.setVisibility(Objects.equals(chargingCurrentData.getAuthType(), "M") ? View.VISIBLE : View.INVISIBLE);
+            chargingCurrentData.setAuthType("C");
 
             countHandler = new Handler();
             countRunnable = new Runnable() {
@@ -108,7 +118,7 @@ public class MemberCardFragment extends Fragment {
                 public void run() {
                     timer--;
                     if (Objects.equals(timer, 0)) {
-                        ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.MEMBER_CHECK_WAIT, "MEMBER_CHECK_WAIT", null);
+                        ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).onHome();
                     } else {
                         countHandler.postDelayed(countRunnable, 1000);
                         textViewTagTimer.setText(timer + "초");
@@ -117,17 +127,34 @@ public class MemberCardFragment extends Fragment {
             };
             countHandler.postDelayed(countRunnable, 1000);
         } catch (Exception e) {
-            logger.error("MemberCardNoMacFragment error: {}", e.getMessage());
+            logger.error("MemberCardFragment error: {}", e.getMessage());
         }
+    }
+
+    @Override
+    public void onDestroyView() {
+        try {
+            if (animationDrawable != null) {
+                animationDrawable.stop();
+            }
+
+            if (imageViewMemberCard != null) {
+                Drawable bg = imageViewMemberCard.getBackground();
+                if (bg instanceof AnimationDrawable) {
+                    ((AnimationDrawable) bg).stop();
+                }
+                imageViewMemberCard.setBackground(null);
+            }
+        } catch (Exception e) {
+            logger.error("MemberCardFragment onDestroyView : {}", e.getMessage());
+        }
+        super.onDestroyView();
     }
 
     @Override
     public void onDetach() {
         super.onDetach();
         try {
-            animationDrawable.stop();
-            ((AnimationDrawable) imageViewMemberCard.getBackground()).stop();
-            imageViewMemberCard.setBackground(null);
             if (countHandler != null) {
                 countHandler.removeCallbacks(countRunnable);
                 countHandler.removeCallbacksAndMessages(null);

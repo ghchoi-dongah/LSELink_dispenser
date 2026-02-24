@@ -2,7 +2,9 @@ package com.dongah.dispenser.websocket.ocpp.core.datatransfer.lselink;
 
 import androidx.annotation.NonNull;
 
+import com.dongah.dispenser.websocket.ocpp.common.model.Confirmation;
 import com.dongah.dispenser.websocket.ocpp.common.model.Validatable;
+import com.dongah.dispenser.websocket.ocpp.core.DataTransferStatus;
 import com.dongah.dispenser.websocket.ocpp.utilities.MoreObjects;
 
 import org.slf4j.Logger;
@@ -10,18 +12,23 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
 
-public class ChangeElecModeConfirm implements Validatable {
+public class ChangeElecModeConfirm implements Confirmation {
 
     private static final Logger logger = LoggerFactory.getLogger(ChangeElecModeConfirm.class);
+    private static final String ACTION_NAME = "changeelecmode.req";
 
-    private Status status;
+    private DataTransferStatus status;
     private String data;
 
-    public Status getStatus() {
+    public String getActionName() {
+        return ACTION_NAME;
+    }
+
+    public DataTransferStatus getStatus() {
         return status;
     }
 
-    public void setStatus(Status status) {
+    public void setStatus(DataTransferStatus status) {
         this.status = status;
     }
 

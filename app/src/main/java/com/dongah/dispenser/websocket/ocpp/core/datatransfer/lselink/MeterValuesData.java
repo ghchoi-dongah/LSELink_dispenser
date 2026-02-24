@@ -2,12 +2,12 @@ package com.dongah.dispenser.websocket.ocpp.core.datatransfer.lselink;
 
 public class MeterValuesData {
 
-    private String chargeBoxSerialNumber;   // 충전소ID
-    private String chargePointSerialNumber; // 충전기ID
-    private int connectorId;                // Connector ID
-    private int transactionId;              // Transaction ID
-    private String idTag;                   // ID Tag
-    private String timestamp;               // (ex:2023-05-30T11:16:12.899Z)
+    public String chargeBoxSerialNumber;   // 충전소ID
+    public String chargePointSerialNumber; // 충전기ID
+    public int connectorId;                // Connector ID
+    public int transactionId;              // Transaction ID
+    public String idTag;                   // ID Tag
+    public String timestamp;               // (ex:2023-05-30T11:16:12.899Z)
     public double power;
     public int eps;                         // 전압
     public int ecu;                         // 전류

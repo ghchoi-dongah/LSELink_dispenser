@@ -2,18 +2,15 @@ package com.dongah.dispenser.basefunction;
 
 import android.os.Build;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.annotation.RequiresApi;
 import androidx.fragment.app.Fragment;
 
 import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.R;
-import com.dongah.dispenser.TECH3800.TLS3800;
-import com.dongah.dispenser.TECH3800.TLS3800Listener;
 import com.dongah.dispenser.controlboard.ControlBoard;
 import com.dongah.dispenser.controlboard.RxData;
-import com.dongah.dispenser.handler.CustomStatusNotificationThread;
-import com.dongah.dispenser.handler.ProcessHandler;
 import com.dongah.dispenser.pages.FaultFragment;
 import com.dongah.dispenser.rfcard.RfCardReaderListener;
 import com.dongah.dispenser.rfcard.RfCardReaderReceive;
@@ -24,6 +21,12 @@ import com.dongah.dispenser.websocket.ocpp.core.ResetType;
 import com.dongah.dispenser.websocket.ocpp.utilities.ZonedDateTimeConvert;
 import com.dongah.dispenser.websocket.socket.SocketReceiveMessage;
 import com.dongah.dispenser.websocket.socket.SocketState;
+import com.dongah.dispenser.websocket.socket.handler.handlersend.ChargingAlarmReq;
+import com.dongah.dispenser.websocket.socket.handler.handlersend.MeterValuesReq;
+import com.dongah.dispenser.websocket.socket.handler.handlersend.ProcessHandler;
+import com.dongah.dispenser.websocket.socket.handler.handlersend.StartTransactionReq;
+import com.dongah.dispenser.websocket.socket.handler.handlersend.StatusNotificationReq;
+import com.dongah.dispenser.websocket.socket.handler.handlersend.StopTransactionReq;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +35,7 @@ import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class ClassUiProcess  {
+public class ClassUiProcess implements RfCardReaderListener {
 
     private static final Logger logger = LoggerFactory.getLogger(ClassUiProcess.class);
 
@@ -43,7 +46,6 @@ public class ClassUiProcess  {
     ChargingCurrentData chargingCurrentData;
 
     FragmentChange fragmentChange;
-    TLS3800 tls3800;
     ControlBoard controlBoard;
     NotifyFaultCheck notifyFaultCheck;
     RfCardReaderReceive rfCardReaderReceive;
@@ -52,13 +54,10 @@ public class ClassUiProcess  {
     Timer eventTimer;
 
     ZonedDateTimeConvert zonedDateTimeConvert;
-    CustomStatusNotificationThread customStatusNotificationThread;
 
     int powerMeterCheck = 0;
-    /**
-     * MeterValue Thread
-     * */
-    // TODO
+    boolean chargingAlarm = true;
+    MeterValuesReq meterValuesReq;
 
     public int getCh() {
         return ch;
@@ -97,8 +96,6 @@ public class ClassUiProcess  {
 
             // rf card
             rfCardReaderReceive = ((MainActivity) MainActivity.mContext).getRfCardReaderReceive();
-            // payment
-            tls3800 = ((MainActivity) MainActivity.mContext).getTls3800();
             // configuration
             chargerConfiguration = ((MainActivity) MainActivity.mContext).getChargerConfiguration();
             // fragment change
@@ -158,7 +155,9 @@ public class ClassUiProcess  {
                     if (chargingCurrentData.isReBoot() && onRebootCheck()) {
                         setUiSeq(UiSeq.REBOOTING);
                     }
-                    onMeterValueStop(); // MeterValue Stop
+                    chargingAlarm = true;
+//                    meterValuesReq.stopMeterValues();; // MeterValue Stop
+                    onMeterValueStop();
                     break;
                 case REBOOTING:
                     if (!(getCurrentFragment() instanceof FaultFragment)) {
@@ -171,7 +170,6 @@ public class ClassUiProcess  {
                     }
                     break;
                 case MEMBER_CARD:
-                case MEMBER_CARD_NO_MAC:
                 case MEMBER_CHECK_WAIT:
                     break;
                 case PLUG_CHECK:
@@ -184,11 +182,6 @@ public class ClassUiProcess  {
                 case CHARGING_WAIT:
                     break;
                 case CONNECT_CHECK:
-                    // Test Mode
-//                    if (Objects.equals(chargerConfiguration.getOpMode(), "0") && !chargingCurrentData.isChgWait()) {
-//                        break;
-//                    }
-
                     if (rxData.isCsStart()) {
                         chargingCurrentData.setChargePointStatus(ChargePointStatus.Charging);
                         chargingCurrentData.setPowerMeterStart(rxData.getPowerMeter()*10);
@@ -206,11 +199,19 @@ public class ClassUiProcess  {
                         // server mode
                         if (Objects.equals(chargerConfiguration.getOpMode(), 1)) {
 
+                            // start transaction send to server
+                            // Accepted → Charging Fragment
+                            StartTransactionReq startTransactionReq = new StartTransactionReq(chargingCurrentData.getConnectorId());
+                            startTransactionReq.sendStartTransactionReq();
+
+//                            if (GlobalVariables.getMeterValueSampleInterval() > 0) {
+//                                ((MainActivity) MainActivity.mContext).getClassUiProcess(getCh()).onMeterValueStart(chargingCurrentData.getConnectorId());
+////                            onMeterValueStart(chargingCurrentData.getConnectorId());
+//                            }
                         }
-                    } else if (rxData.isCsStop()) {
+                    } else if (rxData.isCsStop() || rxData.getCsmSeccStatusCode() == (byte) 0x10) {
                         controlBoard.getTxData(getCh()).setStop(true);
                         controlBoard.getTxData(getCh()).setStart(false);
-                        // 충전 실패 사유 toast
                         onHome();
                     }
                     break;
@@ -222,6 +223,14 @@ public class ClassUiProcess  {
                         // target soc
                         boolean isSocReached = (chargingCurrentData.getSoc() != 0
                                 && chargingCurrentData.getSoc() >= chargerConfiguration.getTargetSoc());
+
+                        // 충전율 90%
+                        if (Objects.equals(chargingCurrentData.getSoc(), 90) && chargingAlarm) {
+                            ChargingAlarmReq chargingAlarmReq = new ChargingAlarmReq(chargingCurrentData.getConnectorId());
+                            chargingAlarmReq.sendChargingAlarmReq(2);
+                            chargingAlarm = false;
+                        }
+
                         // stop 조건
                         if (!GlobalVariables.isStopTransactionOnEVSideDisconnect() &&
                                 !GlobalVariables.isUnlockConnectorOnEVSideDisconnect()) {
@@ -257,8 +266,9 @@ public class ClassUiProcess  {
                     break;
                 case FINISH_WAIT:
                     try {
-//                        if (!chargingCurrentData.isChgFinishWait()) break;
-                        chargingCurrentData.setChgFinishWait(false);
+                        controlBoard.getTxData(getCh()).setStop(true);
+                        controlBoard.getTxData(getCh()).setUiSequence((short) 3);
+                        onMeterValueStop();
                         //사용자 user stop
                         chargingCurrentData.setStopReason(chargingCurrentData.isUserStop() ? Reason.Local : chargingCurrentData.getStopReason());
                         // 충전 사용량 정리
@@ -266,26 +276,20 @@ public class ClassUiProcess  {
                         chargingCurrentData.setChargingEndTime(zonedDateTimeConvert.getStringCurrentTimeZone());
                         //stop transaction send to server
                         chargingCurrentData.setChargePointStatus(ChargePointStatus.Finishing);
+
+
                         //socket receive message get instance
-                        socketReceiveMessage = ((MainActivity) MainActivity.mContext).getSocketReceiveMessage();
+//                        socketReceiveMessage = ((MainActivity) MainActivity.mContext).getSocketReceiveMessage();
                         if (Objects.equals(chargerConfiguration.getOpMode(), 1)) {
-                            processHandler.sendMessage(socketReceiveMessage.onMakeHandlerMessage(
-                                    GlobalVariables.MESSAGE_HANDLER_STOP_TRANSACTION,
-                                    chargingCurrentData.getConnectorId(),
-                                    0,
-                                    chargingCurrentData.getIdTag(),
-                                    null,
-                                    null,
-                                    false));
-                            //status notification send to server
-                            processHandler.sendMessage(socketReceiveMessage.onMakeHandlerMessage(
-                                    GlobalVariables.MESSAGE_HANDLER_STATUS_NOTIFICATION,
-                                    chargingCurrentData.getConnectorId(),
-                                    0,
-                                    null,
-                                    null,
-                                    null,
-                                    false));
+                            StatusNotificationReq req1 = new StatusNotificationReq(chargingCurrentData.getConnectorId());
+                            req1.sendStatusNotification();
+
+                            // StopTransaction
+                            StopTransactionReq stopTransactionReq = new StopTransactionReq(chargingCurrentData.getConnectorId());
+                            stopTransactionReq.sendStopTransactionReq();
+
+//                            StatusNotificationReq req2 = new StatusNotificationReq(chargingCurrentData.getConnectorId());
+//                            req2.sendStatusNotification();
                         }
                         setUiSeq(UiSeq.FINISH);
                         fragmentChange.onFragmentChange(getCh(), UiSeq.FINISH, "FINISH", null);
@@ -295,6 +299,64 @@ public class ClassUiProcess  {
                     break;
                 case FINISH:
                     onFinish();
+                    break;
+                case FAULT:
+                    UiSeq currentViewSeq = ((MainActivity) MainActivity.mContext).getFragmentSeq(getCh());
+                    if (currentViewSeq.getValue() < 16) {
+                        if (!(getCurrentFragment() instanceof FaultFragment)) {
+                            // server mode 및 charging
+                            if (Objects.equals(chargerConfiguration.getOpMode(), 1) &&
+                                    Objects.equals(getoSeq(), UiSeq.CHARGING)) {
+                                // meter values stop
+                                meterValuesReq.stopMeterValues();
+                                chargingCurrentData.setStopReason(rxData.isCsEmergency() ? Reason.EmergencyStop : Reason.Other);
+                                controlBoard.getTxData(getCh()).setStop(true);
+                                controlBoard.getTxData(getCh()).setStart(false);
+                                chargingCurrentData.setUserStop(false);
+                                chargingCurrentData.setPowerMeterStop(rxData.getPowerMeter()*10);
+                                chargingCurrentData.setChargingEndTime(zonedDateTimeConvert.getStringCurrentTimeZone());
+                                chargingCurrentData.setChargePointStatus(ChargePointStatus.Finishing);
+
+                                // socket receive message get instance
+                                socketReceiveMessage = ((MainActivity) MainActivity.mContext).getSocketReceiveMessage();
+                                SocketState state = socketReceiveMessage.getSocket().getState();
+                                if (Objects.equals(state.getValue(), 7) && Objects.equals(chargerConfiguration.getOpMode(), 1)) {
+                                    StatusNotificationReq statusNotificationReq = new StatusNotificationReq(chargingCurrentData.getConnectorId());
+                                    statusNotificationReq.sendStatusNotification();
+
+                                    // server send
+                                    StopTransactionReq stopTransactionReq = new StopTransactionReq(chargingCurrentData.getConnectorId());
+                                    stopTransactionReq.sendStopTransactionReq();
+                                }
+                            }
+                            fragmentChange.onFragmentChange(getCh(), UiSeq.FAULT, "FAULT", null);;
+                        }
+                    }
+
+                    // fault 해제
+                    if (!controlBoard.isDisconnected() && !rxData.isCsFault()) {
+                        if (Objects.equals(getoSeq(), UiSeq.CHARGING)) {
+                            chargingCurrentData.setChargePointStatus(ChargePointStatus.Finishing);
+                            chargingCurrentData.setChargePointErrorCode(ChargePointErrorCode.NoError);
+                            StatusNotificationReq statusNotificationReq = new StatusNotificationReq(chargingCurrentData.getConnectorId());
+                            statusNotificationReq.sendStatusNotification();
+                            setUiSeq(UiSeq.FINISH);
+                            fragmentChange.onFragmentChange(getCh(), UiSeq.FINISH, "FINISH", null);
+                        } else {
+                            if (Objects.equals(chargingCurrentData.getChargePointStatus(), ChargePointStatus.Preparing) &&
+                                    !rxData.isCsPilot()) {
+                                chargingCurrentData.setChargePointStatus(ChargePointStatus.Available);
+                                // socket receive message get instance
+                                socketReceiveMessage = ((MainActivity) MainActivity.mContext).getSocketReceiveMessage();
+                                SocketState state = socketReceiveMessage.getSocket().getState();
+                                if (Objects.equals(state.getValue(), 7) && Objects.equals(chargerConfiguration.getOpMode(), 1)) {
+                                    StatusNotificationReq statusNotificationReq = new StatusNotificationReq(chargingCurrentData.getConnectorId());
+                                    statusNotificationReq.sendStatusNotification();
+                                }
+                            }
+                            onHome();
+                        }
+                    }
                     break;
                 default:
                     break;
@@ -351,18 +413,31 @@ public class ClassUiProcess  {
         }
     }
 
-    public void onResetStop(int channel, ResetType resetType) {
+//    public void onResetStop(int channel, ResetType resetType) {
+//        try {
+//            UiSeq uiSeq = ((MainActivity) MainActivity.mContext).getClassUiProcess(channel).getUiSeq();
+//            if (Objects.equals(uiSeq, UiSeq.CHARGING)) {
+//                controlBoard.getTxData(getCh()).setStop(true);
+//                controlBoard.getTxData(getCh()).setStart(false);
+//                chargingCurrentData.setUserStop(false);
+//                chargingCurrentData.setStopReason(resetType == ResetType.Hard ? Reason.HardReset : Reason.SoftReset);
+//                setUiSeq(UiSeq.FINISH_WAIT);
+//            }
+//        } catch (Exception e) {
+//            logger.error("reset stop error : {}", e.getMessage());
+//        }
+//    }
+
+    public void onResetStop(ResetType resetType) {
         try {
-            UiSeq uiSeq = ((MainActivity) MainActivity.mContext).getClassUiProcess(channel).getUiSeq();
+            UiSeq uiSeq = ((MainActivity) MainActivity.mContext).getClassUiProcess(getCh()).getUiSeq();
             if (Objects.equals(uiSeq, UiSeq.CHARGING)) {
-                controlBoard.getTxData(getCh()).setStop(true);
-                controlBoard.getTxData(getCh()).setStart(false);
                 chargingCurrentData.setUserStop(false);
                 chargingCurrentData.setStopReason(resetType == ResetType.Hard ? Reason.HardReset : Reason.SoftReset);
                 setUiSeq(UiSeq.FINISH_WAIT);
             }
         } catch (Exception e) {
-            logger.error("reset stop error : {}", e.getMessage());
+            logger.error("reset stop error : {} ", e.getMessage());
         }
     }
 
@@ -383,28 +458,17 @@ public class ClassUiProcess  {
      * Meter value
      *
      * @param connectorId connector id
-     * @param delay       delay time
      */
-    public void onMeterValueStart(int connectorId, int delay) {
-        // TODO
+    public void onMeterValueStart(int connectorId) {
+        onMeterValueStop();
+        meterValuesReq = new MeterValuesReq(connectorId);
+        meterValuesReq.startMeterValues();
     }
 
     public void onMeterValueStop() {
-        // TODO
-    }
-
-    public void onCustomStatusNotificationStart(int connectorId, int delay) {
-        onCustomStatusNotificationStop();
-        customStatusNotificationThread = new CustomStatusNotificationThread(connectorId,delay);
-        customStatusNotificationThread.setStopped(false);
-        customStatusNotificationThread.start();
-    }
-
-    public void onCustomStatusNotificationStop() {
-        if (customStatusNotificationThread != null) {
-            customStatusNotificationThread.interrupt();
-            customStatusNotificationThread.setStopped(true);
-            customStatusNotificationThread = null;
+        if (meterValuesReq != null) {
+            meterValuesReq.stopMeterValues();
+            meterValuesReq = null;
         }
     }
 
@@ -465,6 +529,64 @@ public class ClassUiProcess  {
             chargingCurrentData.setSoc(rxData.getSoc());
         } catch (Exception e) {
             logger.error("power meter calculate error : {}", e.getMessage());
+        }
+    }
+
+    /**
+     * Rf CARD reader
+     * @param cardNum card number
+     * @param value boolean
+     */
+    @Override
+    public void onRfCardDataReceive(String cardNum, boolean value) {
+        try {
+            if (cardNum.isEmpty() || Objects.equals(cardNum,"0000000000000000")) {
+                setUiSeq(UiSeq.INIT);
+                fragmentChange.onFragmentChange(getCh(), UiSeq.INIT,"INIT",null);
+                Toast.makeText(((MainActivity) MainActivity.mContext), "카드 리더기에서 응답이 없습니다.",Toast.LENGTH_SHORT).show();
+            } else {
+                onRfCardDataReceiveEvent(cardNum, true);
+            }
+        } catch (Exception e) {
+            logger.error("onRfCardDataReceive error : {} ", e.getMessage());
+        }
+    }
+
+    private void onRfCardDataReceiveEvent(String cardNum, boolean b) {
+        if (b) {
+            try {
+                if (Objects.equals(cardNum,"0000000000000000")) {
+                    rfCardReaderReceive.rfCardReadRequest();
+                } else if (!cardNum.isEmpty()) {
+
+                    int authMode = ((MainActivity) MainActivity.mContext).getChargerConfiguration().getOpMode();
+                    if (Objects.equals(authMode, 1)) {
+                        //서버에 회원카드 정보를 보내여 인증을 취득하면 전역변수에 저장한다.
+                        chargingCurrentData.setIdTag(cardNum);
+                        setUiSeq(UiSeq.MEMBER_CHECK_WAIT);
+                        fragmentChange.onFragmentChange(getCh(), UiSeq.MEMBER_CHECK_WAIT,"MEMBER_CHECK_WAIT",null);
+                    }
+//                    if (Objects.equals(authMode, "4") && !Objects.equals(getUiSeq(), UiSeq.MEMBER_CARD)) {
+//                        // member save
+//                        ((MainActivity) MainActivity.mContext).runOnUiThread(new Runnable() {
+//                            @Override
+//                            public void run() {
+//                                FileManagement fileManagement = new FileManagement();
+//                                boolean chk = fileManagement.stringToFileSave(GlobalVariables.ROOT_PATH, "memberList.dongah", cardNum, true);
+//                                Toast.makeText((MainActivity.mContext), chk ? "저장 성공" : " 저장 실패 ",Toast.LENGTH_SHORT).show();
+//                            }
+//                        });
+//                    } else {
+//                        //서버에 회원카드 정보를 보내여 인증을 취득하면 전역변수에 저장한다.
+//                        chargingCurrentData.setIdTag(cardNum);
+//                        setUiSeq(UiSeq.MEMBER_CHECK_WAIT);
+//                        fragmentChange.onFragmentChange(getCh(), UiSeq.MEMBER_CHECK_WAIT,"MEMBER_CHECK_WAIT",null);
+//                    }
+                    rfCardReaderReceive.rfCardReadRelease();
+                }
+            } catch (Exception e) {
+                logger.error("onRfCardDataReceiveEvent error : {} ", e.getMessage());
+            }
         }
     }
 }

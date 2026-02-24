@@ -4,10 +4,12 @@ import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
@@ -25,12 +27,11 @@ import com.dongah.dispenser.R;
 import com.dongah.dispenser.basefunction.ChargerConfiguration;
 import com.dongah.dispenser.basefunction.ChargingCurrentData;
 import com.dongah.dispenser.basefunction.GlobalVariables;
-import com.dongah.dispenser.basefunction.UiSeq;
 import com.dongah.dispenser.controlboard.RxData;
 import com.dongah.dispenser.utils.SharedModel;
 import com.dongah.dispenser.websocket.ocpp.core.ChargePointErrorCode;
 import com.dongah.dispenser.websocket.ocpp.core.ChargePointStatus;
-import com.wang.avi.AVLoadingIndicatorView;
+import com.dongah.dispenser.websocket.socket.handler.handlersend.StatusNotificationReq;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -128,6 +129,7 @@ public class ConnectorCheckFragment extends Fragment implements View.OnClickList
         return view;
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -160,15 +162,10 @@ public class ConnectorCheckFragment extends Fragment implements View.OnClickList
                                         !((MainActivity) MainActivity.mContext).getControlBoard().getRxData(mChannel).isCsPilot()) {
                                     chargingCurrentData.setChargePointStatus(ChargePointStatus.Available);
                                     chargingCurrentData.setChargePointErrorCode(ChargePointErrorCode.NoError);
-                                    ((MainActivity) MainActivity.mContext).getProcessHandler().sendMessage(((MainActivity) MainActivity.mContext).getSocketReceiveMessage()
-                                            .onMakeHandlerMessage(
-                                                    GlobalVariables.MESSAGE_HANDLER_STATUS_NOTIFICATION,
-                                                    chargingCurrentData.getConnectorId(),
-                                                    0,
-                                                    null,
-                                                    null,
-                                                    null,
-                                                    false));
+
+                                    // StatusNotification
+                                    StatusNotificationReq statusNotificationReq = new StatusNotificationReq(chargingCurrentData.getConnectorId());
+                                    statusNotificationReq.sendStatusNotification();
                                 }
 //                                ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).onHome();
 //                                ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.CONNECTION_FAILED, "CONNECTION_FAILED", null);

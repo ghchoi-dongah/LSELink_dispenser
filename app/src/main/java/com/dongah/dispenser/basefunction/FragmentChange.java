@@ -25,7 +25,6 @@ import com.dongah.dispenser.pages.FaultFragment;
 import com.dongah.dispenser.pages.HeaderFragment;
 import com.dongah.dispenser.pages.InitFragment;
 import com.dongah.dispenser.pages.MemberCardFragment;
-import com.dongah.dispenser.pages.MemberCardNoMacFragment;
 import com.dongah.dispenser.pages.MemberCheckFailedFragment;
 import com.dongah.dispenser.pages.MemberCheckWaitFragment;
 import com.dongah.dispenser.pages.OperationStopFragment;
@@ -98,17 +97,6 @@ public class FragmentChange {
                     transaction.commit();
                 } catch (Exception e) {
                     logger.error("onFragmentChange error : MEMBER_CARD {}", e.getMessage());
-                }
-                break;
-            case MEMBER_CARD_NO_MAC:
-                try {
-                    onFrameLayoutChange(false);
-                    MemberCardNoMacFragment memberCardNoMacFragment = new MemberCardNoMacFragment();
-                    memberCardNoMacFragment.setArguments(bundle);
-                    transaction.replace(frameLayoutId, memberCardNoMacFragment, "MEMBER_CARD_NO_MAC");
-                    transaction.commit();
-                } catch (Exception e) {
-                    logger.error("onFragmentChange error : MEMBER_CARD_NO_MAC {}", e.getMessage());
                 }
                 break;
             case MEMBER_CHECK_FAILED:

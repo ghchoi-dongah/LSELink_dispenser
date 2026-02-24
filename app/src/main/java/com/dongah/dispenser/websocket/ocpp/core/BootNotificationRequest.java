@@ -19,7 +19,7 @@ import javax.xml.bind.annotation.XmlType;
 @XmlRootElement
 @XmlType(
         propOrder = {
-                "chargePointVendor",
+                "chargerPointVendor",
                 "chargePointModel",
                 "chargePointSerialNumber",
                 "chargeBoxSerialNumber",
@@ -33,6 +33,7 @@ import javax.xml.bind.annotation.XmlType;
 
 
 public class BootNotificationRequest implements Request {
+
     private static final String ACTION_NAME = "BootNotification";
     private static final int STRING_20_CHAR_MAX_LENGTH = 20;
     private static final int STRING_25_CHAR_MAX_LENGTH = 25;
@@ -56,12 +57,9 @@ public class BootNotificationRequest implements Request {
     }
 
 
-    public BootNotificationRequest(String chargeBoxSerialNumber, String chargePointModel,
-                                   String chargePointSerialNumber, String chargePointVendor) {
-        setChargeBoxSerialNumber(chargeBoxSerialNumber);
-        setChargePointModel(chargePointModel);
-        setChargePointSerialNumber(chargePointSerialNumber);
+    public BootNotificationRequest(String chargePointVendor, String chargePointModel) {
         setChargePointVendor(chargePointVendor);
+        setChargePointModel(chargePointModel);
     }
 
     private static String validationErrorMessage(int maxAllowedLength) {
@@ -92,7 +90,7 @@ public class BootNotificationRequest implements Request {
         this.chargePointModel = chargePointModel;
     }
 
-
+    @XmlElement
     public String getChargeBoxSerialNumber() {
         return chargeBoxSerialNumber;
     }

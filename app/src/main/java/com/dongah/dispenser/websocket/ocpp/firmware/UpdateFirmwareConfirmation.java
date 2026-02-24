@@ -16,6 +16,13 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement(name = "updateFirmwareResponse")
 public class UpdateFirmwareConfirmation implements Confirmation {
 
+    public static final String ACTION_NAME = "UpdateFirmware";
+
+
+    public String getActionName() {
+        return ACTION_NAME;
+    }
+
     public UpdateFirmwareConfirmation() {
     }
 

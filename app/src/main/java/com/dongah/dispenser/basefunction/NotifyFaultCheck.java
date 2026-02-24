@@ -6,10 +6,11 @@ import androidx.annotation.RequiresApi;
 
 import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.controlboard.RxData;
-import com.dongah.dispenser.handler.ProcessHandler;
 import com.dongah.dispenser.websocket.ocpp.core.ChargePointErrorCode;
 import com.dongah.dispenser.websocket.ocpp.core.ChargePointStatus;
 import com.dongah.dispenser.websocket.socket.SocketReceiveMessage;
+import com.dongah.dispenser.websocket.socket.handler.handlersend.ProcessHandler;
+import com.dongah.dispenser.websocket.socket.handler.handlersend.StatusNotificationReq;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,15 +60,14 @@ public class NotifyFaultCheck {
     public NotifyFaultCheck(int ch) {
         this.ch = ch;
         processHandler = ((MainActivity) MainActivity.mContext).getProcessHandler();
-
         socketReceiveMessage = ((MainActivity) MainActivity.mContext).getSocketReceiveMessage();
-
     }
 
 
     public void onErrorMessageMake(RxData rxData) {
         try {
-            chargingCurrentData = ((MainActivity) MainActivity.mContext).getChargingCurrentData(getCh());            chargingCurrentData.faultMessage = new StringBuilder();
+            chargingCurrentData = ((MainActivity) MainActivity.mContext).getChargingCurrentData(getCh());
+            chargingCurrentData.faultMessage = new StringBuilder();
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 onFaultDetect(rxData);
             }
@@ -85,14 +85,11 @@ public class NotifyFaultCheck {
                 if (rxData.csCouplerTempSensor)
                     chargingCurrentData.faultMessage.append("커플러 온도센서 에러\n");
                 if (rxData.csCouplerOVT) chargingCurrentData.faultMessage.append("커플러 온도 이상\n");
-
-
             }
 
         } catch (Exception e) {
             logger.error("onErrorMessageMake error : {} ", e.getMessage());
         }
-
     }
 
 
@@ -100,6 +97,7 @@ public class NotifyFaultCheck {
     private void onFaultDetect(RxData rxData) {
         try {
             boolean disconnected = ((MainActivity) MainActivity.mContext).getControlBoard().isDisconnected();    //true ==> fault 발생
+            StatusNotificationReq statusNotificationReq = new StatusNotificationReq(chargingCurrentData.getConnectorId());
 
             if (!Objects.equals(UiDSP.ResultCompare, disconnected)) {
                 UiDSP.setResultCompare(disconnected);
@@ -107,25 +105,12 @@ public class NotifyFaultCheck {
                     //발생
                     chargingCurrentData.setChargePointErrorCode(ChargePointErrorCode.EVCommunicationError);
                     chargingCurrentData.setChargePointStatus(ChargePointStatus.Faulted);
-                    processHandler.sendMessage(socketReceiveMessage.onMakeHandlerMessage(
-                            GlobalVariables.MESSAGE_HANDLER_STATUS_NOTIFICATION,
-                            1,
-                            0,
-                            null,
-                            null,
-                            UiDSP.alarmCode,
-                            false));
+                    statusNotificationReq.sendStatusNotification();
+
                 } else {
                     chargingCurrentData.setChargePointErrorCode(ChargePointErrorCode.NoError);
                     chargingCurrentData.setChargePointStatus(ChargePointStatus.Available);
-                    processHandler.sendMessage(socketReceiveMessage.onMakeHandlerMessage(
-                            GlobalVariables.MESSAGE_HANDLER_STATUS_NOTIFICATION,
-                            1,
-                            0,
-                            null,
-                            null,
-                            null,
-                            false));
+                    statusNotificationReq.sendStatusNotification();
                 }
             }
 
@@ -141,36 +126,13 @@ public class NotifyFaultCheck {
                     if (isPlugStatus) {
                         chargingCurrentData.setChargePointErrorCode(ChargePointErrorCode.NoError);
                         chargingCurrentData.setChargePointStatus(ChargePointStatus.Available);
-                        processHandler.sendMessage(socketReceiveMessage.onMakeHandlerMessage(
-                                GlobalVariables.MESSAGE_HANDLER_STATUS_NOTIFICATION,
-                                1,
-                                0,
-                                null,
-                                null,
-                                null,
-                                false));
-                        // custom status notification
-                        processHandler.sendMessage(socketReceiveMessage.onMakeHandlerMessage(
-                                GlobalVariables.MESSAGE_CUSTOM_STATUS_NOTIFICATION,
-                                chargingCurrentData.getConnectorId(),
-                                0,
-                                null,
-                                null,
-                                null,
-                                false));
+                        statusNotificationReq.sendStatusNotification();
                     }
                 } else {
                     if (Objects.equals(chargingCurrentData.getChargePointStatus(), ChargePointStatus.Available)) {
                         chargingCurrentData.setChargePointErrorCode(ChargePointErrorCode.NoError);
                         chargingCurrentData.setChargePointStatus(ChargePointStatus.Preparing);
-                        processHandler.sendMessage(socketReceiveMessage.onMakeHandlerMessage(
-                                GlobalVariables.MESSAGE_HANDLER_STATUS_NOTIFICATION,
-                                1,
-                                0,
-                                null,
-                                null,
-                                null,
-                                false));
+                        statusNotificationReq.sendStatusNotification();
                     }
                 }
             }
@@ -181,14 +143,7 @@ public class NotifyFaultCheck {
                     //발생
                     chargingCurrentData.setChargePointErrorCode(ChargePointErrorCode.OtherError);
                     chargingCurrentData.setChargePointStatus(ChargePointStatus.Faulted);
-                    processHandler.sendMessage(socketReceiveMessage.onMakeHandlerMessage(
-                            GlobalVariables.MESSAGE_HANDLER_STATUS_NOTIFICATION,
-                            1,
-                            0,
-                            null,
-                            null,
-                            emergency.alarmCode,
-                            false));
+                    statusNotificationReq.sendStatusNotification();
                 } else {
                     chargingCurrentData.setChargePointErrorCode(ChargePointErrorCode.NoError);
                     chargingCurrentData.setChargePointStatus(ChargePointStatus.Available);
@@ -241,17 +196,11 @@ public class NotifyFaultCheck {
                     //발생
                     chargingCurrentData.setChargePointErrorCode(ChargePointErrorCode.OtherError);
                     chargingCurrentData.setChargePointStatus(ChargePointStatus.Faulted);
-                    processHandler.sendMessage(socketReceiveMessage.onMakeHandlerMessage(
-                            GlobalVariables.MESSAGE_HANDLER_STATUS_NOTIFICATION,
-                            1,
-                            0,
-                            null,
-                            null,
-                            csChargerLeak.alarmCode,
-                            false));
+                    statusNotificationReq.sendStatusNotification();
                 } else {
                     chargingCurrentData.setChargePointErrorCode(ChargePointErrorCode.NoError);
                     chargingCurrentData.setChargePointStatus(ChargePointStatus.Available);
+
                 }
             }
             //csCarLeak
@@ -261,14 +210,7 @@ public class NotifyFaultCheck {
                     //발생
                     chargingCurrentData.setChargePointErrorCode(ChargePointErrorCode.OtherError);
                     chargingCurrentData.setChargePointStatus(ChargePointStatus.Faulted);
-                    processHandler.sendMessage(socketReceiveMessage.onMakeHandlerMessage(
-                            GlobalVariables.MESSAGE_HANDLER_STATUS_NOTIFICATION,
-                            1,
-                            0,
-                            null,
-                            null,
-                            csCarLeak.alarmCode,
-                            false));
+                    statusNotificationReq.sendStatusNotification();
                 } else {
                     chargingCurrentData.setChargePointErrorCode(ChargePointErrorCode.NoError);
                     chargingCurrentData.setChargePointStatus(ChargePointStatus.Available);
@@ -281,14 +223,7 @@ public class NotifyFaultCheck {
                     //발생
                     chargingCurrentData.setChargePointErrorCode(ChargePointErrorCode.OverVoltage);
                     chargingCurrentData.setChargePointStatus(ChargePointStatus.Faulted);
-                    processHandler.sendMessage(socketReceiveMessage.onMakeHandlerMessage(
-                            GlobalVariables.MESSAGE_HANDLER_STATUS_NOTIFICATION,
-                            1,
-                            0,
-                            null,
-                            null,
-                            csOutOVR.alarmCode,
-                            false));
+                    statusNotificationReq.sendStatusNotification();
                 } else {
                     chargingCurrentData.setChargePointErrorCode(ChargePointErrorCode.NoError);
                     chargingCurrentData.setChargePointStatus(ChargePointStatus.Available);
@@ -301,14 +236,7 @@ public class NotifyFaultCheck {
                     //발생
                     chargingCurrentData.setChargePointErrorCode(ChargePointErrorCode.OverCurrentFailure);
                     chargingCurrentData.setChargePointStatus(ChargePointStatus.Faulted);
-                    processHandler.sendMessage(socketReceiveMessage.onMakeHandlerMessage(
-                            GlobalVariables.MESSAGE_HANDLER_STATUS_NOTIFICATION,
-                            1,
-                            0,
-                            null,
-                            null,
-                            csOutOCR.alarmCode,
-                            false));
+                    statusNotificationReq.sendStatusNotification();
                 } else {
                     chargingCurrentData.setChargePointErrorCode(ChargePointErrorCode.NoError);
                     chargingCurrentData.setChargePointStatus(ChargePointStatus.Available);
@@ -321,14 +249,7 @@ public class NotifyFaultCheck {
                     //발생
                     chargingCurrentData.setChargePointErrorCode(ChargePointErrorCode.OtherError);
                     chargingCurrentData.setChargePointStatus(ChargePointStatus.Faulted);
-                    processHandler.sendMessage(socketReceiveMessage.onMakeHandlerMessage(
-                            GlobalVariables.MESSAGE_HANDLER_STATUS_NOTIFICATION,
-                            1,
-                            0,
-                            null,
-                            null,
-                            csCouplerTempSensor.alarmCode,
-                            false));
+                    statusNotificationReq.sendStatusNotification();
                 } else {
                     chargingCurrentData.setChargePointErrorCode(ChargePointErrorCode.NoError);
                     chargingCurrentData.setChargePointStatus(ChargePointStatus.Available);
@@ -341,14 +262,7 @@ public class NotifyFaultCheck {
                     //발생
                     chargingCurrentData.setChargePointErrorCode(ChargePointErrorCode.HighTemperature);
                     chargingCurrentData.setChargePointStatus(ChargePointStatus.Faulted);
-                    processHandler.sendMessage(socketReceiveMessage.onMakeHandlerMessage(
-                            GlobalVariables.MESSAGE_HANDLER_STATUS_NOTIFICATION,
-                            getCh() + 1,
-                            0,
-                            null,
-                            null,
-                            csCouplerOVT.alarmCode,
-                            false));
+                    statusNotificationReq.sendStatusNotification();
                 } else {
                     chargingCurrentData.setChargePointErrorCode(ChargePointErrorCode.NoError);
                     chargingCurrentData.setChargePointStatus(ChargePointStatus.Available);

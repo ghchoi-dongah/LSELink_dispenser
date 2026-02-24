@@ -11,8 +11,6 @@ public class AuthorizeData implements Validatable {
     private int connectorId;    // Connector ID
     private String idTag;       // ID Tag;
 
-    public AuthorizeData() {}
-
     public String getUuid() {
         return uuid;
     }

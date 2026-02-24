@@ -58,24 +58,16 @@ public class ConfigurationKeyRead {
                         GlobalVariables.setLocalAuthorizeOffline(contDetail.getBoolean("value"));
                     } else if (Objects.equals("AuthorizationKey", contDetail.getString("key"))) {
                         GlobalVariables.setAuthorizationKey(contDetail.getString("value"));
-                    } else if (Objects.equals("HmConfigPasswd", contDetail.getString("key"))) {
-                        GlobalVariables.setHmConfigPasswd(contDetail.getString("value"));
-                    } else if (Objects.equals("HmChargerMode", contDetail.getString("key"))) {
-                        GlobalVariables.setHmChargerMode(contDetail.getString("value"));
-                    } else if (Objects.equals("HmSoundVolumn", contDetail.getString("key"))) {
-                        GlobalVariables.setHmSoundVolumn(contDetail.getString("value"));
-                    } else if (Objects.equals("HmCharingLimitFee", contDetail.getString("key"))) {
-                        GlobalVariables.setHmCharingLimitFee(contDetail.getString("value"));
-                    } else if (Objects.equals("HmChargingTranTerm", contDetail.getString("key"))) {
-                        GlobalVariables.setHmChargingTranTerm(contDetail.getString("value"));
-                    } else if (Objects.equals("HmPreparingTranTerm", contDetail.getString("key"))) {
-                        GlobalVariables.setHmPreparingTranTerm(contDetail.getString("value"));
-                    } else if (Objects.equals("HmCpConfigVersion", contDetail.getString("key"))) {
-                        GlobalVariables.setHmCpConfigVersion(contDetail.getString("value"));
-                    } else if (Objects.equals("HmAuthExpiredTerm", contDetail.getString("key"))) {
-                        GlobalVariables.setHmAuthExpiredTerm(contDetail.getString("value"));
-                    } else if (Objects.equals("HmPreFee", contDetail.getString("key"))) {
-                        GlobalVariables.setHmPreFee(contDetail.getString("value"));
+                    } else if (Objects.equals("SecurityProfile", contDetail.getString("key"))) {
+                        GlobalVariables.setSecurityProfile(contDetail.getString("value"));
+                    } else if (Objects.equals("FullRechgAmt", contDetail.getString("key"))) {
+                        GlobalVariables.setFullRechgAmt(Integer.parseInt(contDetail.getString("value")));
+                    } else if (Objects.equals("PersonUtztnLmtYn", contDetail.getString("key"))) {
+                        GlobalVariables.setPersonUtztnLmtYn(contDetail.getString("value"));
+                    } else if (Objects.equals("PersonUtztnLmtHr", contDetail.getString("key"))) {
+                        GlobalVariables.setPersonUtztnLmtHr(Integer.parseInt(contDetail.getString("value")));
+                    } else if (Objects.equals("MinimunStatusDuration", contDetail.getString("key"))) {
+                        GlobalVariables.setMinimunStatusDuration(Integer.parseInt(contDetail.getString("value")));
                     }
                 }
             }

@@ -50,7 +50,7 @@ public class DumpDataSend extends JSONCommunicator {
                         SendHashMapObject sendHashMapObject = new SendHashMapObject();
                         sendHashMapObject.setConnectorId(connectorId);
                         sendHashMapObject.setActionName(actionName);
-                        ((MainActivity) MainActivity.mContext).getSocketReceiveMessage().setNewHashMapUuid(uuid, sendHashMapObject);
+//                        ((MainActivity) MainActivity.mContext).getSocketReceiveMessage().setNewHashMapUuid(uuid, sendHashMapObject);
 
 
                         ((MainActivity) MainActivity.mContext).getSocketReceiveMessage().onSend(line);

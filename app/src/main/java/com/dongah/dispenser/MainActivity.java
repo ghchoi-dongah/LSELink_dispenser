@@ -25,7 +25,6 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
-import androidx.fragment.app.FragmentTransaction;
 
 import com.dongah.dispenser.TECH3800.TLS3800;
 import com.dongah.dispenser.basefunction.ChargerConfiguration;
@@ -33,8 +32,6 @@ import com.dongah.dispenser.basefunction.ChargingCurrentData;
 import com.dongah.dispenser.basefunction.ClassUiProcess;
 import com.dongah.dispenser.basefunction.ConfigurationKeyRead;
 import com.dongah.dispenser.controlboard.ControlBoard;
-import com.dongah.dispenser.handler.ProcessHandler;
-import com.dongah.dispenser.pages.ScreenSaverFragment;
 import com.dongah.dispenser.rfcard.RfCardReaderReceive;
 import com.dongah.dispenser.sqlite.SQLiteHelper;
 import com.dongah.dispenser.basefunction.FragmentChange;
@@ -44,11 +41,9 @@ import com.dongah.dispenser.basefunction.UiSeq;
 import com.dongah.dispenser.sqlite.dto.CpSettings;
 import com.dongah.dispenser.utils.ToastPositionMake;
 import com.dongah.dispenser.websocket.ocpp.core.Reason;
-import com.dongah.dispenser.websocket.socket.HttpClientHelper;
 import com.dongah.dispenser.websocket.socket.SocketReceiveMessage;
 import com.dongah.dispenser.websocket.socket.SocketState;
-import com.dongah.dispenser.websocket.socket.TripleDES;
-import com.dongah.dispenser.websocket.tcpsocket.ClientSocket;
+import com.dongah.dispenser.websocket.socket.handler.handlersend.ProcessHandler;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,6 +52,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Objects;
@@ -94,10 +90,7 @@ public class MainActivity extends AppCompatActivity {
 
     ControlBoard controlBoard;
     RfCardReaderReceive rfCardReaderReceive;
-    TLS3800 tls3800;
     ToastPositionMake toastPositionMake;
-    ClientSocket clientSocket;
-
 
 
     public UiSeq getFragmentSeq(int ch)  {
@@ -140,10 +133,6 @@ public class MainActivity extends AppCompatActivity {
         return rfCardReaderReceive;
     }
 
-    public TLS3800 getTls3800() {
-        return tls3800;
-    }
-
     public ToastPositionMake getToastPositionMake() {
         return toastPositionMake;
     }
@@ -155,6 +144,7 @@ public class MainActivity extends AppCompatActivity {
     public ProcessHandler getProcessHandler() {
         return processHandler;
     }
+
 
     @SuppressLint("SetTextI18n")
     @Override
@@ -191,22 +181,25 @@ public class MainActivity extends AppCompatActivity {
 //        sqLiteHelper.onCreate(sqLiteDatabase);          // create all tables
 //        testCrud(); // test data insert
 
+        textViewVersion = findViewById(R.id.textViewVersionValue);
+        textViewVersion.setText("VER-DEVD " + GlobalVariables.VERSION + " | ");
+        textViewTime = findViewById(R.id.textViewTime);
+
         // fragment current
         fragmentCurrent = new FragmentCurrent();
+        toastPositionMake = new ToastPositionMake(this);
 
-        // ConfigurationKey read
+        // 0. ConfigurationKey read
         configurationKeyRead = new ConfigurationKeyRead();
         configurationKeyRead.onRead();
-        toastPositionMake = new ToastPositionMake(this);
+
+        // charger operation
+        onChargerOperate();
 
         // 1. charger configuration, ConfigurationKey read
         chargerConfiguration = new ChargerConfiguration();
         chargerConfiguration.onLoadConfiguration();
-
-        textViewVersion = findViewById(R.id.textViewVersionValue);
-//        textViewVersion.setText("VER-DEVD " + chargerConfiguration.getFirmwareVersion() + " | ");
-        textViewVersion.setText("VER-" + GlobalVariables.VERSION + " | ");
-        textViewTime = findViewById(R.id.textViewTime);
+        chargerConfiguration.setSigned(true);
 
         // 2. fragment change management
         fragmentChange = new FragmentChange();
@@ -222,8 +215,18 @@ public class MainActivity extends AppCompatActivity {
         // 4. rf card reader : MID = terminal ID
         rfCardReaderReceive = new RfCardReaderReceive(chargerConfiguration.getRfCom());
 
-        // 5. handler
-        processHandler = new ProcessHandler(chargerConfiguration);
+        /**
+         *  개발 ocpp 서버 url :
+         *  ws://dev-connect.lselink.com/ocpp/{충전소ID}{충전기ID}
+         *  ws://dev-connect.lselink.com/ocpp/00000026
+         *  충전소ID : 000000
+         *  충전기ID : 26
+         */
+        chargerConfiguration.setSigned(false);
+
+        String baseUrl =  chargerConfiguration.getServerConnectingString() + "/" + chargerConfiguration.getChargeBoxSerialNumber() + chargerConfiguration.getChargerId() ;
+//        String baseUrl = "ws://dev-connect.lselink.com/ocpp/00000026";
+        socketReceiveMessage = new SocketReceiveMessage(baseUrl);
 
         // 6. classUiProcess
         chargingCurrentData = new ChargingCurrentData[GlobalVariables.maxChannel];
@@ -235,7 +238,10 @@ public class MainActivity extends AppCompatActivity {
             chargingCurrentData[i].onCurrentDataClear();
         }
 
-        // 7. PLC modem
+        // 7. handler
+        processHandler = new ProcessHandler();
+
+//        // 7. PLC modem
 //        clientSocket = new ClientSocket("192.168.39.1", 9999, new ClientSocket.TcpClientListener() {
 //            @Override
 //            public void onConnected() {
@@ -257,9 +263,7 @@ public class MainActivity extends AppCompatActivity {
 //                Log.d("TCP", "General recv: "+ message);
 //            }
 //        });
-
 //        clientSocket.start();
-//
 //        clientSocket.sendCommandExpectPrefix("AT+CNUM", "+CNUM:", 10000)
 //                .thenApply(line -> {
 //                    // line 예: +CNUM: "LGU","+821222492396",145
@@ -283,38 +287,13 @@ public class MainActivity extends AppCompatActivity {
 //                    Log.e("TCP","Command chain error", ex);
 //                    return null;
 //                });
+//
+//        // server mode
+//        if (Objects.equals(chargerConfiguration.getAuthMode(), 1)) {
+//            sendOcppAuthInfoRequest();
+//        }
 
-        // server mode
-        if (Objects.equals(chargerConfiguration.getAuthMode(), 1)) {
-            sendOcppAuthInfoRequest();
-        }
-
-        // 8. ChargerOperate read
-        File file = new File(GlobalVariables.getRootPath() + File.separator + "ChargerOperate");
-        File firmwareFile = new File(GlobalVariables.getRootPath() + File.separator + "FirmwareStatusNotification");
-        if (!firmwareFile.exists()) {
-            if (file.exists()) {
-                FileReader fileReader = null;
-                try {
-                    fileReader = new FileReader(file);
-                    BufferedReader bufferedReader = new BufferedReader(fileReader);
-                    String line;
-                    int count = 0;
-                    while ((line = bufferedReader.readLine()) != null) {
-                        GlobalVariables.ChargerOperation[count] = Objects.equals(line, "true");
-                        count++;
-                    }
-                } catch (Exception e) {
-                    logger.error("ChargerOperate read error : {}", e.getMessage());
-                }
-            } else {
-                for (int i = 0; i < GlobalVariables.maxPlugCount; i++) {
-                    GlobalVariables.ChargerOperation[i] = true;
-                }
-            }
-        }
-
-        // 9. 전류 제한 설정
+        // 8. 전류 제한 설정
         for (int i = 0; i <GlobalVariables.maxChannel; i++) {
             ((MainActivity) MainActivity.mContext).getControlBoard().getTxData(i).setOutPowerLimit((short) chargerConfiguration.getDr());
         }
@@ -423,7 +402,7 @@ public class MainActivity extends AppCompatActivity {
     @SuppressLint("ConstantConditions")
     public void onRebooting(String type) {
         try {
-            ((MainActivity) MainActivity.mContext).getSocketReceiveMessage().getSocket().disconnect();
+//            ((MainActivity) MainActivity.mContext).getSocketReceiveMessage().getSocket().disconnect();
             if (Objects.equals(type, "Soft")) {
                 ActivityCompat.finishAffinity(((MainActivity) MainActivity.mContext));
                 System.exit(0);
@@ -436,14 +415,30 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void onChargerOperate() {
+        try {
+            File file = new File(GlobalVariables.getRootPath() + File.separator + "ChargerOperate");
+            if (file.exists()) {
+                FileReader fileReader = new FileReader(file);
+                BufferedReader bufferedReader = new BufferedReader(fileReader);
+                String line;
+                int count = 0;
+                while ((line = bufferedReader.readLine()) != null) {
+                    GlobalVariables.ChargerOperation[count] = Objects.equals(line, "true");
+                    count++;
+                }
+            } else {
+                Arrays.fill(GlobalVariables.ChargerOperation, true);
+            }
+        } catch (Exception e) {
+            logger.error("onChargerOperate error : {}", e.getMessage());
+        }
+    }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
 //        inactivityHandler.removeCallbacks(inactivityRunnable);
-        //Custom status notification stop
-        for (int i = 0; i < GlobalVariables.maxChannel; i++) {
-            ((MainActivity) MainActivity.mContext).getClassUiProcess(i).onCustomStatusNotificationStop();
-        }
         handler.removeCallbacks(runnable);
     }
 
@@ -455,17 +450,60 @@ public class MainActivity extends AppCompatActivity {
     private int retryCount = 0;
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private void sendOcppAuthInfoRequest() {
-        HttpClientHelper httpClientHelper = new HttpClientHelper();
-        String url = chargerConfiguration.getServerConnectingString();
-
-        TripleDES tripleDES = new TripleDES();
-
-        try {
-            // TODO: websocket
-        } catch (Exception e) {
-            logger.error("REQUEST_ERROR {}", e.getMessage());
-            scheduleRetry();
-        }
+//        HttpClientHelper httpClient = new HttpClientHelper();
+//        String url = chargerConfiguration.getServerConnectingString();
+//
+//        try {
+//            String encrypted = chargerConfiguration.getChargePointSerialNumber();
+//            String jsonBody = httpClient.onJsonMake("reqVal", encrypted);
+//            httpClient.postWithRetry(url, jsonBody, new HttpClientHelper.HttpCallback() {
+//                @Override
+//                public void onSuccess(int statusCode, String response) {
+//                    try {
+//                        if (statusCode == 200) {
+//                            JSONObject jsonObject = new JSONObject(response);
+//                            String resultCode = jsonObject.optString("resultCode", "");
+//                            if ("OK".equals(resultCode)) {
+//                                // WebSocket 연결 설정
+//
+//                                connectorList = connectionListJsonParse.parseConnectorList(response);
+//
+//                                runOnUiThread(() -> chargerConfiguration.setChargerId(String.valueOf(connectorList.get(0).getSearchKey())));
+//
+//                                String baseUrl = chargerConfiguration.getServerConnectingString() + "/" + chargerConfiguration.getChargeBoxSerialNumber() + chargerConfiguration.getChargerId();
+//                                socketReceiveMessage = new SocketReceiveMessage(baseUrl);
+//
+//                                retryCount = 0;
+//                                // 초기 화면
+//                                for (int i = 0; i < GlobalVariables.maxChannel; i++) {
+//                                    fragmentChange.onFragmentChange(i, UiSeq.INIT, "INIT", "");;
+//                                    fragmentChange.onFragmentHeaderChange(i, "Header");
+//                                }
+//                            } else {
+//                                Log.w("HTTP", "resultCode != OK → 3초 후 재요청");
+//                                scheduleRetry();
+//                            }
+//                        } else {
+//                            Log.w("HTTP", "resultCode != 200 → 3초 후 재요청");
+//                            scheduleRetry();
+//                        }
+//                    } catch (Exception e) {
+//                        Log.e("PARSE_ERROR", "JSON 파싱 오류", e);
+//                        scheduleRetry();
+//                    }
+//                    Log.d("HTTP", "Response: " + response);
+//                }
+//
+//                @Override
+//                public void onFailure(IOException e) {
+//                    Log.e("HTTP", "Failed to send request", e);
+//                    scheduleRetry();
+//                }
+//            });
+//        } catch (Exception e) {
+//            logger.error("REQUEST_ERROR {}", e.getMessage());
+//            scheduleRetry();
+//        }
     }
 
     private void scheduleRetry() {
