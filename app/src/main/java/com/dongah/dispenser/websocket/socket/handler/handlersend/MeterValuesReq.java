@@ -108,6 +108,7 @@ public class MeterValuesReq {
         meterValuesData.transactionId = chargingCurrentData.getTransactionId();
         meterValuesData.idTag = chargingCurrentData.getIdTag();
         meterValuesData.timestamp = zonedDateTimeConvert.doGetUtcDatetimeAsString();
+        meterValuesData.power = 0.0f;
         meterValuesData.eps = (int) (chargingCurrentData.getOutPutVoltage() * 10);
         meterValuesData.ecu = (int) (chargingCurrentData.getOutPutCurrent() * 0.001) ;
         meterValuesData.accWh = (float) (chargingCurrentData.getPowerMeter() * 10);
@@ -115,9 +116,9 @@ public class MeterValuesReq {
         meterValuesData.accTickTime = GlobalVariables.getMeterValueSampleInterval();
         meterValuesData.rechgHr = (int) chargingCurrentData.getChargingTime();
         meterValuesData.remnHr = chargingCurrentData.getRemaintime() / 60;
-        meterValuesData.btrRm = String.valueOf(chargingCurrentData.getSoc());
-        meterValuesData.slprcUpc = String.valueOf(chargingCurrentData.getPowerUnitPrice());
-        meterValuesData.crtrUpc = "";
+        meterValuesData.btrRm = chargingCurrentData.getSoc();
+        meterValuesData.slprcUpc = (float) chargingCurrentData.getPowerUnitPrice();
+        meterValuesData.crtrUpc = 0.0f;
 
         // 2. JSON 변환
         Gson gson = new Gson();
