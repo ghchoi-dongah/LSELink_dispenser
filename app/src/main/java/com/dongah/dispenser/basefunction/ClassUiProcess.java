@@ -203,11 +203,6 @@ public class ClassUiProcess implements RfCardReaderListener {
                             // Accepted → Charging Fragment
                             StartTransactionReq startTransactionReq = new StartTransactionReq(chargingCurrentData.getConnectorId());
                             startTransactionReq.sendStartTransactionReq();
-
-//                            if (GlobalVariables.getMeterValueSampleInterval() > 0) {
-//                                ((MainActivity) MainActivity.mContext).getClassUiProcess(getCh()).onMeterValueStart(chargingCurrentData.getConnectorId());
-////                            onMeterValueStart(chargingCurrentData.getConnectorId());
-//                            }
                         }
                     } else if (rxData.isCsStop() || rxData.getCsmSeccStatusCode() == (byte) 0x10) {
                         controlBoard.getTxData(getCh()).setStop(true);
