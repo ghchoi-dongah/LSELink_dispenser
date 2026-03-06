@@ -108,7 +108,7 @@ public class MeterValuesReq {
         meterValuesData.transactionId = chargingCurrentData.getTransactionId();
         meterValuesData.idTag = chargingCurrentData.getIdTag();
         meterValuesData.timestamp = zonedDateTimeConvert.doGetUtcDatetimeAsString();
-        meterValuesData.power = 0.0f;
+        meterValuesData.power = (float) ((chargingCurrentData.getOutPutVoltage() * 10) * (chargingCurrentData.getOutPutCurrent() * 0.001));
         meterValuesData.eps = (int) (chargingCurrentData.getOutPutVoltage() * 10);
         meterValuesData.ecu = (int) (chargingCurrentData.getOutPutCurrent() * 0.001) ;
         meterValuesData.accWh = (float) (chargingCurrentData.getPowerMeter() * 10);
