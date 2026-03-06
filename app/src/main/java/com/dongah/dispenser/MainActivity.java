@@ -440,6 +440,9 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
 //        inactivityHandler.removeCallbacks(inactivityRunnable);
         handler.removeCallbacks(runnable);
+        for (int i = 0; i < GlobalVariables.maxChannel; i++) {
+            classUiProcess[i].stopEventLoop();
+        }
     }
 
     /**

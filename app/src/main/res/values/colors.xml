@@ -10,4 +10,5 @@
     <color name="white">#FFFFFFFF</color>
     <color name="primary">#06377B</color>
     <color name="orange">#ff9900</color>
+    <color name="gin_grey">#666666</color>
 </resources>
