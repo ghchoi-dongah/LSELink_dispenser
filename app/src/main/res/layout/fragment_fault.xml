@@ -14,37 +14,29 @@
 
     <TextView
         android:id="@+id/textViewFaultMessage"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="40dp"
         android:gravity="center"
         android:text="@string/faultMessage"
-        android:textSize="36sp"
+        android:textSize="32sp"
+        android:textColor="#760505"
+        android:textStyle="bold"
+        app:drawableStartCompat="@drawable/fault"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
-    <ImageView
-        android:id="@+id/imageViewFault"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:background="@drawable/fault"
-        app:layout_constraintTop_toBottomOf="@id/textViewFaultMessage"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        tools:ignore="contentDescription" />
-
     <TextView
         android:id="@+id/textViewFaultCode"
         android:layout_width="400dp"
-        android:layout_height="200dp"
+        android:layout_height="500dp"
         android:layout_marginTop="20dp"
-        android:gravity="center_horizontal"
-        android:text="ERROR MESSAGE"
+        android:gravity="start"
         android:textSize="30sp"
-        android:textColor="@color/black_500"
-        app:layout_constraintTop_toBottomOf="@id/imageViewFault"
+        android:textColor="@color/white"
+        android:background="@color/gin_grey"
+        app:layout_constraintTop_toBottomOf="@id/textViewFaultMessage"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 

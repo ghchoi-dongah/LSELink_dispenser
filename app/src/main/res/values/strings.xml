@@ -33,7 +33,7 @@
     <string name="chargingFinishWaitMessage"><font color="#000">충전 종료 중</font></string>
     <string name="check">확인</string>
     <string name="cancel">취소</string>
-    <string name="faultMessage"><font color="#000">오류 발생</font></string>
+    <string name="faultMessage">SYSTEM ERROR MESSAGE</string>
     <string name="faultCodeMessage"> </string>
     <string name="carNum"><font color="#000">차량번호 : </font></string>
     <string name="voltageUnit">V</string>
