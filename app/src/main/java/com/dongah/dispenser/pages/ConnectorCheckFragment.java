@@ -167,8 +167,8 @@ public class ConnectorCheckFragment extends Fragment implements View.OnClickList
                                     StatusNotificationReq statusNotificationReq = new StatusNotificationReq(chargingCurrentData.getConnectorId());
                                     statusNotificationReq.sendStatusNotification();
                                 }
-//                                ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).onHome();
-//                                ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.CONNECTION_FAILED, "CONNECTION_FAILED", null);
+
+                                // 통신 실패 처리
                                 textViewConnectorCheckMessage.setText(R.string.connectorRetryMessage);
                                 imageViewLoading.setVisibility(View.INVISIBLE);
                                 imageViewConnectionFailed.setVisibility(View.VISIBLE);

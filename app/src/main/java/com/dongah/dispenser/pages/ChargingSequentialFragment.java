@@ -1,19 +1,27 @@
 package com.dongah.dispenser.pages;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.R;
+import com.dongah.dispenser.basefunction.ChargingCurrentData;
 import com.dongah.dispenser.basefunction.UiSeq;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Objects;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -33,6 +41,11 @@ public class ChargingSequentialFragment extends Fragment implements View.OnClick
     private String mParam1;
     private String mParam2;
     private int mChannel;
+
+    View viewCircle;
+    ImageView imageViewBus;
+    TextView textViewConnector;
+    ChargingCurrentData chargingCurrentData;
 
     public ChargingSequentialFragment() {
         // Required empty public constructor
@@ -66,18 +79,47 @@ public class ChargingSequentialFragment extends Fragment implements View.OnClick
         }
     }
 
+    @SuppressLint("SetTextI18n")
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_charging_sequential, container, false);
         view.setOnClickListener(this);
+        textViewConnector = view.findViewById(R.id.textViewConnector);
+        imageViewBus = view.findViewById(R.id.imageViewBus);
+        viewCircle = view.findViewById(R.id.viewCircle);
+        viewCircle.setOnClickListener(this);
+
+        try {
+            // ch0, ch1 구분 => 이미지 위치 조절
+            if (mChannel == 0) {
+                imageViewBus.setScaleX(1f);
+                textViewConnector.setText("1" + R.string.connectorSeq);
+            } else {
+                imageViewBus.setScaleX(-1f);
+                textViewConnector.setText("2" + R.string.connectorSeq);
+            }
+        } catch (Exception e) {
+            logger.error("ChargingSequentialFragment onCreateView error : {}", e.getMessage());
+        }
         return view;
     }
 
     @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        try {
+            chargingCurrentData = ((MainActivity) MainActivity.mContext).getChargingCurrentData(mChannel);
+        } catch (Exception e) {
+            logger.error("ChargingSequentialFragment onViewCreated error : {}", e.getMessage());
+        }
+    }
+
+    @Override
     public void onClick(View v) {
-        if (!isAdded()) return;
-        ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.OP_STOP);
-        ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.OP_STOP, "OP_STOP", null);
+        if (!Objects.equals(v.getId(), R.id.viewCircle)) return;
+
+        ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.MEMBER_CHECK_WAIT);
+        ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.MEMBER_CHECK_WAIT, "MEMBER_CHECK_WAIT", null);
     }
 }

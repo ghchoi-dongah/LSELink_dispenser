@@ -7,93 +7,60 @@
     android:padding="5dp"
     tools:context=".pages.ChargingSequentialFragment">
 
-    <TextView
-        android:id="@+id/textViewSequentialMessage"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="40dp"
-        android:gravity="center"
-        android:text="@string/sequentialMessage"
-        android:textSize="34sp"
+    <View
+        android:id="@+id/viewCircle"
+        android:layout_width="440dp"
+        android:layout_height="440dp"
+        android:background="@drawable/layer_list_oval_yellow"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <TextView
-        android:id="@+id/textViewEstimatedChargingMessage"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:layout_marginStart="100dp"
-        android:text="@string/estimatedChargingTime"
-        android:textSize="26sp"
-        app:layout_constraintTop_toBottomOf="@id/textViewSequentialMessage"
-        app:layout_constraintStart_toStartOf="parent"  />
-
-    <TextView
-        android:id="@+id/textViewEstimatedChargingValue"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="10dp"
-        android:text="10분 후"
-        android:textSize="26sp"
-        android:textColor="@color/primary"
-        app:layout_constraintStart_toEndOf="@id/textViewEstimatedChargingMessage"
-        app:layout_constraintTop_toTopOf="@id/textViewEstimatedChargingMessage" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
 
     <ImageView
         android:id="@+id/imageViewBus"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="90dp"
-        android:background="@drawable/bus"
-        app:layout_constraintTop_toBottomOf="@id/textViewSequentialMessage"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        tools:ignore="contentDescription"/>
+        android:background="@drawable/bus_yellow"
+        app:layout_constraintTop_toTopOf="@id/viewCircle"
+        app:layout_constraintStart_toStartOf="@id/viewCircle"
+        app:layout_constraintEnd_toEndOf="@id/viewCircle"
+        tools:ignore="contentDescription" />
 
     <TextView
-        android:id="@+id/textViewLimitSoc"
+        android:id="@+id/textViewConnector"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/limitSoc"
-        android:textSize="28sp"
-        app:layout_constraintBottom_toTopOf="@id/textViewLimitKw"
-        app:layout_constraintLeft_toLeftOf="@id/textViewLimitKw"/>
-
-    <TextView
-        android:id="@+id/textViewLimitSocValue"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
-        android:text="90%"
-        android:textSize="28sp"
+        android:layout_marginTop="30dp"
+        android:text="@string/connectorSeq"
+        android:textSize="36sp"
         android:textColor="@color/black"
-        app:layout_constraintStart_toEndOf="@id/textViewLimitSoc"
-        app:layout_constraintTop_toTopOf="@id/textViewLimitSoc" />
+        app:layout_constraintTop_toBottomOf="@id/imageViewBus"
+        app:layout_constraintStart_toStartOf="@id/imageViewBus"
+        app:layout_constraintEnd_toEndOf="@id/imageViewBus" />
 
     <TextView
-        android:id="@+id/textViewLimitKw"
+        android:id="@+id/textViewInitMessage"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="30dp"
-        android:layout_marginBottom="50dp"
-        android:text="@string/limitKw"
-        android:textSize="28sp"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent" />
+        android:gravity="center"
+        android:text="@string/initMessage"
+        android:textSize="20sp"
+        app:layout_constraintTop_toBottomOf="@id/textViewConnector"
+        app:layout_constraintStart_toStartOf="@id/textViewConnector"
+        app:layout_constraintEnd_toEndOf="@id/textViewConnector" />
 
     <TextView
-        android:id="@+id/textViewLimitValue"
+        android:id="@+id/textViewInitMessageSub"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
-        android:text="0kW"
-        android:textSize="28sp"
-        android:textColor="@color/black"
-        app:layout_constraintStart_toEndOf="@id/textViewLimitKw"
-        app:layout_constraintTop_toTopOf="@id/textViewLimitKw" />
-
-
+        android:layout_marginTop="10dp"
+        android:gravity="center"
+        android:text="@string/seqTime"
+        android:textSize="18sp"
+        app:layout_constraintTop_toBottomOf="@id/textViewInitMessage"
+        app:layout_constraintStart_toStartOf="@id/textViewInitMessage"
+        app:layout_constraintEnd_toEndOf="@id/textViewInitMessage" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
