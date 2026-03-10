@@ -35,7 +35,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
 import java.util.Timer;
-import java.util.TimerTask;
 
 public class ClassUiProcess implements RfCardReaderListener {
 
@@ -103,6 +102,7 @@ public class ClassUiProcess implements RfCardReaderListener {
 
             // rf card
             rfCardReaderReceive = ((MainActivity) MainActivity.mContext).getRfCardReaderReceive();
+            rfCardReaderReceive.setRfCardReaderListener(this);
             // configuration
             chargerConfiguration = ((MainActivity) MainActivity.mContext).getChargerConfiguration();
             // fragment change
@@ -235,25 +235,12 @@ public class ClassUiProcess implements RfCardReaderListener {
         }
     }
 
-//    public void onResetStop(int channel, ResetType resetType) {
-//        try {
-//            UiSeq uiSeq = ((MainActivity) MainActivity.mContext).getClassUiProcess(channel).getUiSeq();
-//            if (Objects.equals(uiSeq, UiSeq.CHARGING)) {
-//                controlBoard.getTxData(getCh()).setStop(true);
-//                controlBoard.getTxData(getCh()).setStart(false);
-//                chargingCurrentData.setUserStop(false);
-//                chargingCurrentData.setStopReason(resetType == ResetType.Hard ? Reason.HardReset : Reason.SoftReset);
-//                setUiSeq(UiSeq.FINISH_WAIT);
-//            }
-//        } catch (Exception e) {
-//            logger.error("reset stop error : {}", e.getMessage());
-//        }
-//    }
-
     public void onResetStop(ResetType resetType) {
         try {
             UiSeq uiSeq = ((MainActivity) MainActivity.mContext).getClassUiProcess(getCh()).getUiSeq();
             if (Objects.equals(uiSeq, UiSeq.CHARGING)) {
+                controlBoard.getTxData(getCh()).setStop(true);
+                controlBoard.getTxData(getCh()).setStart(false);
                 chargingCurrentData.setUserStop(false);
                 chargingCurrentData.setStopReason(resetType == ResetType.Hard ? Reason.HardReset : Reason.SoftReset);
                 setUiSeq(UiSeq.FINISH_WAIT);
@@ -533,7 +520,8 @@ public class ClassUiProcess implements RfCardReaderListener {
                     }
                 }
             } else {
-                if (rxData.isCsStop() || !rxData.isCsPilot() || chargingCurrentData.isUserStop() || isSocReached) {
+                if (rxData.isCsStop() || !rxData.isCsPilot() || chargingCurrentData.isUserStop() || isSocReached
+                        || !GlobalVariables.ChargerOperation[getCh()]) {
                     controlBoard.getTxData(getCh()).setStop(true);
                     controlBoard.getTxData(getCh()).setStart(false);
                     if (!rxData.isCsPilot()) {
@@ -569,8 +557,14 @@ public class ClassUiProcess implements RfCardReaderListener {
                 stopTransactionReq.sendStopTransactionReq();
             }
 
-            setUiSeq(UiSeq.FINISH);
-            fragmentChange.onFragmentChange(getCh(), UiSeq.FINISH, "FINISH", null);
+            if (!GlobalVariables.ChargerOperation[getCh()]) {
+                setUiSeq(UiSeq.OP_STOP);
+                fragmentChange.onFragmentChange(getCh(), UiSeq.OP_STOP, "OP_STOP", null);
+            } else {
+                setUiSeq(UiSeq.FINISH);
+                fragmentChange.onFragmentChange(getCh(), UiSeq.FINISH, "FINISH", null);
+            }
+
         } catch (Exception e) {
             logger.error("ClassUiProcess - FINISH_WAIT error : {} ", e.getMessage());
         }

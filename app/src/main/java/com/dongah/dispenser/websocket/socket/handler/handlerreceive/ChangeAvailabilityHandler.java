@@ -7,6 +7,7 @@ import androidx.annotation.RequiresApi;
 
 import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.basefunction.GlobalVariables;
+import com.dongah.dispenser.basefunction.UiSeq;
 import com.dongah.dispenser.utils.FileManagement;
 import com.dongah.dispenser.websocket.ocpp.core.AvailabilityStatus;
 import com.dongah.dispenser.websocket.ocpp.core.AvailabilityType;
@@ -41,6 +42,12 @@ public class ChangeAvailabilityHandler implements OcppHandler {
         // ChargerOperate
         GlobalVariables.ChargerOperation[connectorId-1] = checkType;
         onChargerOperateSave(checkType);
+
+        // 충전 가능 && OP_STOP → INIT로 갱신
+        if (GlobalVariables.ChargerOperation[connectorId-1] &&
+                activity.getClassUiProcess(connectorId-1).getUiSeq().equals(UiSeq.OP_STOP)) {
+            activity.getClassUiProcess(connectorId-1).onHome();
+        }
     }
 
 
