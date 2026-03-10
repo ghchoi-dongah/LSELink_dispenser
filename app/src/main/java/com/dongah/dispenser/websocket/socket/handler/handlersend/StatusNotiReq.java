@@ -3,11 +3,13 @@ package com.dongah.dispenser.websocket.socket.handler.handlersend;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 
 import androidx.annotation.RequiresApi;
 
 import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.basefunction.ChargerConfiguration;
+import com.dongah.dispenser.basefunction.ChargingCurrentData;
 import com.dongah.dispenser.basefunction.GlobalVariables;
 import com.dongah.dispenser.websocket.ocpp.core.datatransfer.lselink.ModeStatus;
 import com.dongah.dispenser.websocket.ocpp.core.datatransfer.lselink.StatusNotiData;
@@ -66,10 +68,11 @@ public class StatusNotiReq {
         try {
             MainActivity activity = (MainActivity) MainActivity.mContext;
             ChargerConfiguration chargerConfiguration = activity.getChargerConfiguration();
+            ChargingCurrentData chargingCurrentData = activity.getChargingCurrentData(connectorId-1);
 
             StatusNotiData statusNotiData = new StatusNotiData();
             statusNotiData.setConnectorId(connectorId);
-            statusNotiData.setStatus(ModeStatus.DM);            //추후 확인 2025.02.02
+            statusNotiData.setStatus(ModeStatus.valueOf(chargingCurrentData.getChangeMode()));
 
             StatusNotiRequest statusNotiRequest = new StatusNotiRequest();
             statusNotiRequest.setVendorId(chargerConfiguration.getChargePointVendor());
