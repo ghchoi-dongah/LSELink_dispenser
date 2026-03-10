@@ -66,10 +66,7 @@ public class AuthorizeHandler implements OcppHandler {
                 VehicleInfoReq vehicleInfoReq = new VehicleInfoReq(connectorId);
                 vehicleInfoReq.sendVehicleInfo();
 
-
-                if (!Objects.equals(chargingCurrentData.getChargePointStatus(), ChargePointStatus.Preparing) &&
-                        Objects.equals(chargerConfiguration.getOpMode(), 1)) {
-
+                if (Objects.equals(chargingCurrentData.getChargePointStatus(), ChargePointStatus.Available)) {
                     chargingCurrentData.setChargePointStatus(ChargePointStatus.Preparing);
                     StatusNotificationReq statusNotificationReq = new StatusNotificationReq(connectorId);
                     statusNotificationReq.sendStatusNotification();
