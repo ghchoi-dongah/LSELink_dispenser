@@ -73,7 +73,6 @@ public class OperationStopFragment extends Fragment implements View.OnClickListe
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_operation_stop, container, false);
-        view.setOnClickListener(this);
         imageViewOpStop = view.findViewById(R.id.imageViewOpStop);
 
         // imageViewOpStop animation
@@ -90,7 +89,15 @@ public class OperationStopFragment extends Fragment implements View.OnClickListe
     @Override
     public void onClick(View v) {
         if (!isAdded()) return;
-        ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.FAULT);
-        ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.FAULT, "FAULT", null);
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+
+        if (fadeAnimator != null) {
+            fadeAnimator.cancel();
+            fadeAnimator = null;
+        }
     }
 }
