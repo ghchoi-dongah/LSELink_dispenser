@@ -97,4 +97,14 @@ public class ConnectionFailedFragment extends Fragment implements View.OnClickLi
         ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.INIT);
         ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.INIT, "INIT", null);
     }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+
+        if (fadeAnimator != null) {
+            fadeAnimator.cancel();
+            fadeAnimator = null;
+        }
+    }
 }
