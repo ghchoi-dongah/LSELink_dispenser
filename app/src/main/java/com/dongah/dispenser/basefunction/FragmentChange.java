@@ -170,12 +170,25 @@ public class FragmentChange {
                     onFrameLayoutChange(false);
                     FaultFragment faultFragment = new FaultFragment();
                     faultFragment.setArguments(bundle);
+                    bundle.putString("param2", "FAULT_MESSAGE");
                     transaction.replace(frameLayoutId, faultFragment, "FAULT");
                     transaction.commit();
                 } catch (Exception e) {
                     logger.error("onFragmentChange error : FAULT {}", e.getMessage());
                 }
                 break;
+            case REBOOTING:
+                try {
+                    onFrameLayoutChange(false);
+                    FaultFragment faultFragment = new FaultFragment();
+                    faultFragment.setArguments(bundle);
+                    bundle.putString("param2", "REBOOTING");
+                    bundle.putString("param3", type);
+                    transaction.replace(frameLayoutId, faultFragment, "REBOOTING");
+                    transaction.commit();
+                } catch (Exception e) {
+                    logger.error("onFragmentChange error : REBOOTING {}", e.getMessage());
+                }
             case SEQUENTIAL_CHARGING:
                 try {
                     onFrameLayoutChange(false);
