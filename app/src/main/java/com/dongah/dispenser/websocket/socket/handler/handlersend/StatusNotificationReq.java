@@ -51,7 +51,7 @@ public class StatusNotificationReq {
                 final int rConnectorId = i;
                 new Handler(Looper.getMainLooper()).postDelayed(() -> {
                     sendSingleStatusNotification(rConnectorId);
-                }, 1000);
+                }, 2000);
             }
         } catch (Exception e) {
             Log.e("StatusNotificationReq", "sendStatusNotification error", e);
@@ -59,6 +59,36 @@ public class StatusNotificationReq {
         }
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    public void sendStatusNotification(int connectorId, ChargePointStatus chargePointStatus) {
+        try {
+            MainActivity activity = (MainActivity) MainActivity.mContext;
+            ZonedDateTimeConvert zonedDateTimeConvert = new ZonedDateTimeConvert();
+            ZonedDateTime timestamp = zonedDateTimeConvert.doZonedDateTimeToDatetime();
+
+            StatusNotificationRequest statusNotificationRequest = new StatusNotificationRequest(timestamp);
+            statusNotificationRequest.setConnectorId(connectorId);
+            ControlBoard controlBoard = activity.getControlBoard();
+            RxData rxData = controlBoard.getRxData(connectorId-1);
+            ChargePointErrorCode errorCode = (controlBoard.isDisconnected() ? ChargePointErrorCode.EVCommunicationError :
+                    rxData.isCsEmergency() ? ChargePointErrorCode.OtherError : ChargePointErrorCode.NoError);
+            statusNotificationRequest.setErrorCode(errorCode);
+            statusNotificationRequest.setStatus(chargePointStatus);
+
+            activity.getSocketReceiveMessage().onSend(
+                    connectorId,
+                    statusNotificationRequest.getActionName(),
+                    statusNotificationRequest
+            );
+
+            // DataTransfer statusnoti
+            StatusNotiReq statusNotiReq = new StatusNotiReq(connectorId);
+            statusNotiReq.sendStatusNotification();
+        } catch (Exception e) {
+            Log.e("StatusNotificationReq", "sendStatusNotification Overloading error", e);
+            logger.error("sendStatusNotification Overloading {}", e.getMessage());
+        }
+    }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void sendSingleStatusNotification(int connectorId) {
