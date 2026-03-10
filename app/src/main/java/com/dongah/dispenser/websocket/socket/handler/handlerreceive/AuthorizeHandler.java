@@ -88,8 +88,8 @@ public class AuthorizeHandler implements OcppHandler {
                     fragmentChange.onFragmentChange(connectorId-1, UiSeq.MEMBER_CARD, "MEMBER_CARD", null);
                 } else {
                     activity.getChargingCurrentData(connectorId-1).setAuthorizeResult(false);
-                    activity.getClassUiProcess(connectorId-1).onHome();
-                    toastPositionMake.onShowToast(connectorId-1, "인증 실패 : " + certificationReason);
+//                    activity.getClassUiProcess(connectorId-1).onHome();
+//                    toastPositionMake.onShowToast(connectorId-1, "인증 실패 : " + certificationReason);
                 }
             }
         }

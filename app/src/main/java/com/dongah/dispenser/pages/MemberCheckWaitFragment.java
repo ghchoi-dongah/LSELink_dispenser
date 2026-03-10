@@ -14,6 +14,7 @@ import androidx.annotation.RequiresApi;
 import androidx.fragment.app.Fragment;
 
 import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -31,6 +32,7 @@ import com.dongah.dispenser.basefunction.ClassUiProcess;
 import com.dongah.dispenser.basefunction.GlobalVariables;
 import com.dongah.dispenser.basefunction.UiSeq;
 import com.dongah.dispenser.controlboard.RxData;
+import com.dongah.dispenser.utils.BitUtilities;
 import com.dongah.dispenser.websocket.ocpp.core.ChargePointStatus;
 import com.dongah.dispenser.websocket.ocpp.core.Reason;
 import com.dongah.dispenser.websocket.socket.SocketReceiveMessage;
@@ -153,10 +155,8 @@ public class MemberCheckWaitFragment extends Fragment implements View.OnClickLis
             if (Objects.equals(chargingCurrentData.getAuthType(), "M")) {
                 RxData rxData = ((MainActivity) MainActivity.mContext).getControlBoard().getRxData(mChannel);
 //                chargingCurrentData.setIdTag(BitUtilities.toHexString(rxData.getCsmVehicleEvccId()));
-                chargingCurrentData.setIdTag("C1364747EE704");
-//                chargingCurrentData.setIdTag("C1364747EE708");
-            } else if (Objects.equals(chargingCurrentData.getAuthType(), "C")) {
-                chargingCurrentData.setIdTag("C1010010341009611");
+//                chargingCurrentData.setIdTag("1364747EE704");
+                chargingCurrentData.setIdTag("1364747EE708");
             }
 
             ((MainActivity) MainActivity.mContext).runOnUiThread(new Runnable() {
@@ -168,14 +168,23 @@ public class MemberCheckWaitFragment extends Fragment implements View.OnClickLis
                         public void run() {
                             try {
                                 cnt++;
-                                if (Objects.equals(cnt, TIME_MAX)) {
-                                    ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).onHome();
+//                                if (Objects.equals(cnt, TIME_MAX)) {
+//                                    ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).onHome();
+//                                } else {
+//                                    countHandler.postDelayed(countRunnable, 1000);
+//                                }
+
+                                // authorize result check
+                                if ((!chargingCurrentData.isAuthorizeResult() && Objects.equals(chargingCurrentData.getAuthType(), "C")) ||
+                                        Objects.equals(cnt, TIME_MAX)) {
+                                    authorizeFailed();
+
+                                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                                        ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).onHome();
+                                    }, 10000);
+
                                 } else {
                                     countHandler.postDelayed(countRunnable, 1000);
-                                }
-                                // authorize result check
-                                if (!chargingCurrentData.isAuthorizeResult() && Objects.equals(chargingCurrentData.getAuthType(), "C")) {
-                                    authorizeFailed();
                                 }
                             } catch (Exception e) {
                                 Log.e("MemberCheckWaitFragment", "runOnUiThread error", e);
@@ -191,7 +200,6 @@ public class MemberCheckWaitFragment extends Fragment implements View.OnClickLis
             String[] idTagInfo;
             UiSeq uiSeq = classUiProcess.getUiSeq();
             SocketReceiveMessage socketReceiveMessage = ((MainActivity) MainActivity.mContext).getSocketReceiveMessage();
-            ProcessHandler processHandler = ((MainActivity) MainActivity.mContext).getProcessHandler();
 
             // isLocalPreAuthorize == true : local authorization list 에서 사용자 인증
             // isLocalPreAuthorize: 사전 로컬 인증 모드
@@ -201,6 +209,7 @@ public class MemberCheckWaitFragment extends Fragment implements View.OnClickLis
                 if (Objects.equals(UiSeq.CHARGING, uiSeq)) {
                     if (Objects.equals(chargingCurrentData.getParentIdTag(), idTagInfo[1]) ||
                             Objects.equals(chargingCurrentData.getIdTag(), chargingCurrentData.getIdTagStop())) {
+                        classUiProcess.setUiSeq(UiSeq.FINISH_WAIT);
                         ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.FINISH_WAIT, "FINISH_WAIT", null);
                     } else  {
                         classUiProcess.setUiSeq(UiSeq.CHARGING);
@@ -221,12 +230,11 @@ public class MemberCheckWaitFragment extends Fragment implements View.OnClickLis
                         ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.PLUG_CHECK, "PLUG_CHECK", null);
                     } else if (Objects.equals(idTagInfo[0], "notFound")) {
                         AuthorizeReq authorizeReq = new AuthorizeReq(chargingCurrentData.getConnectorId());
-                        authorizeReq.sendAuthorize(chargingCurrentData.getIdTag());
+                        authorizeReq.sendAuthorize("C" + chargingCurrentData.getIdTag());
                     } else {
                         // 인증 실패
                         ((MainActivity) MainActivity.mContext).getChargingCurrentData(mChannel).setAuthorizeResult(false);
                         authorizeFailed();
-//                        ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).onHome();
                         RxData rxData = ((MainActivity) MainActivity.mContext).getControlBoard().getRxData(mChannel);
                         if (!rxData.isCsPilot() && Objects.equals(chargerConfiguration.getOpMode(), 1)) {
                             chargingCurrentData.setChargePointStatus(ChargePointStatus.Available);
@@ -249,7 +257,7 @@ public class MemberCheckWaitFragment extends Fragment implements View.OnClickLis
                             }
                         }
                         AuthorizeReq authorizeReq = new AuthorizeReq(chargingCurrentData.getConnectorId());
-                        authorizeReq.sendAuthorize(chargingCurrentData.getIdTag());
+                        authorizeReq.sendAuthorize("C" + chargingCurrentData.getIdTag());
                     }
                 } else {
                     // 서버와 연결이 안된 경우
@@ -282,8 +290,6 @@ public class MemberCheckWaitFragment extends Fragment implements View.OnClickLis
                             } else {
                                 // 인증 실패
                                 authorizeFailed();
-//                                Toast.makeText(getActivity(), "인증 실패. ", Toast.LENGTH_SHORT).show();
-//                                ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).onHome();
                             }
                         }
                     } else {
@@ -293,7 +299,6 @@ public class MemberCheckWaitFragment extends Fragment implements View.OnClickLis
                             ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel,UiSeq.CHARGING, "CHARGING", null);
                         } else {
                             authorizeFailed();
-//                            ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).onHome();
                         }
                     }
                 }

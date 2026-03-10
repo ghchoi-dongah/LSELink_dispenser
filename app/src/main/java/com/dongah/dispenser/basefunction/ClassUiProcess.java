@@ -193,6 +193,7 @@ public class ClassUiProcess implements RfCardReaderListener {
         try {
             setUiSeq(UiSeq.INIT);
             fragmentChange.onFragmentChange(getCh(), UiSeq.INIT, "INIT", null);
+            rfCardReaderReceive.rfCardReadRelease();
         } catch (Exception e) {
             logger.error("ClassUiProcess onHome error : {}", e.getMessage());
         }
