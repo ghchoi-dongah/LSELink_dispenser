@@ -8,6 +8,7 @@ import android.widget.Toast;
 
 import androidx.annotation.RequiresApi;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.R;
@@ -16,6 +17,7 @@ import com.dongah.dispenser.controlboard.RxData;
 import com.dongah.dispenser.pages.FaultFragment;
 import com.dongah.dispenser.rfcard.RfCardReaderListener;
 import com.dongah.dispenser.rfcard.RfCardReaderReceive;
+import com.dongah.dispenser.utils.SharedModel;
 import com.dongah.dispenser.websocket.ocpp.core.ChargePointErrorCode;
 import com.dongah.dispenser.websocket.ocpp.core.ChargePointStatus;
 import com.dongah.dispenser.websocket.ocpp.core.Reason;
@@ -67,6 +69,10 @@ public class ClassUiProcess implements RfCardReaderListener {
 
     public int getCh() {
         return ch;
+    }
+
+    public void setCh(int ch) {
+        this.ch = ch;
     }
 
     public UiSeq getUiSeq() {
@@ -350,6 +356,15 @@ public class ClassUiProcess implements RfCardReaderListener {
     @Override
     public void onRfCardDataReceive(String cardNum, boolean value) {
         try {
+            SharedModel sharedModel = new ViewModelProvider(((MainActivity) MainActivity.mContext)).get(SharedModel.class);
+            String[] data = sharedModel.getLiveData().getValue();
+
+            if (data != null && data.length > 0 && data[0] != null) {
+                Log.d("ClassUiProcess", "onRfCardDataReceive Integer.parseInt(data[0]) : " + Integer.parseInt(data[0]));
+                setCh(Integer.parseInt(data[0]));
+            }
+
+            Log.d("ClassUiProcess", "onRfCardDataReceive getCh : " + getCh());
             if (cardNum.isEmpty() || Objects.equals(cardNum,"0000000000000000")) {
                 setUiSeq(UiSeq.INIT);
                 fragmentChange.onFragmentChange(getCh(), UiSeq.INIT,"INIT",null);
@@ -365,6 +380,7 @@ public class ClassUiProcess implements RfCardReaderListener {
     private void onRfCardDataReceiveEvent(String cardNum, boolean b) {
         if (b) {
             try {
+                Log.d("ClassUiProcess", "onRfCardDataReceiveEvent getCh : " + getCh());
                 if (Objects.equals(cardNum,"0000000000000000")) {
                     rfCardReaderReceive.rfCardReadRequest();
                 } else if (!cardNum.isEmpty()) {

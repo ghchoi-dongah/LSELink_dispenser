@@ -58,7 +58,7 @@ public class StartTransactionHandler implements OcppHandler  {
 
             // StatusNotification
             StatusNotificationReq statusNotificationReq = new StatusNotificationReq(connectorId);
-            statusNotificationReq.sendStatusNotification();
+            statusNotificationReq.sendStatusNotification(connectorId, ChargePointStatus.Charging);
 
             // DataTransfer userSetSoc
             UserSetSocReq userSetSocReq = new UserSetSocReq(connectorId);

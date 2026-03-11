@@ -8,6 +8,7 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 
 import android.os.Handler;
 import android.view.LayoutInflater;
@@ -19,6 +20,7 @@ import android.widget.TextView;
 import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.R;
 import com.dongah.dispenser.basefunction.ChargingCurrentData;
+import com.dongah.dispenser.utils.SharedModel;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -95,6 +97,10 @@ public class MemberCardFragment extends Fragment {
         imageViewMemberCard.setBackgroundResource(R.drawable.membercardtagging);
         animationDrawable = (AnimationDrawable) imageViewMemberCard.getBackground();
         chargingCurrentData = ((MainActivity) MainActivity.mContext).getChargingCurrentData(mChannel);
+        String[] requestStrings = new String[1];
+        SharedModel sharedModel = new ViewModelProvider(requireActivity()).get(SharedModel.class);
+        requestStrings[0] = String.valueOf(mChannel);
+        sharedModel.setMutableLiveData(requestStrings);
 
         // rfCard ready
         ((MainActivity) MainActivity.mContext).getRfCardReaderReceive().rfCardReadRequest();
@@ -117,7 +123,7 @@ public class MemberCardFragment extends Fragment {
                 @Override
                 public void run() {
                     timer--;
-                    if (Objects.equals(timer, 0)) {
+                    if (timer <= 0) {
                         ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).onHome();
                     } else {
                         countHandler.postDelayed(countRunnable, 1000);

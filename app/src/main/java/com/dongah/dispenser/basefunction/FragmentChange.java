@@ -53,11 +53,7 @@ public class FragmentChange {
             case INIT:
                 try {
                     onFrameLayoutChange(false);
-                    if (channel == 0) {
-                        bundle.putInt("CHANNEL", 0);
-                    } else {
-                        bundle.putInt("CHANNEL", 1);
-                    }
+                    bundle.putInt("CHANNEL", channel == 0 ? 0 : 1);
                     InitFragment initFragment = new InitFragment();
                     initFragment.setArguments(bundle);
                     transaction.replace(frameLayoutId, initFragment, sendText);

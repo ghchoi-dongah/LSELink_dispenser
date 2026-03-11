@@ -1,6 +1,7 @@
 package com.dongah.dispenser.websocket.socket.handler.handlerreceive;
 
 import android.os.Build;
+import android.util.Log;
 
 import androidx.annotation.RequiresApi;
 
@@ -18,10 +19,13 @@ import com.dongah.dispenser.websocket.socket.handler.handlersend.StatusNotificat
 import com.dongah.dispenser.websocket.socket.handler.handlersend.VehicleInfoReq;
 
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
 
 public class AuthorizeHandler implements OcppHandler {
+    private static final Logger logger = LoggerFactory.getLogger(AuthorizeHandler.class);
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
@@ -37,61 +41,67 @@ public class AuthorizeHandler implements OcppHandler {
         String parentIdTag = idTagInfo.has("parentIdTag") ? idTagInfo.getString("parentIdTag") : "";
         String expiryDate = idTagInfo.has("expiryDate") ? idTagInfo.getString("expiryDate") : "";
 
-        // 차량 번호
-        chargingCurrentData.setParentIdTagStop(parentIdTag);
+        try {
+            // 차량 번호
+            chargingCurrentData.setParentIdTagStop(parentIdTag);
 
-        if (AuthorizationStatus.Accepted.equals(status)) {
-            if (UiSeq.CHARGING.equals(uiSeq)) {
-                boolean stopConfirm = activity.getChargerConfiguration().isStopConfirm();
-            } else {
-                chargingCurrentData.setParentIdTag(parentIdTag);
-
-                // test mode
-                if (Objects.equals(activity.getChargerConfiguration().getOpMode(), 0)) {
-                    chargingCurrentData.setPowerUnitPrice(Double.parseDouble(activity.getChargerConfiguration().getTestPrice()));
-
-                    //test 용
-                    chargingCurrentData.setIdTag("C1010010341009611");
-                }
-
-                // DataTransfer (Authorize)
-                DtAuthorizeReq dtAuthorizeReq = new DtAuthorizeReq(
-                        messageId,
-                        connectorId,
-                        chargingCurrentData.getIdTag()
-                );
-                dtAuthorizeReq.sendDtAuthorize();
-
-                // DataTransfer vehicleInfo
-                VehicleInfoReq vehicleInfoReq = new VehicleInfoReq(connectorId);
-                vehicleInfoReq.sendVehicleInfo();
-
-                if (Objects.equals(chargingCurrentData.getChargePointStatus(), ChargePointStatus.Available)) {
-                    chargingCurrentData.setChargePointStatus(ChargePointStatus.Preparing);
-                    StatusNotificationReq statusNotificationReq = new StatusNotificationReq(connectorId);
-                    statusNotificationReq.sendStatusNotification();
-                }
-
-                activity.getClassUiProcess(connectorId-1).setUiSeq(UiSeq.PLUG_CHECK);
-                fragmentChange.onFragmentChange(connectorId-1, UiSeq.PLUG_CHECK, "PLUG_CHECK", null);
-            }
-        } else {
-            String certificationReason = status.name();
-            ToastPositionMake toastPositionMake = new ToastPositionMake(activity);
-            if (Objects.equals(uiSeq, UiSeq.CHARGING)) {
-                activity.getClassUiProcess(connectorId-1).setUiSeq(UiSeq.CHARGING);
-                fragmentChange.onFragmentChange(connectorId-1, UiSeq.CHARGING, "CHARGING", null);
-                toastPositionMake.onShowToast(connectorId-1, "충전 중지 인증 실패 : " + certificationReason);
-            } else {
-                if (Objects.equals(chargingCurrentData.authType, "M")) {
-                    activity.getClassUiProcess(connectorId-1).setUiSeq(UiSeq.MEMBER_CARD);
-                    fragmentChange.onFragmentChange(connectorId-1, UiSeq.MEMBER_CARD, "MEMBER_CARD", null);
+            if (AuthorizationStatus.Accepted.equals(status)) {
+                if (UiSeq.CHARGING.equals(uiSeq)) {
+                    boolean stopConfirm = activity.getChargerConfiguration().isStopConfirm();
                 } else {
-                    activity.getChargingCurrentData(connectorId-1).setAuthorizeResult(false);
+                    chargingCurrentData.setParentIdTag(parentIdTag);
+
+                    // test mode
+                    if (Objects.equals(activity.getChargerConfiguration().getOpMode(), 0)) {
+                        chargingCurrentData.setPowerUnitPrice(Double.parseDouble(activity.getChargerConfiguration().getTestPrice()));
+
+                        //test 용
+                        chargingCurrentData.setIdTag("C1010010341009611");
+                    }
+
+                    // DataTransfer (Authorize)
+                    DtAuthorizeReq dtAuthorizeReq = new DtAuthorizeReq(
+                            messageId,
+                            connectorId,
+                            chargingCurrentData.getIdTag()
+                    );
+                    dtAuthorizeReq.sendDtAuthorize();
+
+                    // DataTransfer vehicleInfo
+                    VehicleInfoReq vehicleInfoReq = new VehicleInfoReq(connectorId);
+                    vehicleInfoReq.sendVehicleInfo();
+
+                    if (Objects.equals(chargingCurrentData.getChargePointStatus(), ChargePointStatus.Available)) {
+                        chargingCurrentData.setChargePointStatus(ChargePointStatus.Preparing);
+                        StatusNotificationReq statusNotificationReq = new StatusNotificationReq(connectorId);
+                        statusNotificationReq.sendStatusNotification();
+                    }
+
+                    Log.d("AuthorizeHandler", "connectorId: " + connectorId);
+                    activity.getClassUiProcess(connectorId-1).setUiSeq(UiSeq.PLUG_CHECK);
+                    fragmentChange.onFragmentChange(connectorId-1, UiSeq.PLUG_CHECK, "PLUG_CHECK", null);
+                }
+            } else {
+                String certificationReason = status.name();
+                ToastPositionMake toastPositionMake = new ToastPositionMake(activity);
+                if (Objects.equals(uiSeq, UiSeq.CHARGING)) {
+                    activity.getClassUiProcess(connectorId-1).setUiSeq(UiSeq.CHARGING);
+                    fragmentChange.onFragmentChange(connectorId-1, UiSeq.CHARGING, "CHARGING", null);
+                    toastPositionMake.onShowToast(connectorId-1, "충전 중지 인증 실패 : " + certificationReason);
+                } else {
+                    if (Objects.equals(chargingCurrentData.authType, "M")) {
+                        activity.getClassUiProcess(connectorId-1).setUiSeq(UiSeq.MEMBER_CARD);
+                        fragmentChange.onFragmentChange(connectorId-1, UiSeq.MEMBER_CARD, "MEMBER_CARD", null);
+                    } else {
+                        activity.getChargingCurrentData(connectorId-1).setAuthorizeResult(false);
 //                    activity.getClassUiProcess(connectorId-1).onHome();
 //                    toastPositionMake.onShowToast(connectorId-1, "인증 실패 : " + certificationReason);
+                    }
                 }
             }
+        } catch (Exception e) {
+            Log.e("AuthorizeHandler", "handle error: ", e);
+            logger.error("AuthorizeHandler error : {}", e.getMessage());
         }
     }
 }

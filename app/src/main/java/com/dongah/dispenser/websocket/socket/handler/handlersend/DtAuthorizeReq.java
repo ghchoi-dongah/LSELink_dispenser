@@ -1,6 +1,7 @@
 package com.dongah.dispenser.websocket.socket.handler.handlersend;
 
 import android.os.Build;
+import android.util.Log;
 
 import androidx.annotation.RequiresApi;
 
@@ -56,6 +57,7 @@ public class DtAuthorizeReq {
             activity.getSocketReceiveMessage().onSend(getConnectorId(), authorizeRequest.getActionName(), authorizeRequest);
 
         } catch (Exception e) {
+            Log.e("DtAuthorizeReq", "sendDtAuthorize error : ", e);
             logger.error("sendDtAuthorize error : {}", e.getMessage());
         }
     }
