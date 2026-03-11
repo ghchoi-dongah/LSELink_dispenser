@@ -35,7 +35,8 @@ public class VehicleInfoReq {
             ChargerConfiguration chargerConfiguration = activity.getChargerConfiguration();
             ChargingCurrentData chargingCurrentData = activity.getChargingCurrentData(connectorId-1);
             RxData rxData = activity.getControlBoard().getRxData(connectorId-1);
-            String evccId = String.valueOf(rxData.getCsmVehicleEvccId());
+//            String evccId = String.valueOf(rxData.getCsmVehicleEvccId());
+            String evccId = BitUtilities.toHexString(rxData.getCsmVehicleEvccId());
 //            String evccId = "1364747EE704";
 
             VehicleInfoData vehicleInfoData = createVehicleInfoData(evccId);
