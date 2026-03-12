@@ -102,6 +102,9 @@ public class MemberCardFragment extends Fragment {
         requestStrings[0] = String.valueOf(mChannel);
         sharedModel.setMutableLiveData(requestStrings);
 
+        textViewMessage.setVisibility(Objects.equals(chargingCurrentData.getAuthType(), "M") ? View.VISIBLE : View.INVISIBLE);
+        chargingCurrentData.setAuthType("C");
+
         // rfCard ready
         ((MainActivity) MainActivity.mContext).getRfCardReaderReceive().rfCardReadRequest();
 
@@ -115,8 +118,6 @@ public class MemberCardFragment extends Fragment {
         try {
             animationDrawable.start();
             textViewTagTimer.setText(timer + "초");
-            textViewMessage.setVisibility(Objects.equals(chargingCurrentData.getAuthType(), "M") ? View.VISIBLE : View.INVISIBLE);
-            chargingCurrentData.setAuthType("C");
 
             countHandler = new Handler();
             countRunnable = new Runnable() {

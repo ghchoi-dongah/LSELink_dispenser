@@ -151,14 +151,6 @@ public class MemberCheckWaitFragment extends Fragment implements View.OnClickLis
             animationDrawable.start();
             mediaPlayer();   // media player
 
-            // test 용도
-            if (Objects.equals(chargingCurrentData.getAuthType(), "M")) {
-                RxData rxData = ((MainActivity) MainActivity.mContext).getControlBoard().getRxData(mChannel);
-//                chargingCurrentData.setIdTag(BitUtilities.toHexString(rxData.getCsmVehicleEvccId()));
-//                chargingCurrentData.setIdTag("1364747EE704");
-                chargingCurrentData.setIdTag("1364747EE708");
-            }
-
             ((MainActivity) MainActivity.mContext).runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -168,21 +160,15 @@ public class MemberCheckWaitFragment extends Fragment implements View.OnClickLis
                         public void run() {
                             try {
                                 cnt++;
-//                                if (Objects.equals(cnt, TIME_MAX)) {
-//                                    ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).onHome();
-//                                } else {
-//                                    countHandler.postDelayed(countRunnable, 1000);
-//                                }
-
-                                // authorize result check
-                                if ((!chargingCurrentData.isAuthorizeResult() && Objects.equals(chargingCurrentData.getAuthType(), "C")) ||
-                                        Objects.equals(cnt, TIME_MAX)) {
-                                    authorizeFailed();
-
+                                if (!chargingCurrentData.isAuthorizeResult() || cnt > TIME_MAX) {
+                                    countHandler.removeCallbacks(countRunnable);   // 실행 중단
+                                    if (Objects.equals(chargingCurrentData.getAuthType(), "C") ||
+                                            (Objects.equals(chargingCurrentData.getAuthType(), "M") && Objects.equals(chargerConfiguration.getAuthMode(), 0))) {
+                                        authorizeFailed();
+                                    }
                                     new Handler(Looper.getMainLooper()).postDelayed(() -> {
                                         ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).onHome();
                                     }, 10000);
-
                                 } else {
                                     countHandler.postDelayed(countRunnable, 1000);
                                 }

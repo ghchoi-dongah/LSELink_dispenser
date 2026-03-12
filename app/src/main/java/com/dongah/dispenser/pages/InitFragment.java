@@ -14,6 +14,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -26,6 +28,7 @@ import com.dongah.dispenser.basefunction.ChargingCurrentData;
 import com.dongah.dispenser.basefunction.GlobalVariables;
 import com.dongah.dispenser.basefunction.UiSeq;
 import com.dongah.dispenser.controlboard.RxData;
+import com.dongah.dispenser.utils.BitUtilities;
 import com.dongah.dispenser.utils.SharedModel;
 import com.dongah.dispenser.websocket.socket.SocketState;
 
@@ -54,10 +57,12 @@ public class InitFragment extends Fragment implements View.OnClickListener {
     private String mParam2;
     private int mChannel;
 
+    Animation animBlink;
     View viewCircle;
     TextView textViewInitMessage, textViewConnector;
-    ImageView imageViewBus;
+    ImageView imageViewBus, imageViewFault;
 
+    MainActivity activity;
     ChargerConfiguration chargerConfiguration;
     ChargingCurrentData chargingCurrentData;
     SharedModel sharedModel;
@@ -105,16 +110,29 @@ public class InitFragment extends Fragment implements View.OnClickListener {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_init, container, false);
         view.setOnClickListener(this);
-
-        chargerConfiguration = ((MainActivity) MainActivity.mContext).getChargerConfiguration();
+        animBlink = AnimationUtils.loadAnimation(getActivity(), R.anim.blink_animation);
+        activity = ((MainActivity) MainActivity.mContext);
+        chargerConfiguration = activity.getChargerConfiguration();
+        chargingCurrentData = activity.getChargingCurrentData(mChannel);
         textViewInitMessage = view.findViewById(R.id.textViewInitMessage);
+        textViewInitMessage.startAnimation(animBlink);
         textViewConnector = view.findViewById(R.id.textViewConnector);
         imageViewBus = view.findViewById(R.id.imageViewBus);
         viewCircle = view.findViewById(R.id.viewCircle);
         viewCircle.setOnClickListener(this);
-        rxData = ((MainActivity) MainActivity.mContext).getControlBoard().getRxData(mChannel);
+        imageViewFault = view.findViewById(R.id.imageViewFault);
+        rxData = activity.getControlBoard().getRxData(mChannel);
 
         try {
+            Log.d("InitFragment", "ChangeMode: " + chargingCurrentData.getChangeMode());
+            if (chargingCurrentData.getChangeMode().equals("DM")) {
+                textViewInitMessage.setText(R.string.initMessage);
+                imageViewFault.setVisibility(View.INVISIBLE);
+            } else {
+                textViewInitMessage.setText(R.string.changeModeMessage);
+                imageViewFault.setVisibility(View.VISIBLE);
+            }
+
             // ch0, ch1 구분 => 이미지 위치 조절
             if (mChannel == 0) {
                 imageViewBus.setScaleX(1f);
@@ -135,27 +153,9 @@ public class InitFragment extends Fragment implements View.OnClickListener {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         try {
-            chargingCurrentData = ((MainActivity) MainActivity.mContext).getChargingCurrentData(mChannel);
             sharedModel = new ViewModelProvider(requireActivity()).get(SharedModel.class);
             requestStrings[0] = String.valueOf(0);
             sharedModel.setMutableLiveData(requestStrings);
-
-            // 커넥터 연결 확인 시 자동 충전 진행
-            // 테스트 모드일 때, csPilot이 항상 ture로 인해 자동 충전 제거
-//            ((MainActivity) MainActivity.mContext).runOnUiThread(() -> {
-//                handler = new Handler(Looper.getMainLooper());
-//                runnable = new Runnable() {
-//                    @Override
-//                    public void run() {
-//                        if (chargingCurrentData.isConnectAuto() && rxData.isCsPilot()) {
-//                            chargingCurrentData.setConnectAuto(false);
-//                            changeFragment();
-//                        }
-//                        handler.postDelayed(this, 1000);
-//                    }
-//                };
-//                handler.post(runnable);
-//            });
         } catch (Exception e) {
             Log.e("InitFragment", "onViewCreated error", e);
             logger.error("InitFragment onViewCreated : {}", e.getMessage());
@@ -164,7 +164,8 @@ public class InitFragment extends Fragment implements View.OnClickListener {
 
     @Override
     public void onClick(View v) {
-        if (!Objects.equals(v.getId(), R.id.viewCircle)) return;
+        if (!chargingCurrentData.getChangeMode().equals("DM")) return;
+        if (!Objects.equals(v.getId(), R.id.viewCircle) && !rxData.isCsPilot()) return;
         changeFragment();
     }
 
@@ -173,47 +174,48 @@ public class InitFragment extends Fragment implements View.OnClickListener {
             chargingCurrentData.onCurrentDataClear();   // clear
             chargingCurrentData.setConnectorId(mChannel + 1);
 
-            ((MainActivity) MainActivity.mContext).getChargingCurrentData(mChannel).setChargerPointType(ChargerPointType.COMBO);
-            ((MainActivity) MainActivity.mContext).getChargingCurrentData(mChannel).setConnectorId(mChannel + 1);
+            activity.getChargingCurrentData(mChannel).setChargerPointType(ChargerPointType.COMBO);
+            activity.getChargingCurrentData(mChannel).setConnectorId(mChannel + 1);
 
             if (Objects.equals(chargerConfiguration.getOpMode(), 0)) {
                 // test mode
-                Log.d("InitFragment", "getOpMode(): test mode");
-                double testPrice = Double.parseDouble(((MainActivity) MainActivity.mContext).getChargerConfiguration().getTestPrice());
-                ((MainActivity) MainActivity.mContext).getChargingCurrentData(mChannel).setPowerUnitPrice(testPrice);
-                ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.PLUG_CHECK);
-                ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.PLUG_CHECK, "PLUG_CHECK", null);
+                double testPrice = Double.parseDouble(activity.getChargerConfiguration().getTestPrice());
+                activity.getChargingCurrentData(mChannel).setPowerUnitPrice(testPrice);
+                activity.getClassUiProcess(mChannel).setUiSeq(UiSeq.PLUG_CHECK);
+                activity.getFragmentChange().onFragmentChange(mChannel, UiSeq.PLUG_CHECK, "PLUG_CHECK", null);
             } else if (Objects.equals(chargerConfiguration.getOpMode(), 1)) {
                 // server mode
-                Log.d("InitFragment", "getOpMode(): server mode");
-                if (!onUnitPrice()) {
-                    Toast.makeText(getActivity(), "단가 정보가 없습니다.\n잠시 후, 충전하세요!", Toast.LENGTH_SHORT).show();
-                    return;
-                }
+//                if (!onUnitPrice()) {
+//                    Toast.makeText(getActivity(), "단가 정보가 없습니다.\n잠시 후, 충전하세요!", Toast.LENGTH_SHORT).show();
+//                    return;
+//                }
                 try {
-                    SocketState socketState = ((MainActivity) MainActivity.mContext).getSocketReceiveMessage().getSocket().getState();
+                    SocketState socketState = activity.getSocketReceiveMessage().getSocket().getState();
                     if (Objects.equals(socketState, SocketState.OPEN)) {
                         switch (chargerConfiguration.getAuthMode()) {
                             case 0:
                             case 2:
-                                ((MainActivity) MainActivity.mContext).getChargingCurrentData(mChannel).setAuthType("M");
-                                ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.MEMBER_CHECK_WAIT);
-                                ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.MEMBER_CHECK_WAIT, "MEMBER_CHECK_WAIT", null);
+                                String evccId = BitUtilities.toHexString(rxData.getCsmVehicleEvccId());
+                                activity.getChargingCurrentData(mChannel).setAuthType("M");
+//                                chargingCurrentData.setIdTag(evccId);
+                                chargingCurrentData.setIdTag("1364747EE708");
+                                activity.getClassUiProcess(mChannel).setUiSeq(UiSeq.MEMBER_CHECK_WAIT);
+                                activity.getFragmentChange().onFragmentChange(mChannel, UiSeq.MEMBER_CHECK_WAIT, "MEMBER_CHECK_WAIT", null);
                                 break;
                             case 1:
-                                ((MainActivity) MainActivity.mContext).getChargingCurrentData(mChannel).setAuthType("C");
-                                ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.MEMBER_CARD);
-                                ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.MEMBER_CARD, "MEMBER_CARD", null);
+                                activity.getChargingCurrentData(mChannel).setAuthType("C");
+                                activity.getClassUiProcess(mChannel).setUiSeq(UiSeq.MEMBER_CARD);
+                                activity.getFragmentChange().onFragmentChange(mChannel, UiSeq.MEMBER_CARD, "MEMBER_CARD", null);
                                 break;
                             default:
                                 logger.error("InitFragment changeFragment error >> Invalid value");
                                 break;
                         }
                     } else {
-                        ((MainActivity) MainActivity.mContext).getToastPositionMake().onShowToast(mChannel, "서버 연결 DISCONNECT.\n충전을 할 수 없습니다.");
+                        activity.getToastPositionMake().onShowToast(mChannel, "서버 연결 DISCONNECT.\n충전을 할 수 없습니다.");
                     }
                 } catch (Exception e) {
-                    ((MainActivity) MainActivity.mContext).getToastPositionMake().onShowToast(mChannel, "서버 연결 DISCONNECT.\n충전을 할 수 없습니다.");
+                    activity.getToastPositionMake().onShowToast(mChannel, "서버 연결 DISCONNECT.\n충전을 할 수 없습니다.");
                     Log.e("InitFragment", "server disconnect error", e);
                     logger.error("InitFragment server disconnect error : {}", e.getMessage());
                 }

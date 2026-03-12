@@ -89,13 +89,11 @@ public class AuthorizeHandler implements OcppHandler {
                     fragmentChange.onFragmentChange(connectorId-1, UiSeq.CHARGING, "CHARGING", null);
                     toastPositionMake.onShowToast(connectorId-1, "충전 중지 인증 실패 : " + certificationReason);
                 } else {
-                    if (Objects.equals(chargingCurrentData.authType, "M")) {
+                    activity.getChargingCurrentData(connectorId-1).setAuthorizeResult(false);
+                    if (Objects.equals(chargingCurrentData.authType, "M") && Objects.equals(chargerConfiguration.getAuthMode(), 2)) {
                         activity.getClassUiProcess(connectorId-1).setUiSeq(UiSeq.MEMBER_CARD);
+                        activity.getChargingCurrentData(connectorId-1).setAuthorizeResult(true);
                         fragmentChange.onFragmentChange(connectorId-1, UiSeq.MEMBER_CARD, "MEMBER_CARD", null);
-                    } else {
-                        activity.getChargingCurrentData(connectorId-1).setAuthorizeResult(false);
-//                    activity.getClassUiProcess(connectorId-1).onHome();
-//                    toastPositionMake.onShowToast(connectorId-1, "인증 실패 : " + certificationReason);
                     }
                 }
             }

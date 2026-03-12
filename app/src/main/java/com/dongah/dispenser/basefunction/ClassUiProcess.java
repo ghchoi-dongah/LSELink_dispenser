@@ -356,19 +356,20 @@ public class ClassUiProcess implements RfCardReaderListener {
     @Override
     public void onRfCardDataReceive(String cardNum, boolean value) {
         try {
-            SharedModel sharedModel = new ViewModelProvider(((MainActivity) MainActivity.mContext)).get(SharedModel.class);
+            MainActivity activity = ((MainActivity) MainActivity.mContext);
+            SharedModel sharedModel = new ViewModelProvider(activity).get(SharedModel.class);
             String[] data = sharedModel.getLiveData().getValue();
 
             if (data != null && data.length > 0 && data[0] != null) {
-                Log.d("ClassUiProcess", "onRfCardDataReceive Integer.parseInt(data[0]) : " + Integer.parseInt(data[0]));
                 setCh(Integer.parseInt(data[0]));
             }
 
-            Log.d("ClassUiProcess", "onRfCardDataReceive getCh : " + getCh());
+            chargingCurrentData = activity.getChargingCurrentData(getCh());
+
             if (cardNum.isEmpty() || Objects.equals(cardNum,"0000000000000000")) {
                 setUiSeq(UiSeq.INIT);
                 fragmentChange.onFragmentChange(getCh(), UiSeq.INIT,"INIT",null);
-                Toast.makeText(((MainActivity) MainActivity.mContext), "카드 리더기에서 응답이 없습니다.",Toast.LENGTH_SHORT).show();
+                Toast.makeText(activity, "카드 리더기에서 응답이 없습니다.",Toast.LENGTH_SHORT).show();
             } else {
                 onRfCardDataReceiveEvent(cardNum, true);
             }
@@ -380,34 +381,17 @@ public class ClassUiProcess implements RfCardReaderListener {
     private void onRfCardDataReceiveEvent(String cardNum, boolean b) {
         if (b) {
             try {
-                Log.d("ClassUiProcess", "onRfCardDataReceiveEvent getCh : " + getCh());
                 if (Objects.equals(cardNum,"0000000000000000")) {
                     rfCardReaderReceive.rfCardReadRequest();
                 } else if (!cardNum.isEmpty()) {
+                    MainActivity activity = ((MainActivity) MainActivity.mContext);
+                    ChargingCurrentData chargingCurrentData = activity.getChargingCurrentData(getCh());
 
-                    int authMode = ((MainActivity) MainActivity.mContext).getChargerConfiguration().getOpMode();
-                    if (Objects.equals(authMode, 1)) {
-                        //서버에 회원카드 정보를 보내여 인증을 취득하면 전역변수에 저장한다.
-                        chargingCurrentData.setIdTag(cardNum);
-                        setUiSeq(UiSeq.MEMBER_CHECK_WAIT);
-                        fragmentChange.onFragmentChange(getCh(), UiSeq.MEMBER_CHECK_WAIT,"MEMBER_CHECK_WAIT",null);
-                    }
-//                    if (Objects.equals(authMode, "4") && !Objects.equals(getUiSeq(), UiSeq.MEMBER_CARD)) {
-//                        // member save
-//                        ((MainActivity) MainActivity.mContext).runOnUiThread(new Runnable() {
-//                            @Override
-//                            public void run() {
-//                                FileManagement fileManagement = new FileManagement();
-//                                boolean chk = fileManagement.stringToFileSave(GlobalVariables.ROOT_PATH, "memberList.dongah", cardNum, true);
-//                                Toast.makeText((MainActivity.mContext), chk ? "저장 성공" : " 저장 실패 ",Toast.LENGTH_SHORT).show();
-//                            }
-//                        });
-//                    } else {
-//                        //서버에 회원카드 정보를 보내여 인증을 취득하면 전역변수에 저장한다.
-//                        chargingCurrentData.setIdTag(cardNum);
-//                        setUiSeq(UiSeq.MEMBER_CHECK_WAIT);
-//                        fragmentChange.onFragmentChange(getCh(), UiSeq.MEMBER_CHECK_WAIT,"MEMBER_CHECK_WAIT",null);
-//                    }
+                    chargingCurrentData.setAuthType("C");
+                    chargingCurrentData.setIdTag(cardNum);
+
+                    setUiSeq(UiSeq.MEMBER_CHECK_WAIT);
+                    fragmentChange.onFragmentChange(getCh(), UiSeq.MEMBER_CHECK_WAIT,"MEMBER_CHECK_WAIT",null);
                     rfCardReaderReceive.rfCardReadRelease();
                 }
             } catch (Exception e) {
