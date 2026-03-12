@@ -31,26 +31,12 @@ public class BootNotificationHandler implements OcppHandler {
             // connectorId = 0 : all
             activity.getProcessHandler().onStatusNotificationStart(300);
 
-            // dataTransfer statusnoti
-            // connectorId = 0 : all
-//            StatusNotiReq statusNotiReq = new StatusNotiReq(0);
-//            statusNotiReq.sendStatusNotification();
-
             //Unit Price
             UnitPriceThread unitPriceThread = new UnitPriceThread(3600);
             unitPriceThread.start();
 
-//            //1. Authorize test
-//            AuthorizeReq authorizeReq = new AuthorizeReq(1);
-//            authorizeReq.sendAuthorize("C1010010341009611");
-//
-//            //2. startTransaction
-//            StartTransactionReq startTransactionReq = new StartTransactionReq(1);
-//            startTransactionReq.sendStartTransactionReq();
-//
-//            //3. FullRechgSoc
-//            FullRechgSocReq fullRechgSocReq = new FullRechgSocReq(1);
-//            fullRechgSocReq.sendFullRechSoc();
+            // DataTransfer ChangeMode
+            activity.getProcessHandler().onChangeModeStart();
         } else {
             activity.getProcessHandler().onBootNotificationStart(5);
         }

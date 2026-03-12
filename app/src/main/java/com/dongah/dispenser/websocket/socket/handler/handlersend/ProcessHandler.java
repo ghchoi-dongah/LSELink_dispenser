@@ -18,6 +18,7 @@ public class ProcessHandler extends Handler {
     HeartbeatThread heartbeatThread;
     BootNotificationThread bootNotificationThread;
     StatusNotificationThread statusNotificationThread;
+    ChangeModeThread changeModeThread;
 
     @Override
     public void handleMessage(@NonNull Message msg) {
@@ -85,6 +86,25 @@ public class ProcessHandler extends Handler {
             statusNotificationThread.interrupt();
             statusNotificationThread.stopThread();
             statusNotificationThread = null;
+        }
+    }
+
+
+    /**
+     * DT(changeMode) Thread
+     */
+
+    public void onChangeModeStart() {
+        onChangeModeStop();
+        changeModeThread = new ChangeModeThread();
+        changeModeThread.start();
+    }
+
+    public void onChangeModeStop() {
+        if (changeModeThread != null) {
+            changeModeThread.interrupt();
+            changeModeThread.stopThread();
+            changeModeThread = null;
         }
     }
 }

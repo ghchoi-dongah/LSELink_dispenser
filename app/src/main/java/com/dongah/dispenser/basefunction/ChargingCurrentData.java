@@ -146,6 +146,15 @@ public class ChargingCurrentData {
      * */
     public String authType = "M";
 
+    /**
+     * 커넥터 상태
+     * DM: 양구
+     * NM: 1구
+     * WM: 충전 대기
+     * IM: 충전 불가
+     * */
+    public String changeMode = "DM";
+
     public ChargingCurrentData() {
         sampleValueData = new SampleValueData();
     }
@@ -205,6 +214,7 @@ public class ChargingCurrentData {
         setTargetSoc(80);
         setTargetCurrent(0);
         setConnectAuto(true);
+        setAuthType("M");
         remoteSmartChargingJsonArray = null;
     }
 
@@ -846,5 +856,13 @@ public class ChargingCurrentData {
 
     public void setAuthType(String authType) {
         this.authType = authType;
+    }
+
+    public String getChangeMode() {
+        return changeMode;
+    }
+
+    public void setChangeMode(String changeMode) {
+        this.changeMode = changeMode;
     }
 }

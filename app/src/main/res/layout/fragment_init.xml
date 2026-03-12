@@ -27,6 +27,17 @@
         app:layout_constraintStart_toStartOf="@id/viewCircle"
         app:layout_constraintEnd_toEndOf="@id/viewCircle"
         tools:ignore="contentDescription" />
+    
+    <ImageView
+        android:id="@+id/imageViewFault"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/nm"
+        android:visibility="invisible"
+        app:layout_constraintStart_toStartOf="@id/imageViewBus"
+        app:layout_constraintEnd_toEndOf="@id/imageViewBus"
+        app:layout_constraintBottom_toBottomOf="@id/imageViewBus"
+        tools:ignore="contentDescription" />
 
     <TextView
         android:id="@+id/textViewConnector"
