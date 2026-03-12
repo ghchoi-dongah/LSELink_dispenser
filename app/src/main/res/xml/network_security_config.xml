@@ -6,4 +6,9 @@
     <domain-config cleartextTrafficPermitted="true">
         <domain includeSubdomains="true">dev-connect.lselink.com/ocpp</domain>
     </domain-config>
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
 </network-security-config>

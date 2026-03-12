@@ -26,7 +26,6 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-import com.dongah.dispenser.TECH3800.TLS3800;
 import com.dongah.dispenser.basefunction.ChargerConfiguration;
 import com.dongah.dispenser.basefunction.ChargingCurrentData;
 import com.dongah.dispenser.basefunction.ClassUiProcess;
@@ -224,8 +223,7 @@ public class MainActivity extends AppCompatActivity {
          */
         chargerConfiguration.setSigned(false);
 
-        String baseUrl =  chargerConfiguration.getServerConnectingString() + "/" + chargerConfiguration.getChargeBoxSerialNumber() + chargerConfiguration.getChargerId() ;
-//        String baseUrl = "ws://dev-connect.lselink.com/ocpp/00000026";
+        String baseUrl =  chargerConfiguration.getServerConnectingString() + "/" + chargerConfiguration.getChargeBoxSerialNumber() + chargerConfiguration.getChargerId();
         socketReceiveMessage = new SocketReceiveMessage(baseUrl);
 
         // 6. classUiProcess
@@ -402,7 +400,7 @@ public class MainActivity extends AppCompatActivity {
     @SuppressLint("ConstantConditions")
     public void onRebooting(String type) {
         try {
-//            ((MainActivity) MainActivity.mContext).getSocketReceiveMessage().getSocket().disconnect();
+            ((MainActivity) MainActivity.mContext).getSocketReceiveMessage().getSocket().disconnect();
             if (Objects.equals(type, "Soft")) {
                 ActivityCompat.finishAffinity(((MainActivity) MainActivity.mContext));
                 System.exit(0);
