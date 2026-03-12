@@ -68,7 +68,7 @@ public class ChangeModeThread extends Thread {
 
         try {
             // 1. changeMode 파일 유무 확인
-            File file = new File(GlobalVariables.getRootPath() + File.separator + "changeMode2");
+            File file = new File(GlobalVariables.getRootPath() + File.separator + "changeMode");
 
             if (!file.exists()) {
                 // 2. 파일이 없으면 DM(양구) 처리
