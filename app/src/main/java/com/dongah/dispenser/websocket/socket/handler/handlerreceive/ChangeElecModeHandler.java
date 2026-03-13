@@ -15,6 +15,10 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+
 public class ChangeElecModeHandler implements OcppHandler {
     private static final Logger logger = LoggerFactory.getLogger(ChangeElecModeHandler.class);
 
@@ -26,16 +30,54 @@ public class ChangeElecModeHandler implements OcppHandler {
         String msgId = payload.getString("messageId");  //changeelecmode.req
         String dataStr = payload.getString("data");
 
-        JSONObject dataJson = new JSONObject(dataStr);
         //파일 저장
-        FileManagement fileManagement = new FileManagement();
-        fileManagement.stringToFileSave(
-                GlobalVariables.getRootPath(),
-                "changeElecMode",
-                dataStr, false);
-
+        saveChangeElecModeToFile(dataStr);
         // 응답
         sendResponse(connectorId, messageId);
+        // 출력제한 반영
+//        processChangeElecMode();
+    }
+
+    private void saveChangeElecModeToFile(String newData) {
+        try {
+            FileManagement fileManagement = new FileManagement();
+            JSONObject rootJson;
+
+            File file = new File(GlobalVariables.getRootPath() + File.separator + "changeElecMode");
+
+            if (!file.exists()) {
+                rootJson = new JSONObject();
+            } else {
+                String oldText = readFile(file);
+                if (oldText == null || oldText.isEmpty()) {
+                    rootJson = new JSONObject();
+                } else {
+                    rootJson = new JSONObject(oldText);
+                }
+            }
+            JSONObject newJson = new JSONObject(newData);
+            int connectorId = newJson.getInt("connectorId");
+            rootJson.put(String.valueOf(connectorId), newJson);
+
+            fileManagement.stringToFileSave(
+                    GlobalVariables.getRootPath(),
+                    "changeElecMode",
+                    rootJson.toString(),
+                    false);
+        } catch (Exception e) {
+            logger.error("saveChangeElecModeToFile error : {}", e.getMessage());
+        }
+    }
+
+    private String readFile(File file) throws Exception {
+        BufferedReader bufferedReader = new BufferedReader(new FileReader(file));
+        StringBuilder stringBuilder = new StringBuilder();
+        String line;
+        while ((line = bufferedReader.readLine()) != null) {
+            stringBuilder.append(line);
+        }
+        bufferedReader.close();
+        return stringBuilder.toString();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -52,6 +94,23 @@ public class ChangeElecModeHandler implements OcppHandler {
                     changeElecModeConfirm);
         } catch (Exception e) {
             logger.error(" sendResponse error : {}", e.getMessage());
+        }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private void processChangeElecMode() {
+        try {
+            // 1. changeElecMode 파일 유무 확인
+            File file = new File(GlobalVariables.getRootPath() + File.separator + "changeElecMode");
+
+            if (!file.exists()) {
+                // 2. 파일이 없으면 DT(changemode)의 rechgElec을 기준
+
+            } else {
+                // 3. 파일이 있는 경우
+            }
+        } catch (Exception e) {
+
         }
     }
 }
