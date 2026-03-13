@@ -61,9 +61,9 @@ public class ChangeModeThread extends Thread {
         logger.info("ChangeModeThread terminated");
     }
 
-    // 충전기 상태 변경
+    // 커넥터 모드 변경
     @RequiresApi(api = Build.VERSION_CODES.O)
-    public void processChangeMode() {
+    public static void processChangeMode() {
         MainActivity activity = (MainActivity) MainActivity.mContext;
 
         try {
@@ -72,27 +72,23 @@ public class ChangeModeThread extends Thread {
 
             if (!file.exists()) {
                 // 2. 파일이 없으면 DM(양구) 처리
-                // UiSeq.INIT 변경
                 for (int i = 0; i < GlobalVariables.maxChannel; i++) {
                     activity.getChargingCurrentData(i).setChangeMode("DM");
-                    if (Objects.equals(activity.getClassUiProcess(i).getUiSeq(), UiSeq.INIT)) {
-                        activity.getClassUiProcess(i).onHome();
-                    }
                 }
             } else {
                 // 3. 파일이 있는 경우(커넥터 별 모드 갱신)
                 // connectorId 없으면, connectorId 0 상태값 설정
-                // 전체 사용(DM), 사용 불가(NM, WM, IM)
+                // DM(양구), NM(1구), WM(충전대기), IM(충전불가)
                 for (int i = 0; i < GlobalVariables.maxChannel; i++) {
                     String content = readFile(file, i+1);
                     Log.d("ChangeModeThread", "content" + (i+1) + ": " + content);
 
-                    // content == null 이면 커넥터 changeMode 값이 없음
+                    // content == null 이면 connectorId에 해당하는 changeMode이 없음
                     if (content == null) {
                         // connectorId: 0으로 대체
                         String content0 = readFile(file, 0);
                         Log.d("ChangeModeThread", "content0" + content0);
-                        // connectorId: 0에 대한 content가 없으면 "DM(전체사용)"으로 처리
+                        // connectorId: 0에 대한 content가 없으면 "DM"으로 처리
                         if (content0 == null) {
                             activity.getChargingCurrentData(i).setChangeMode("DM");
                         }
@@ -105,27 +101,21 @@ public class ChangeModeThread extends Thread {
                     }
                 }
 
-                // connectorId가 0이고 해당 시간에 맞는 상태로 갱신: DM(양구), NM(1구)
-                // 단, NM(1구)일 때 UiSeq.INIT 상태인 경우만 화면 갱신
-                // 화면 갱신할 때 config 우선순위값을 참고(홀수: ch1 사용, ch2 미사용 / 짝수: ch1 미사용, ch2 사용)
-//                String content = readFile(file, 0);
-//                if (content == null) {
-//                    // 파일은 있지만 connectorId 값에 해당된 데이터가 없는 경우
-//                    for (int i = 0; i < GlobalVariables.maxChannel; i++) {
-//                        if (Objects.equals(activity.getClassUiProcess(i).getUiSeq(), UiSeq.INIT)) {
-//                            activity.getClassUiProcess(i).onHome();
-//                        }
-//                    }
-//                } else {
-//                    setChangeMode(content);
-//                }
+                // 4. 커넥터 모드에 따른 커넥터 사용 유무 설정 및 화면에 상태 반영
+                setConnectUse();
+                for (int i = 0; i < GlobalVariables.maxChannel; i++) {
+                    // INIT 화면일 경우만 화면 refresh
+                    if (Objects.equals(activity.getClassUiProcess(i).getUiSeq(), UiSeq.INIT)) {
+                        activity.getClassUiProcess(i).onHome();
+                    }
+                }
             }
         } catch (Exception e) {
             logger.error("onChangeMode error : {}", e.getMessage());
         }
     }
 
-    private String readFile(File file, int connectorId) throws Exception {
+    private static String readFile(File file, int connectorId) throws Exception {
         StringBuilder stringBuilder = new StringBuilder();
 
         try (FileInputStream fis = new FileInputStream(file);
@@ -155,9 +145,8 @@ public class ChangeModeThread extends Thread {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
-    private void setChangeMode(int connectorId, String content) {
+    private static void setChangeMode(int connectorId, String content) {
         MainActivity activity = (MainActivity) MainActivity.mContext;
-        ChargerConfiguration chargerConfiguration = activity.getChargerConfiguration();
 
         try {
             JSONObject rootJson = new JSONObject(content);
@@ -167,52 +156,44 @@ public class ChangeModeThread extends Thread {
             int hour = now.getHour();
             @SuppressLint("DefaultLocale") String hourKey = String.format("HH%02d", hour);
 
-            /**
-             * 전체사용(DM), 사용불가(NM, WM, IM)
-             * DM(양구), NM(1구), WM(충전대기), IM(충전불가)
-             * */
+            // DM(양구), NM(1구), WM(충전대기), IM(충전불가)
             String value = rootJson.optString(hourKey, "DM");
             activity.getChargingCurrentData(connectorId).setChangeMode(value);
-
-//            if ("DM".equals(value)) {
-//                if (Objects.equals(activity.getClassUiProcess(connectorId).getUiSeq(), UiSeq.INIT)) {
-//                    activity.getClassUiProcess(connectorId).onHome();
-//                }
-//
-////                for (int i = 0; i < GlobalVariables.maxChannel; i++) {
-////                    if (Objects.equals(activity.getClassUiProcess(i).getUiSeq(), UiSeq.INIT)) {
-////                        activity.getClassUiProcess(i).onHome();
-////                    }
-////                }
-//            }
-//            else if ("NM".equals(value)) {
-//                // 1구(홀수: ch1 사용, ch2 미사용 / 짝수: ch1 미사용, ch2 사용)
-//                int connectorPriority = chargerConfiguration.getConnectorPriority();
-//                int ch = connectorPriority % 2;
-//
-//                // UiSeq.INIT 경우, 화면 갱신
-//                ChargingCurrentData chargingCurrentData = activity.getChargingCurrentData(ch);
-//                UiSeq uiSeq = activity.getClassUiProcess(ch).getUiSeq();
-//
-//                // INIT 상태인 경우만 화면 변경
-//                if (Objects.equals(uiSeq, UiSeq.INIT)) {
-//                    activity.getClassUiProcess(ch).onHome();
-//                }
-//            }
-//            // 사용불가
-//            else {
-//
-//            }
-
-            if (!"DM".equals(value)) {
-                UiSeq uiSeq = activity.getClassUiProcess(connectorId).getUiSeq();
-                if (Objects.equals(uiSeq, UiSeq.INIT)) {
-                    activity.getClassUiProcess(connectorId).onHome();
-                }
-            }
         } catch (Exception e) {
             Log.e("setChangeMode", "error >> ", e);
             logger.error("setChangeMode error : {}", e.getMessage());
         }
+    }
+
+    private static void setConnectUse() {
+       try {
+           MainActivity activity = ((MainActivity) MainActivity.mContext);
+           String chMode0 = activity.getChargingCurrentData(0).getChangeMode();
+           String chMode1 = activity.getChargingCurrentData(1).getChangeMode();
+
+           /** 커넥터 모드에 따른 커넥터 사용 유무 설정
+            * 1ch / 2ch
+            * DM / DM : 전체 충전
+            * DM / NM, NM / DM[NM] : 1구 충전(1ch > 2ch 우선 순위, 2ch 미사용)
+            * WM / DM[NM], IM / DM[NM] : 1구 충전
+            * */
+           boolean isMode0Valid = "DM".equals(chMode0) || "NM".equals(chMode0);
+           boolean isMode1Valid = "DM".equals(chMode1) || "NM".equals(chMode1);
+
+           boolean conUse0, conUse1;
+
+           if (isMode0Valid && isMode1Valid) {
+               conUse0 = true;
+               conUse1 = "DM".equals(chMode0) && "DM".equals(chMode1);
+           } else {
+               conUse0 = isMode0Valid;
+               conUse1 = isMode1Valid;
+           }
+
+           activity.getChargingCurrentData(0).setConnectUse(conUse0);
+           activity.getChargingCurrentData(1).setConnectUse(conUse1);
+       } catch (Exception e) {
+           logger.error("setConnectUse error : {}", e.getMessage());
+       }
     }
 }

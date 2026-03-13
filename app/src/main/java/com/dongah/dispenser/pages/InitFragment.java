@@ -124,8 +124,7 @@ public class InitFragment extends Fragment implements View.OnClickListener {
         rxData = activity.getControlBoard().getRxData(mChannel);
 
         try {
-            Log.d("InitFragment", "ChangeMode: " + chargingCurrentData.getChangeMode());
-            if (chargingCurrentData.getChangeMode().equals("DM")) {
+            if (chargingCurrentData.isConnectUse()) {
                 textViewInitMessage.setText(R.string.initMessage);
                 imageViewFault.setVisibility(View.INVISIBLE);
             } else {
@@ -164,7 +163,7 @@ public class InitFragment extends Fragment implements View.OnClickListener {
 
     @Override
     public void onClick(View v) {
-        if (!chargingCurrentData.getChangeMode().equals("DM")) return;
+        if (!chargingCurrentData.isConnectUse()) return;
         if (!Objects.equals(v.getId(), R.id.viewCircle) && !rxData.isCsPilot()) return;
         changeFragment();
     }

@@ -155,6 +155,11 @@ public class ChargingCurrentData {
      * */
     public String changeMode = "DM";
 
+    /** 커넥터 사용 유무
+     * true: 사용, false: 미사용
+     * */
+    public boolean connectUse = true;
+
     public ChargingCurrentData() {
         sampleValueData = new SampleValueData();
     }
@@ -864,5 +869,13 @@ public class ChargingCurrentData {
 
     public void setChangeMode(String changeMode) {
         this.changeMode = changeMode;
+    }
+
+    public boolean isConnectUse() {
+        return connectUse;
+    }
+
+    public void setConnectUse(boolean connectUse) {
+        this.connectUse = connectUse;
     }
 }
