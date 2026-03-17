@@ -106,7 +106,7 @@ public class MemberCardFragment extends Fragment {
         chargingCurrentData.setAuthType("C");
 
         // rfCard ready
-        ((MainActivity) MainActivity.mContext).getRfCardReaderReceive().rfCardReadRequest();
+        ((MainActivity) MainActivity.mContext).getRfCardReaderReceive().rfCardReadRequest(mChannel);
 
         return view;
     }

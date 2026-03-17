@@ -1,5 +1,5 @@
 package com.dongah.dispenser.rfcard;
 
 public interface RfCardReaderListener {
-    void onRfCardDataReceive(String cardNum, boolean value);
+    void onRfCardDataReceive(int ch, String cardNum, boolean value);
 }

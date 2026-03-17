@@ -359,48 +359,39 @@ public class ClassUiProcess implements RfCardReaderListener {
 
     /**
      * Rf CARD reader
+     * @param ch channel
      * @param cardNum card number
      * @param value boolean
      */
     @Override
-    public void onRfCardDataReceive(String cardNum, boolean value) {
+    public void onRfCardDataReceive(int ch, String cardNum, boolean value) {
         try {
-            MainActivity activity = ((MainActivity) MainActivity.mContext);
-            SharedModel sharedModel = new ViewModelProvider(activity).get(SharedModel.class);
-            String[] data = sharedModel.getLiveData().getValue();
-
-            if (data != null && data.length > 0 && data[0] != null) {
-                setCh(Integer.parseInt(data[0]));
-            }
-
-            chargingCurrentData = activity.getChargingCurrentData(getCh());
-
             if (cardNum.isEmpty() || Objects.equals(cardNum,"0000000000000000")) {
                 setUiSeq(UiSeq.INIT);
-                fragmentChange.onFragmentChange(getCh(), UiSeq.INIT,"INIT",null);
-                Toast.makeText(activity, "카드 리더기에서 응답이 없습니다.",Toast.LENGTH_SHORT).show();
+                fragmentChange.onFragmentChange(ch, UiSeq.INIT,"INIT",null);
+                Toast.makeText(((MainActivity) MainActivity.mContext), "카드 리더기에서 응답이 없습니다.",Toast.LENGTH_SHORT).show();
             } else {
-                onRfCardDataReceiveEvent(cardNum, true);
+                onRfCardDataReceiveEvent(ch, cardNum, true);
             }
         } catch (Exception e) {
             logger.error("onRfCardDataReceive error : {} ", e.getMessage());
         }
     }
 
-    private void onRfCardDataReceiveEvent(String cardNum, boolean b) {
+    private void onRfCardDataReceiveEvent(int ch, String cardNum, boolean b) {
         if (b) {
             try {
                 if (Objects.equals(cardNum,"0000000000000000")) {
-                    rfCardReaderReceive.rfCardReadRequest();
+                    rfCardReaderReceive.rfCardReadRequest(ch);
                 } else if (!cardNum.isEmpty()) {
                     MainActivity activity = ((MainActivity) MainActivity.mContext);
-                    ChargingCurrentData chargingCurrentData = activity.getChargingCurrentData(getCh());
+                    ChargingCurrentData chargingCurrentData = activity.getChargingCurrentData(ch);
 
                     chargingCurrentData.setAuthType("C");
                     chargingCurrentData.setIdTag(cardNum);
 
                     setUiSeq(UiSeq.MEMBER_CHECK_WAIT);
-                    fragmentChange.onFragmentChange(getCh(), UiSeq.MEMBER_CHECK_WAIT,"MEMBER_CHECK_WAIT",null);
+                    fragmentChange.onFragmentChange(ch, UiSeq.MEMBER_CHECK_WAIT,"MEMBER_CHECK_WAIT",null);
                     rfCardReaderReceive.rfCardReadRelease();
                 }
             } catch (Exception e) {

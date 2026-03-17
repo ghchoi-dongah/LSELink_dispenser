@@ -28,6 +28,7 @@ public class RfCardReaderReceive extends RfCardReader implements Runnable {
     private boolean isOpen = false;
     private boolean endFlag = false;
     private byte[] src_data = new byte[8];
+    int ch;
 
     public RfCardReaderReceive(String deviceComportName) {
         try {
@@ -43,7 +44,8 @@ public class RfCardReaderReceive extends RfCardReader implements Runnable {
     }
 
     @Override
-    public void rfCardReadRequest() {
+    public void rfCardReadRequest(int ch) {
+        setCh(ch);
         send(RfMode.RF_CARD_CONTINUE_TMONEY);
     }
 
@@ -102,7 +104,7 @@ public class RfCardReaderReceive extends RfCardReader implements Runnable {
                     // 카드 읽기
                     System.arraycopy(readData, dataStart, src_data, 0, 8);
                     destData = BitUtilities.byteArrayToString(src_data);
-                    if (rfCardReaderListener != null) rfCardReaderListener.onRfCardDataReceive(destData, true);
+                    if (rfCardReaderListener != null) rfCardReaderListener.onRfCardDataReceive(getCh(), destData, true);
                 } catch (Exception e) {
                     destData = "0000000000000000";
                     logger.error("processCardData error : {} " , e.getMessage());
@@ -112,7 +114,7 @@ public class RfCardReaderReceive extends RfCardReader implements Runnable {
                     //카드 읽기
                     System.arraycopy(readData, dataStart, src_data, 0,8);
                     destData = BitUtilities.byteArrayToString(src_data);
-                    if (rfCardReaderListener != null) rfCardReaderListener.onRfCardDataReceive(destData,true);
+                    if (rfCardReaderListener != null) rfCardReaderListener.onRfCardDataReceive(getCh(),destData,true);
                 } catch (Exception e) {
                     destData = "0000000000000000";
                     logger.error("rf processCardData error : {} " , e.getMessage());
@@ -120,7 +122,7 @@ public class RfCardReaderReceive extends RfCardReader implements Runnable {
             }
         } else  {
             if (rfCardReaderListener != null) {
-                rfCardReaderListener.onRfCardDataReceive("0000000000000000", false);
+                rfCardReaderListener.onRfCardDataReceive(getCh(),"0000000000000000", false);
             }
         }
     }
@@ -185,5 +187,13 @@ public class RfCardReaderReceive extends RfCardReader implements Runnable {
         SIO_TX_Buff[10] = (byte)(crc & 0xff);
         //ETX
         SIO_TX_Buff[11] = 0x03;
+    }
+
+    public int getCh() {
+        return ch;
+    }
+
+    public void setCh(int ch) {
+        this.ch = ch;
     }
 }
