@@ -19,6 +19,7 @@ public class ProcessHandler extends Handler {
     BootNotificationThread bootNotificationThread;
     StatusNotificationThread statusNotificationThread;
     ChangeModeThread changeModeThread;
+    ChangeElecModeThread changeElecModeThread;
 
     @Override
     public void handleMessage(@NonNull Message msg) {
@@ -105,6 +106,23 @@ public class ProcessHandler extends Handler {
             changeModeThread.interrupt();
             changeModeThread.stopThread();
             changeModeThread = null;
+        }
+    }
+
+    /**
+     * DT(changeelecmode) Thread
+     */
+    public void onChangeElecModeStart() {
+        onChangeElecModeStop();
+        changeElecModeThread = new ChangeElecModeThread();
+        changeElecModeThread.start();
+    }
+
+    public void onChangeElecModeStop() {
+        if (changeElecModeThread != null) {
+            changeElecModeThread.interrupt();
+            changeElecModeThread.stopThread();
+            changeElecModeThread = null;
         }
     }
 }

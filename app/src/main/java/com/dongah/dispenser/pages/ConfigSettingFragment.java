@@ -302,9 +302,11 @@ public class ConfigSettingFragment extends Fragment implements View.OnClickListe
                         public void onClick(DialogInterface dialogInterface, int i) {
                             onSaveConfiguration();
 
-                            // 전류 제한 설정
-                            for (int j = 0; j < GlobalVariables.maxChannel; j++) {
-                                ((MainActivity) MainActivity.mContext).getControlBoard().getTxData(j).setOutPowerLimit((short) Integer.parseInt(editDR.getText().toString()));
+                            if (Objects.equals(chargerConfiguration.getOpMode(), 0)) {
+                                // 전류 제한 설정
+                                for (int j = 0; j < GlobalVariables.maxChannel; j++) {
+                                    ((MainActivity) MainActivity.mContext).getControlBoard().getTxData(j).setOutPowerLimit((short) Integer.parseInt(editDR.getText().toString()));
+                                }
                             }
 
                             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {

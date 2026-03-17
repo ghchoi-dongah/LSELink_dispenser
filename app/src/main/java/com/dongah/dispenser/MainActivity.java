@@ -291,9 +291,11 @@ public class MainActivity extends AppCompatActivity {
 //            sendOcppAuthInfoRequest();
 //        }
 
-        // 8. 전류 제한 설정
-        for (int i = 0; i <GlobalVariables.maxChannel; i++) {
-            ((MainActivity) MainActivity.mContext).getControlBoard().getTxData(i).setOutPowerLimit((short) chargerConfiguration.getDr());
+        if (Objects.equals(chargerConfiguration.getOpMode(), 0)) {
+            // 8. 전류 제한 설정
+            for (int i = 0; i <GlobalVariables.maxChannel; i++) {
+                ((MainActivity) MainActivity.mContext).getControlBoard().getTxData(i).setOutPowerLimit((short) chargerConfiguration.getDr());
+            }
         }
     }
 

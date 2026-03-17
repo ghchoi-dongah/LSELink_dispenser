@@ -10,6 +10,7 @@ import com.dongah.dispenser.utils.FileManagement;
 import com.dongah.dispenser.websocket.ocpp.core.DataTransferStatus;
 import com.dongah.dispenser.websocket.ocpp.core.datatransfer.lselink.ChangeElecModeConfirm;
 import com.dongah.dispenser.websocket.socket.OcppHandler;
+import com.dongah.dispenser.websocket.socket.handler.handlersend.ChangeElecModeThread;
 
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -35,7 +36,7 @@ public class ChangeElecModeHandler implements OcppHandler {
         // 응답
         sendResponse(connectorId, messageId);
         // 출력제한 반영
-//        processChangeElecMode();
+        ChangeElecModeThread.processChangeElecMode();
     }
 
     private void saveChangeElecModeToFile(String newData) {
@@ -94,23 +95,6 @@ public class ChangeElecModeHandler implements OcppHandler {
                     changeElecModeConfirm);
         } catch (Exception e) {
             logger.error(" sendResponse error : {}", e.getMessage());
-        }
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.O)
-    private void processChangeElecMode() {
-        try {
-            // 1. changeElecMode 파일 유무 확인
-            File file = new File(GlobalVariables.getRootPath() + File.separator + "changeElecMode");
-
-            if (!file.exists()) {
-                // 2. 파일이 없으면 DT(changemode)의 rechgElec을 기준
-
-            } else {
-                // 3. 파일이 있는 경우
-            }
-        } catch (Exception e) {
-
         }
     }
 }

@@ -111,7 +111,7 @@ public class ChangeModeThread extends Thread {
                 }
             }
         } catch (Exception e) {
-            logger.error("onChangeMode error : {}", e.getMessage());
+            logger.error("processChangeMode error : {}", e.getMessage());
         }
     }
 

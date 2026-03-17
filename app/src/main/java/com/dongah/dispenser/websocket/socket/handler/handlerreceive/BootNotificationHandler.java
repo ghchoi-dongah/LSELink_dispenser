@@ -7,10 +7,11 @@ import androidx.annotation.RequiresApi;
 import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.basefunction.GlobalVariables;
 import com.dongah.dispenser.websocket.socket.OcppHandler;
-import com.dongah.dispenser.websocket.socket.handler.handlersend.StatusNotiReq;
 import com.dongah.dispenser.websocket.socket.handler.handlersend.UnitPriceThread;
 
 import org.json.JSONObject;
+
+import java.util.Objects;
 
 public class BootNotificationHandler implements OcppHandler {
 
@@ -37,6 +38,11 @@ public class BootNotificationHandler implements OcppHandler {
 
             // DataTransfer ChangeMode
             activity.getProcessHandler().onChangeModeStart();
+
+            if (!Objects.equals(activity.getChargerConfiguration().getOpMode(), 0)) {
+                // DataTransfer ChangeElecMode
+                activity.getProcessHandler().onChangeElecModeStart();
+            }
         } else {
             activity.getProcessHandler().onBootNotificationStart(5);
         }
