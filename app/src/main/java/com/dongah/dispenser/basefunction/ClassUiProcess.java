@@ -37,6 +37,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
 import java.util.Timer;
+import java.util.TimerTask;
 
 public class ClassUiProcess implements RfCardReaderListener {
 
@@ -55,9 +56,6 @@ public class ClassUiProcess implements RfCardReaderListener {
     SocketReceiveMessage socketReceiveMessage;
     ProcessHandler processHandler;
     Timer eventTimer;
-    private Handler eventHandler;
-    private Runnable eventRunnable;
-
     ZonedDateTimeConvert zonedDateTimeConvert;
 
     int powerMeterCheck = 0;
@@ -121,7 +119,14 @@ public class ClassUiProcess implements RfCardReaderListener {
             processHandler = ((MainActivity) MainActivity.mContext).getProcessHandler();
             statusNotificationReq = new StatusNotificationReq(ch);
             // loop
-            startEventLoop();
+            eventTimer = new Timer();
+            eventTimer.schedule(new TimerTask() {
+                @RequiresApi(api = Build.VERSION_CODES.O)
+                @Override
+                public void run() {
+                    onEventAction();
+                }
+            }, 3000, 2000);
         } catch (Exception e) {
             Log.e("ClassUiProcess", "construct error", e);
             logger.error("ClassUiProcess - construct error : {}", e.getMessage());
@@ -404,25 +409,6 @@ public class ClassUiProcess implements RfCardReaderListener {
         }
     }
 
-    private void startEventLoop() {
-        eventHandler = new Handler(Looper.getMainLooper());
-        eventRunnable = new Runnable() {
-            @RequiresApi(api = Build.VERSION_CODES.O)
-            @Override
-            public void run() {
-                onEventAction();
-                eventHandler.postDelayed(this, 800);
-            }
-        };
-        eventHandler.postDelayed(eventRunnable, 3000);
-    }
-
-    public void stopEventLoop() {
-        if (eventHandler != null && eventRunnable != null) {
-            eventHandler.removeCallbacks(eventRunnable);
-        }
-    }
-
     // init
     private void handleInit() {
         setoSeq(UiSeq.INIT);
@@ -442,7 +428,6 @@ public class ClassUiProcess implements RfCardReaderListener {
         if (controlBoard.getRxData(channel).isCsReady() && chargingCurrentData.isConnectUse()) {
             setUiSeq(UiSeq.SEQUENTIAL_CHARGING);
             fragmentChange.onFragmentChange(getCh(), UiSeq.INIT, "INIT", null);
-//            fragmentChange.onFragmentChange(getCh(), UiSeq.SEQUENTIAL_CHARGING, "SEQUENTIAL_CHARGING", null);
         }
     }
 
