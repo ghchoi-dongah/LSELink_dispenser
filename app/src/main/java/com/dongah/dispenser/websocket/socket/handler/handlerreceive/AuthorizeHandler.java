@@ -78,8 +78,13 @@ public class AuthorizeHandler implements OcppHandler {
                     }
 
                     Log.d("AuthorizeHandler", "connectorId: " + connectorId);
-                    activity.getClassUiProcess(connectorId-1).setUiSeq(UiSeq.PLUG_CHECK);
-                    fragmentChange.onFragmentChange(connectorId-1, UiSeq.PLUG_CHECK, "PLUG_CHECK", null);
+                    if (activity.getControlBoard().getRxData(connectorId-1).isCsReady()) {
+                        activity.getClassUiProcess(connectorId-1).setUiSeq(UiSeq.CHARGING_WAIT);
+                        fragmentChange.onFragmentChange(connectorId-1, UiSeq.CHARGING_WAIT, "CHARGING_WAIT", null);
+                    } else {
+                        activity.getClassUiProcess(connectorId-1).setUiSeq(UiSeq.PLUG_CHECK);
+                        fragmentChange.onFragmentChange(connectorId-1, UiSeq.PLUG_CHECK, "PLUG_CHECK", null);
+                    }
                 }
             } else {
                 String certificationReason = status.name();

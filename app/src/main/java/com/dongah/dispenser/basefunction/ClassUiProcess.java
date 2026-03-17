@@ -160,7 +160,11 @@ public class ClassUiProcess implements RfCardReaderListener {
 
                 case MEMBER_CARD:
                 case MEMBER_CHECK_WAIT:
+                case SEQUENTIAL_CHARGING:
+                    break;
+
                 case CHARGING_WAIT:
+                    handleChargingWait(rxData);
                     break;
 
                 case PLUG_CHECK:
@@ -433,6 +437,13 @@ public class ClassUiProcess implements RfCardReaderListener {
         }
         chargingAlarm = true;
         onMeterValueStop();
+
+        // 예약
+        if (controlBoard.getRxData(channel).isCsReady() && chargingCurrentData.isConnectUse()) {
+            setUiSeq(UiSeq.SEQUENTIAL_CHARGING);
+            fragmentChange.onFragmentChange(getCh(), UiSeq.INIT, "INIT", null);
+//            fragmentChange.onFragmentChange(getCh(), UiSeq.SEQUENTIAL_CHARGING, "SEQUENTIAL_CHARGING", null);
+        }
     }
 
     // Rebooting
@@ -444,6 +455,15 @@ public class ClassUiProcess implements RfCardReaderListener {
                     "REBOOTING",
                     chargingCurrentData.getStopReason() == Reason.HardReset ? "Hard" : "Soft"
             );
+        }
+    }
+
+    // charging wait
+    private void handleChargingWait(RxData rxData) {
+        // 예약 → 대기: 충전 진행
+        if (!rxData.isCsReady()) {
+            setUiSeq(UiSeq.PLUG_CHECK);
+            ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(getCh(), UiSeq.PLUG_CHECK, "PLUG_CHECK", null);
         }
     }
 
