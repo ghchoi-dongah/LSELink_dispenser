@@ -57,10 +57,14 @@ public class NotifyFaultCheck {
         this.ch = ch;
     }
 
+    //Status
+    StatusNotificationReq statusNotificationReq;
+
     public NotifyFaultCheck(int ch) {
         this.ch = ch;
         processHandler = ((MainActivity) MainActivity.mContext).getProcessHandler();
         socketReceiveMessage = ((MainActivity) MainActivity.mContext).getSocketReceiveMessage();
+        statusNotificationReq =  new StatusNotificationReq(ch+1);
     }
 
 
@@ -97,7 +101,6 @@ public class NotifyFaultCheck {
     private void onFaultDetect(RxData rxData) {
         try {
             boolean disconnected = ((MainActivity) MainActivity.mContext).getControlBoard().isDisconnected();    //true ==> fault 발생
-            StatusNotificationReq statusNotificationReq = new StatusNotificationReq(chargingCurrentData.getConnectorId());
 
             if (!Objects.equals(UiDSP.ResultCompare, disconnected)) {
                 UiDSP.setResultCompare(disconnected);
