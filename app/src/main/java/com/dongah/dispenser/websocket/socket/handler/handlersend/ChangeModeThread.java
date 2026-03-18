@@ -99,12 +99,11 @@ public class ChangeModeThread extends Thread {
                     } else {
                         setChangeMode(i, content);
                     }
-                }
 
-                // 4. 커넥터 모드에 따른 커넥터 사용 유무 설정 및 화면에 상태 반영
-                setConnectUse();
-                for (int i = 0; i < GlobalVariables.maxChannel; i++) {
-                    // INIT 화면일 경우만 화면 refresh
+                    // 4. 커넥터 모드에 따른 커넥터 사용 유무 설정 및 화면에 상태 반영
+                    setConnectUse(i);
+
+                    // 5. INIT 화면일 경우만 화면 refresh
                     if (Objects.equals(activity.getClassUiProcess(i).getUiSeq(), UiSeq.INIT)) {
                         activity.getClassUiProcess(i).onHome();
                     }
@@ -165,33 +164,17 @@ public class ChangeModeThread extends Thread {
         }
     }
 
-    private static void setConnectUse() {
+    private static void setConnectUse(int ch) {
        try {
            MainActivity activity = ((MainActivity) MainActivity.mContext);
-           String chMode0 = activity.getChargingCurrentData(0).getChangeMode();
-           String chMode1 = activity.getChargingCurrentData(1).getChangeMode();
+           String chMode = activity.getChargingCurrentData(ch).getChangeMode();
 
            /** 커넥터 모드에 따른 커넥터 사용 유무 설정
-            * 1ch / 2ch
-            * DM / DM : 전체 충전
-            * DM / NM, NM / DM[NM] : 1구 충전(1ch > 2ch 우선 순위, 2ch 미사용)
-            * WM / DM[NM], IM / DM[NM] : 1구 충전
+            * DM, NM : 커넥터 사용 가능
+            * WM, IM : 커넥터 사용 불가능
             * */
-           boolean isMode0Valid = "DM".equals(chMode0) || "NM".equals(chMode0);
-           boolean isMode1Valid = "DM".equals(chMode1) || "NM".equals(chMode1);
-
-           boolean conUse0, conUse1;
-
-           if (isMode0Valid && isMode1Valid) {
-               conUse0 = true;
-               conUse1 = "DM".equals(chMode0) && "DM".equals(chMode1);
-           } else {
-               conUse0 = isMode0Valid;
-               conUse1 = isMode1Valid;
-           }
-
-           activity.getChargingCurrentData(0).setConnectUse(conUse0);
-           activity.getChargingCurrentData(1).setConnectUse(conUse1);
+           boolean isModeValid = "DM".equals(chMode) || "NM".equals(chMode);
+           activity.getChargingCurrentData(ch).setConnectUse(isModeValid);
        } catch (Exception e) {
            logger.error("setConnectUse error : {}", e.getMessage());
        }
