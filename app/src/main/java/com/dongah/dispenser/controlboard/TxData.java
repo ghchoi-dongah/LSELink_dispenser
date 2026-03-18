@@ -11,7 +11,7 @@ public class TxData {
     private static final int TX_DATA_CNT = 10;
     public short[] rawData = new short[TX_DATA_CNT];
 
-    public boolean IsAuthorizedMac = false;     // 2bit
+    public boolean IsAuthorizedMac = false;     // 2bit, 사용 안 함
     public boolean IsStart = false;             // 3bit
     public boolean IsStop = false;              // 4bit
     public boolean IsReset = false;             // 7bit

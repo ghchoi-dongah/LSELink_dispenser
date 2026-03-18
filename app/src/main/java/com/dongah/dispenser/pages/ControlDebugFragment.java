@@ -166,13 +166,13 @@ public class ControlDebugFragment extends Fragment implements View.OnClickListen
                     @Override
                     public void run() {
                         listViewRxAdapter.clearItem();
-//                        listViewRxAdapter.addItem("RX", "MAC Address", String.valueOf(rxData[getCurrCh()].csmVehicleEvccId));   // 디버깅용, 값 확인용
                         listViewRxAdapter.addItem("RX", "EvccId", BitUtilities.toHexString(rxData[getCurrCh()].csmVehicleEvccId));   // 16진수(Hex)
                         listViewRxAdapter.addItem("RX", "csPilot", String.valueOf(rxData[getCurrCh()].isCsPilot()));
                         listViewRxAdapter.addItem("RX", "csStart", String.valueOf(rxData[getCurrCh()].isCsStart()));
                         listViewRxAdapter.addItem("RX", "csStop", String.valueOf(rxData[getCurrCh()].isCsStop()));
                         listViewRxAdapter.addItem("RX", "csFault", String.valueOf(rxData[getCurrCh()].isCsFault()));
                         listViewRxAdapter.addItem("RX", "csReady", String.valueOf(rxData[getCurrCh()].isCsReady()));
+                        listViewRxAdapter.addItem("RX", "otherRemainTime", controlBoardUtil.getRemainTime(rxData[getCurrCh()].getOtherChannelRemainingTimeFullSoc()));
                         listViewRxAdapter.addItem("RX", "cpVoltage", String.format("%.2f", rxData[getCurrCh()].getCpVoltage() * 0.1));
                         listViewRxAdapter.addItem("RX", "FW Ver", controlBoardUtil.parseVersion(rxData[getCurrCh()].getFirmwareVersion()));
                         listViewRxAdapter.addItem("RX", "RemainTime", controlBoardUtil.getRemainTime(rxData[getCurrCh()].getRemainTime()));
@@ -201,6 +201,7 @@ public class ControlDebugFragment extends Fragment implements View.OnClickListen
                         listViewRxAdapter.addItem("RX", "OCR", String.valueOf(rxData[getCurrCh()].isCsOutOCR()));
                         listViewRxAdapter.addItem("RX", "커플러 온도 센서", String.valueOf(rxData[getCurrCh()].isCsCouplerTempSensor()));
                         listViewRxAdapter.addItem("RX", "커플러 과온도", String.valueOf(rxData[getCurrCh()].isCsCouplerOVT()));
+                        listViewRxAdapter.addItem("RX", "powerBankEmergency", String.valueOf(rxData[getCurrCh()].isPowerBankEmergency()));
                         listViewRxAdapter.addItem("RX", "csModule1Error", String.valueOf(rxData[getCurrCh()].isCsModule1Error()));
                         listViewRxAdapter.addItem("RX", "csModule2Error", String.valueOf(rxData[getCurrCh()].isCsModule2Error()));
                         listViewRxAdapter.addItem("RX", "csModule3Error", String.valueOf(rxData[getCurrCh()].isCsModule3Error()));
@@ -227,11 +228,10 @@ public class ControlDebugFragment extends Fragment implements View.OnClickListen
                     @Override
                     public void run() {
                         listViewTxAdapter.clearItem();
-                        listViewTxAdapter.addItem("TX", "IsAuthorizedMac", String.valueOf(txData[currCh].IsAuthorizedMac));
                         listViewTxAdapter.addItem("TX", "IsStart", String.valueOf(txData[currCh].IsStart));
                         listViewTxAdapter.addItem("TX", "IsStop", String.valueOf(txData[currCh].IsStop));
                         listViewTxAdapter.addItem("TX", "IsReset", String.valueOf(txData[currCh].IsReset));
-                        listViewTxAdapter.addItem("TX", "uiSequence", txData[currCh].uiSequence == 0 ? "대기" : txData[currCh].uiSequence == 1 ? "충전" : "종료");
+                        listViewTxAdapter.addItem("TX", "uiSequence", txData[currCh].uiSequence == 1 ? "대기" : txData[currCh].uiSequence == 2 ? "충전" : "종료");
                         listViewTxAdapter.addItem("TX", "chargerPointMode", txData[currCh].chargerPointMode == 0 ? "운영" : txData[currCh].uiSequence == 1 ? "부하" : "I/O");
                         listViewTxAdapter.addItem("TX", "testDrVoltage", String.valueOf(txData[currCh].testDrVoltage));
                         listViewTxAdapter.addItem("TX", "testDrCurrent", String.valueOf(txData[currCh].testDrCurrent));

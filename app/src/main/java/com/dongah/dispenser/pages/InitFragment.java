@@ -124,7 +124,6 @@ public class InitFragment extends Fragment implements View.OnClickListener {
         rxData = activity.getControlBoard().getRxData(mChannel);
 
         try {
-            Log.d("InitFragment", "Authorized_Mac: " + activity.getControlBoard().getTxData(mChannel).isAuthorizedMac());
             if (chargingCurrentData.isConnectUse()) {
                 textViewInitMessage.setText(R.string.initMessage);
                 imageViewFault.setVisibility(View.INVISIBLE);

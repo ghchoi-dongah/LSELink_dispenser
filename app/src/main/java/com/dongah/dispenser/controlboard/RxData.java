@@ -17,7 +17,7 @@ public class RxData {
     public boolean csStart = false;         // 4bit
     public boolean csStop = false;          // 5bit
     public boolean csFault = false;         // 6bit
-    public boolean csReady = false;         // 7bit
+    public boolean csReady = false;         // 7bit, true: 충전 가능 상태 false: 다른 채널 충전 중(예약)
     public boolean csRY1Status = false;     // 8bit
     public boolean csRY2Status = false;     // 9bit
     public boolean csRY3Status = false;     // 10bit
@@ -26,6 +26,9 @@ public class RxData {
     public boolean csRY6Status = false;     // 13bit
     public boolean csMC1Status = false;     // 14bit
     public boolean csMC2Status = false;     // 15bit
+
+    // 401 address
+    public short otherChannelRemainingTimeFullSoc = 0;  // 먼저 충전 중인 채널 남은 시간
 
     // 402 address
     public short cpVoltage = 0;             // cp 전압 (ex. 1198 ==> 119.8)
@@ -54,16 +57,17 @@ public class RxData {
     public boolean csEmergency = false;         // 411[0] Emergency
     public boolean csPLCComm = false;           // 411[1] PLC 통신 오류
     public boolean csPowerMeterComm = false;    // 411[2] 전력량계 통신 오류
-    public boolean csModule1Comm = false;  // 411[3] 파워모듈1 통신 오류
-    public boolean csModule2Comm = false;  // 411[4] 파워모듈2 통신 오류
-    public boolean csModule3Comm = false;  // 411[5] 파워모듈3 통신 오류
-    public boolean csModule4Comm = false;  // 411[6] 파워모듈4 통신 오류
+    public boolean csModule1Comm = false;       // 411[3] 파워모듈1 통신 오류
+    public boolean csModule2Comm = false;       // 411[4] 파워모듈2 통신 오류
+    public boolean csModule3Comm = false;       // 411[5] 파워모듈3 통신 오류
+    public boolean csModule4Comm = false;       // 411[6] 파워모듈4 통신 오류
     public boolean csChargerLeak = false;       // 411[7] 충전기 누설 감지
     public boolean csCarLeak = false;           // 411[8] 차량 누설 감지
     public boolean csOutOVR = false;            // 411[9] 출력 과전압(정격의 110%)
     public boolean csOutOCR = false;            // 411[10] 출력 과전류(정격의 110%)
     public boolean csCouplerTempSensor = false; // 411[11] 커플러 온도 센서 이상
     public boolean csCouplerOVT = false;        // 411[12] 커플러 과온도
+    public boolean powerBankEmergency = false;  // 411[13] 파워뱅크 비상 정지
     // 412 address
     public boolean csModule1Error = false;      // 412[0] 파워모듈1 에러
     public boolean csModule2Error = false;      // 412[1] 파워모듈2 에러
@@ -172,6 +176,7 @@ public class RxData {
             csMC1Status = BitUtilities.getBitBoolean(data[0], 14);
             csMC2Status = BitUtilities.getBitBoolean(data[0], 15);
 
+            otherChannelRemainingTimeFullSoc = data[1]; // 401 address
             cpVoltage = data[2];        // 402 address
             firmwareVersion = data[3];  // 403 address
             remainTime = data[4];       // 404 address
@@ -205,6 +210,7 @@ public class RxData {
             csOutOCR = BitUtilities.getBitBoolean(data[11], 10);
             csCouplerTempSensor = BitUtilities.getBitBoolean(data[11], 11);
             csCouplerOVT = BitUtilities.getBitBoolean(data[11], 12);
+            powerBankEmergency = BitUtilities.getBitBoolean(data[11], 13);
 
             // 412 address
             csModule1Error = BitUtilities.getBitBoolean(data[12], 0);
@@ -399,6 +405,14 @@ public class RxData {
 
     public void setCsMC2Status(boolean csMC2Status) {
         this.csMC2Status = csMC2Status;
+    }
+
+    public short getOtherChannelRemainingTimeFullSoc() {
+        return otherChannelRemainingTimeFullSoc;
+    }
+
+    public void setOtherChannelRemainingTimeFullSoc(short otherChannelRemainingTimeFullSoc) {
+        this.otherChannelRemainingTimeFullSoc = otherChannelRemainingTimeFullSoc;
     }
 
     public short getCpVoltage() {
@@ -623,6 +637,14 @@ public class RxData {
 
     public void setCsCouplerOVT(boolean csCouplerOVT) {
         this.csCouplerOVT = csCouplerOVT;
+    }
+
+    public boolean isPowerBankEmergency() {
+        return powerBankEmergency;
+    }
+
+    public void setPowerBankEmergency(boolean powerBankEmergency) {
+        this.powerBankEmergency = powerBankEmergency;
     }
 
     public boolean isCsModule1Error() {
