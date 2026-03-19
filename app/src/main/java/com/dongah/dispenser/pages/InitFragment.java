@@ -189,12 +189,14 @@ public class InitFragment extends Fragment implements View.OnClickListener {
                         switch (chargerConfiguration.getAuthMode()) {
                             case 0:
                             case 2:
-                                String evccId = BitUtilities.toHexString(rxData.getCsmVehicleEvccId());
-                                activity.getChargingCurrentData(mChannel).setAuthType("M");
+//                                String evccId = BitUtilities.toHexString(rxData.getCsmVehicleEvccId());
 //                                chargingCurrentData.setIdTag(evccId);
-                                chargingCurrentData.setIdTag("1364747EE708");
-                                activity.getClassUiProcess(mChannel).setUiSeq(UiSeq.MEMBER_CHECK_WAIT);
-                                activity.getFragmentChange().onFragmentChange(mChannel, UiSeq.MEMBER_CHECK_WAIT, "MEMBER_CHECK_WAIT", null);
+//                                chargingCurrentData.setIdTag("1364747EE708");
+
+
+                                activity.getChargingCurrentData(mChannel).setAuthType("M");
+                                activity.getClassUiProcess(mChannel).setUiSeq(UiSeq.PLUG_CHECK);
+                                activity.getFragmentChange().onFragmentChange(mChannel, UiSeq.PLUG_CHECK, "PLUG_CHECK", null);
                                 break;
                             case 1:
                                 activity.getChargingCurrentData(mChannel).setAuthType("C");

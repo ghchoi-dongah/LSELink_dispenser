@@ -78,8 +78,15 @@ public class AuthorizeHandler implements OcppHandler {
                     }
 
                     Log.d("AuthorizeHandler", "connectorId: " + connectorId);
-                    activity.getClassUiProcess(connectorId-1).setUiSeq(UiSeq.PLUG_CHECK);
-                    fragmentChange.onFragmentChange(connectorId-1, UiSeq.PLUG_CHECK, "PLUG_CHECK", null);
+
+                    // authType = 'C' : 회원 카드 인증 완료, PLUG_CHECK process
+                    // authType = 'M' : Mac Add. 인증 완료, CHARGING process
+                    if (Objects.equals(chargingCurrentData.getAuthType(), "C")) {
+                        activity.getClassUiProcess(connectorId-1).setUiSeq(UiSeq.PLUG_CHECK);
+                        fragmentChange.onFragmentChange(connectorId-1, UiSeq.PLUG_CHECK, "PLUG_CHECK", null);
+                    } else {
+                        activity.getChargingCurrentData(connectorId-1).setAuthorizeResult(true);
+                    }
                 }
             } else {
                 String certificationReason = status.name();
@@ -90,10 +97,21 @@ public class AuthorizeHandler implements OcppHandler {
                     toastPositionMake.onShowToast(connectorId-1, "충전 중지 인증 실패 : " + certificationReason);
                 } else {
                     activity.getChargingCurrentData(connectorId-1).setAuthorizeResult(false);
-                    if (Objects.equals(chargingCurrentData.authType, "M") && Objects.equals(chargerConfiguration.getAuthMode(), 2)) {
-                        activity.getClassUiProcess(connectorId-1).setUiSeq(UiSeq.MEMBER_CARD);
-                        activity.getChargingCurrentData(connectorId-1).setAuthorizeResult(true);
-                        fragmentChange.onFragmentChange(connectorId-1, UiSeq.MEMBER_CARD, "MEMBER_CARD", null);
+                    if (Objects.equals(chargingCurrentData.authType, "M")) {
+                        // 충전 중지
+                        activity.getControlBoard().getTxData(connectorId-1).setStart(false);
+                        activity.getControlBoard().getTxData(connectorId-1).setStop(true);
+
+                        if (Objects.equals(chargerConfiguration.getAuthMode(), 0)) {
+
+                        } else if (Objects.equals(chargerConfiguration.getAuthMode(), 2)) {
+                            activity.getChargingCurrentData(connectorId-1).setAuthType("C");
+                            activity.getClassUiProcess(connectorId-1).setUiSeq(UiSeq.MEMBER_CARD);
+                            fragmentChange.onFragmentChange(connectorId-1, UiSeq.MEMBER_CARD, "MEMBER_CARD", null);
+                        }
+
+//                        activity.getChargingCurrentData(connectorId-1).setAuthorizeResult(true);
+
                     }
                 }
             }
