@@ -10,6 +10,15 @@ android {
         version = release(36)
     }
 
+    signingConfigs {
+        platformkeystore {
+            keyAlias "platform"
+            keyPassword "android"
+            storeFile file("D:\\AndroidDongah\\PlatformKeyClear\\keystore\\platform.jks")
+            storePassword "android"
+        }
+    }
+
     defaultConfig {
         applicationId "com.dongah.dispenser"
         minSdk 24
@@ -74,6 +83,7 @@ dependencies {
     implementation libs.zxing
     implementation libs.jsch
     implementation libs.slf4j
+    implementation libs.slf4j.android
     implementation libs.gson
     implementation libs.jaxb
     implementation libs.commonsnet

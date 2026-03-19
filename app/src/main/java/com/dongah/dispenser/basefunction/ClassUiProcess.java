@@ -165,7 +165,9 @@ public class ClassUiProcess implements RfCardReaderListener {
 
                 case MEMBER_CARD:
                 case MEMBER_CHECK_WAIT:
+                    break;
                 case SEQUENTIAL_CHARGING:
+                    handleSequentialCharging();
                     break;
 
                 case CHARGING_WAIT:
@@ -416,9 +418,11 @@ public class ClassUiProcess implements RfCardReaderListener {
         onMeterValueStop();
 
         // 예약
-        if (controlBoard.getRxData(channel).isCsReady() && chargingCurrentData.isConnectUse()) {
+        // isCsReady = false : 예약
+        if (!controlBoard.getRxData(channel).isCsReady() && chargingCurrentData.isConnectUse()) {
+            Log.d("ClassUiProcess", "isCsReady is false, sequential charging start");
             setUiSeq(UiSeq.SEQUENTIAL_CHARGING);
-            fragmentChange.onFragmentChange(getCh(), UiSeq.INIT, "INIT", null);
+            fragmentChange.onFragmentChange(getCh(), UiSeq.SEQUENTIAL_CHARGING, "SEQUENTIAL_CHARGING", null);
         }
     }
 
@@ -431,6 +435,17 @@ public class ClassUiProcess implements RfCardReaderListener {
                     "REBOOTING",
                     chargingCurrentData.getStopReason() == Reason.HardReset ? "Hard" : "Soft"
             );
+        }
+    }
+
+    // sequential charging
+    private void handleSequentialCharging() {
+        // 예약 → 대기
+        // isCsReady = true : 대기
+        if (controlBoard.getRxData(channel).isCsReady() || !chargingCurrentData.isConnectUse()) {
+            Log.d("ClassUiProcess", "isCsReady is true, init start");
+            setUiSeq(UiSeq.INIT);
+            fragmentChange.onFragmentChange(getCh(), UiSeq.INIT, "INIT", null);
         }
     }
 

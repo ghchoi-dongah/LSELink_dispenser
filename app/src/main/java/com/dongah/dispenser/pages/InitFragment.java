@@ -132,25 +132,13 @@ public class InitFragment extends Fragment implements View.OnClickListener {
                 imageViewFault.setVisibility(View.VISIBLE);
             }
 
-            boolean isCsReady = rxData.isCsReady() && chargingCurrentData.isConnectUse();
-            boolean isChannel = (mChannel == 0);
-
-            viewCircle.setBackgroundResource(
-                    isCsReady ? R.drawable.layer_list_oval_yellow : R.drawable.layer_list_oval_blue
-            );
-
-            imageViewBus.setBackgroundResource(
-                    isCsReady ? R.drawable.bus_yellow : R.drawable.bus_blue
-            );
-
-            imageViewBus.setScaleX(isChannel ? 1f : -1f);
-
-            String connectorText = isChannel ? "1 커넥터" : "2 커넥터";
-            if (isCsReady) {
-                connectorText += "(순차모드)";
+            if (mChannel == 0) {
+                imageViewBus.setScaleX(1f);
+                textViewConnector.setText("1 커넥터");
+            } else {
+                imageViewBus.setScaleX(-1f);
+                textViewConnector.setText("2 커넥터");
             }
-            textViewConnector.setText(connectorText);
-
         } catch (Exception e) {
             Log.e("InitFragment", "onCreateView error", e);
             logger.error("InitFragment onCreateView error : {}", e.getMessage());

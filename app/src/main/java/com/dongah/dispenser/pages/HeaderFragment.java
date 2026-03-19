@@ -105,8 +105,6 @@ public class HeaderFragment extends Fragment implements View.OnClickListener {
             System.out.println("btnLogo click: " + clickedCnt);
             if (clickedCnt > 8) {
                 try {
-//                    boolean chkUiSeq = ((MainActivity) MainActivity.mContext).getClassUiProcess(0).getUiSeq() == UiSeq.INIT &&
-//                            ((MainActivity) MainActivity.mContext).getClassUiProcess(1).getUiSeq() == UiSeq.INIT;
                     MainActivity activity = (MainActivity) MainActivity.mContext;
                     if (activity == null) {
                         System.out.println("btnLogo error: MainActivity.mContext is null");
@@ -120,7 +118,8 @@ public class HeaderFragment extends Fragment implements View.OnClickListener {
                             ? activity.getClassUiProcess(1).getUiSeq()
                             : null;
 
-                    boolean chkUiSeq = ui0 == UiSeq.INIT && ui1 == UiSeq.INIT;
+                    boolean chkUiSeq = (ui0 == UiSeq.INIT || ui0 == UiSeq.SEQUENTIAL_CHARGING || ui0 == UiSeq.FAULT) &&
+                                            (ui1 == UiSeq.INIT || ui1 == UiSeq.SEQUENTIAL_CHARGING || ui1 == UiSeq.FAULT);
                     System.out.println("clickedCnt > 8, ui0: " + ui0 + ", ui1: " + ui1 + ", chkUiSeq: " + chkUiSeq + ", mChannel:" + mChannel);
                     if (chkUiSeq) {
                         ((MainActivity) MainActivity.mContext).runOnUiThread(new Runnable() {

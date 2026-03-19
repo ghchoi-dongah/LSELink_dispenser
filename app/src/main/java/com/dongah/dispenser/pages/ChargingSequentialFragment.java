@@ -7,9 +7,13 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import android.os.Handler;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -17,6 +21,7 @@ import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.R;
 import com.dongah.dispenser.basefunction.ChargingCurrentData;
 import com.dongah.dispenser.basefunction.UiSeq;
+import com.dongah.dispenser.controlboard.RxData;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,10 +47,14 @@ public class ChargingSequentialFragment extends Fragment implements View.OnClick
     private String mParam2;
     private int mChannel;
 
+    Animation animBlink;
     View viewCircle;
     ImageView imageViewBus;
-    TextView textViewConnector;
+    TextView textViewConnector, textViewInitMessage, textViewInitMessageSub;
     ChargingCurrentData chargingCurrentData;
+    RxData rxData;
+    Runnable runnable;
+    Handler handler;
 
     public ChargingSequentialFragment() {
         // Required empty public constructor
@@ -85,7 +94,13 @@ public class ChargingSequentialFragment extends Fragment implements View.OnClick
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_charging_sequential, container, false);
         view.setOnClickListener(this);
+        chargingCurrentData = ((MainActivity) MainActivity.mContext).getChargingCurrentData(mChannel);
+        rxData = ((MainActivity) MainActivity.mContext).getControlBoard().getRxData(mChannel);
+        animBlink = AnimationUtils.loadAnimation(getActivity(), R.anim.blink_animation);
         textViewConnector = view.findViewById(R.id.textViewConnector);
+        textViewInitMessage = view.findViewById(R.id.textViewInitMessage);
+        textViewInitMessage.startAnimation(animBlink);
+        textViewInitMessageSub = view.findViewById(R.id.textViewInitMessageSub);
         imageViewBus = view.findViewById(R.id.imageViewBus);
         viewCircle = view.findViewById(R.id.viewCircle);
         viewCircle.setOnClickListener(this);
@@ -94,10 +109,10 @@ public class ChargingSequentialFragment extends Fragment implements View.OnClick
             // ch0, ch1 구분 => 이미지 위치 조절
             if (mChannel == 0) {
                 imageViewBus.setScaleX(1f);
-                textViewConnector.setText("1" + R.string.connectorSeq);
+                textViewConnector.setText("1 " + getString(R.string.connectorSeq));
             } else {
                 imageViewBus.setScaleX(-1f);
-                textViewConnector.setText("2" + R.string.connectorSeq);
+                textViewConnector.setText("2 " + getString(R.string.connectorSeq));
             }
         } catch (Exception e) {
             logger.error("ChargingSequentialFragment onCreateView error : {}", e.getMessage());
@@ -109,7 +124,25 @@ public class ChargingSequentialFragment extends Fragment implements View.OnClick
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         try {
-            chargingCurrentData = ((MainActivity) MainActivity.mContext).getChargingCurrentData(mChannel);
+            handler = new Handler(Looper.getMainLooper());
+            runnable = new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        int remainingSec = rxData.getOtherChannelRemainingTimeFullSoc();
+                        int minute = remainingSec / 60;
+
+                        textViewInitMessageSub.setText(
+                                getString(R.string.seqTime, String.valueOf(minute))
+                        );
+
+                    } catch (Exception e) {
+                        logger.error("ChargingSequentialFragment run error : {}", e.getMessage());
+                    }
+                    handler.postDelayed(this, 1000);
+                }
+            };
+            handler.postDelayed(runnable, 1000);
         } catch (Exception e) {
             logger.error("ChargingSequentialFragment onViewCreated error : {}", e.getMessage());
         }
@@ -118,8 +151,21 @@ public class ChargingSequentialFragment extends Fragment implements View.OnClick
     @Override
     public void onClick(View v) {
         if (!Objects.equals(v.getId(), R.id.viewCircle)) return;
+    }
 
-        ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.MEMBER_CHECK_WAIT);
-        ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.MEMBER_CHECK_WAIT, "MEMBER_CHECK_WAIT", null);
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+
+        try {
+            if (handler != null && runnable != null) {
+                handler.removeCallbacks(runnable);
+            }
+
+            runnable = null;
+            handler = null;
+        } catch (Exception e) {
+            logger.error("ChargingSequentialFragment onDestroyView error : {}", e.getMessage());
+        }
     }
 }
