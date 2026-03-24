@@ -43,6 +43,7 @@ import com.dongah.dispenser.websocket.ocpp.core.Reason;
 import com.dongah.dispenser.websocket.socket.SocketReceiveMessage;
 import com.dongah.dispenser.websocket.socket.SocketState;
 import com.dongah.dispenser.websocket.socket.handler.handlersend.ProcessHandler;
+import com.dongah.dispenser.websocket.tcpsocket.ClientSocket;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,6 +91,7 @@ public class MainActivity extends AppCompatActivity {
     ControlBoard controlBoard;
     RfCardReaderReceive rfCardReaderReceive;
     ToastPositionMake toastPositionMake;
+    ClientSocket clientSocket;
 
 
     public UiSeq getFragmentSeq(int ch)  {
@@ -240,60 +242,56 @@ public class MainActivity extends AppCompatActivity {
         // 7. handler
         processHandler = new ProcessHandler();
 
-//        // 7. PLC modem
-//        clientSocket = new ClientSocket("192.168.39.1", 9999, new ClientSocket.TcpClientListener() {
-//            @Override
-//            public void onConnected() {
-//                logger.debug("connected");
-//            }
-//
-//            @Override
-//            public void onDisconnected() {
-//
-//            }
-//
-//            @Override
-//            public void onError(Exception e) {
-//
-//            }
-//
-//            @Override
-//            public void onMessageReceived(String message) {
-//                Log.d("TCP", "General recv: "+ message);
-//            }
-//        });
-//        clientSocket.start();
-//        clientSocket.sendCommandExpectPrefix("AT+CNUM", "+CNUM:", 10000)
-//                .thenApply(line -> {
-//                    // line 예: +CNUM: "LGU","+821222492396",145
-//                    String[] parts = line.split(",");
-//                    String raw = parts.length >= 2 ? parts[1].replace("\"","") : null;
-//                    GlobalVariables.setIMSI(raw == null ? "" : parseToLocal(raw));
-//                    return parseToLocal(raw); // 01222492396
-//                })
-//                .thenCompose(localNumber -> {
-//                    Log.d("TCP","Parsed local number: " + localNumber);
-//                    // 이어서 DSCREEN 명령
-//                    return clientSocket.sendCommandExpectPrefix("AT$$DSCREEN?", "DSCREEN:", 5000);
-//                })
-//                .thenAccept(dscreenResp -> {
-//                    GlobalVariables.setRSRP(parseToRSRP(dscreenResp));
-//                    Log.d("TCP","DSCREEN response: " + dscreenResp);
-//                    clientSocket.postDisconnected();
-//                    clientSocket.closeSocket();
-//                })
-//                .exceptionally(ex -> {
-//                    Log.e("TCP","Command chain error", ex);
-//                    return null;
-//                });
-//
-//        // server mode
-//        if (Objects.equals(chargerConfiguration.getAuthMode(), 1)) {
-//            sendOcppAuthInfoRequest();
-//        }
+        // 8. PLC modem
+        clientSocket = new ClientSocket("192.168.39.1", 9999, new ClientSocket.TcpClientListener() {
+            @Override
+            public void onConnected() {
+                logger.debug("connected");
 
+                clientSocket.start();
+                clientSocket.sendCommandExpectPrefix("AT+CNUM", "+CNUM:", 10000)
+                        .thenApply(line -> {
+                            // line 예: +CNUM: "LGU","+821222492396",145
+                            String[] parts = line.split(",");
+                            String raw = parts.length >= 2 ? parts[1].replace("\"","") : null;
+                            GlobalVariables.setIMSI(raw == null ? "" : parseToLocal(raw));
+                            return parseToLocal(raw); // 01222492396
+                        })
+                        .thenCompose(localNumber -> {
+                            Log.d("TCP","Parsed local number: " + localNumber);
+                            // 이어서 DSCREEN 명령
+                            return clientSocket.sendCommandExpectPrefix("AT$$DSCREEN?", "DSCREEN:", 5000);
+                        })
+                        .thenAccept(dscreenResp -> {
+                            GlobalVariables.setRSRP(parseToRSRP(dscreenResp));
+                            Log.d("TCP","DSCREEN response: " + dscreenResp);
+                            clientSocket.postDisconnected();
+                            clientSocket.closeSocket();
+                        })
+                        .exceptionally(ex -> {
+                            Log.e("TCP","Command chain error", ex);
+                            return null;
+                        });
+            }
+
+            @Override
+            public void onDisconnected() {
+
+            }
+
+            @Override
+            public void onError(Exception e) {
+
+            }
+
+            @Override
+            public void onMessageReceived(String message) {
+                Log.d("TCP", "General recv: "+ message);
+            }
+        });
+
+        // 9. 전류 제한 설정
         if (Objects.equals(chargerConfiguration.getOpMode(), 0)) {
-            // 8. 전류 제한 설정
             for (int i = 0; i <GlobalVariables.maxChannel; i++) {
                 ((MainActivity) MainActivity.mContext).getControlBoard().getTxData(i).setOutPowerLimit((short) chargerConfiguration.getDr());
             }
@@ -441,80 +439,6 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
 //        inactivityHandler.removeCallbacks(inactivityRunnable);
         handler.removeCallbacks(runnable);
-    }
-
-    /**
-     * HTTPS 연결이 안 되면 다시 접속
-     **/
-    private static final int RETRY_DELAY_MS = 3000;     // 3초
-    private static final int MAX_RETRY_COUNT = 5;       // 최대 재시도 횟수
-    private int retryCount = 0;
-    private final Handler mainHandler = new Handler(Looper.getMainLooper());
-    private void sendOcppAuthInfoRequest() {
-//        HttpClientHelper httpClient = new HttpClientHelper();
-//        String url = chargerConfiguration.getServerConnectingString();
-//
-//        try {
-//            String encrypted = chargerConfiguration.getChargePointSerialNumber();
-//            String jsonBody = httpClient.onJsonMake("reqVal", encrypted);
-//            httpClient.postWithRetry(url, jsonBody, new HttpClientHelper.HttpCallback() {
-//                @Override
-//                public void onSuccess(int statusCode, String response) {
-//                    try {
-//                        if (statusCode == 200) {
-//                            JSONObject jsonObject = new JSONObject(response);
-//                            String resultCode = jsonObject.optString("resultCode", "");
-//                            if ("OK".equals(resultCode)) {
-//                                // WebSocket 연결 설정
-//
-//                                connectorList = connectionListJsonParse.parseConnectorList(response);
-//
-//                                runOnUiThread(() -> chargerConfiguration.setChargerId(String.valueOf(connectorList.get(0).getSearchKey())));
-//
-//                                String baseUrl = chargerConfiguration.getServerConnectingString() + "/" + chargerConfiguration.getChargeBoxSerialNumber() + chargerConfiguration.getChargerId();
-//                                socketReceiveMessage = new SocketReceiveMessage(baseUrl);
-//
-//                                retryCount = 0;
-//                                // 초기 화면
-//                                for (int i = 0; i < GlobalVariables.maxChannel; i++) {
-//                                    fragmentChange.onFragmentChange(i, UiSeq.INIT, "INIT", "");;
-//                                    fragmentChange.onFragmentHeaderChange(i, "Header");
-//                                }
-//                            } else {
-//                                Log.w("HTTP", "resultCode != OK → 3초 후 재요청");
-//                                scheduleRetry();
-//                            }
-//                        } else {
-//                            Log.w("HTTP", "resultCode != 200 → 3초 후 재요청");
-//                            scheduleRetry();
-//                        }
-//                    } catch (Exception e) {
-//                        Log.e("PARSE_ERROR", "JSON 파싱 오류", e);
-//                        scheduleRetry();
-//                    }
-//                    Log.d("HTTP", "Response: " + response);
-//                }
-//
-//                @Override
-//                public void onFailure(IOException e) {
-//                    Log.e("HTTP", "Failed to send request", e);
-//                    scheduleRetry();
-//                }
-//            });
-//        } catch (Exception e) {
-//            logger.error("REQUEST_ERROR {}", e.getMessage());
-//            scheduleRetry();
-//        }
-    }
-
-    private void scheduleRetry() {
-        if (retryCount < MAX_RETRY_COUNT) {
-            retryCount++;
-            Log.w("HTTP", "재시도 " + retryCount + "회 / " + MAX_RETRY_COUNT + "회");
-            mainHandler.postDelayed(this::sendOcppAuthInfoRequest, RETRY_DELAY_MS);
-        } else {
-            Log.e("HTTP", "최대 재시도 횟수 초과 → 요청 중단");
-        }
     }
 
     private String parseToLocal(String number) {

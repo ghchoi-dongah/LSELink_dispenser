@@ -53,6 +53,10 @@ public class GlobalVariables {
 
     public static int dumpTransactionId = 0;
 
+    //modem tel number
+    public static String IMSI = "" ;
+    public static String RSRP = "";
+
 
     public static String getRootPath() {
         return ROOT_PATH;
@@ -237,5 +241,21 @@ public class GlobalVariables {
 
     public static void setDumpTransactionId(int dumpTransactionId) {
         GlobalVariables.dumpTransactionId = dumpTransactionId;
+    }
+
+    public static String getIMSI() {
+        return IMSI;
+    }
+
+    public static void setIMSI(String IMSI) {
+        GlobalVariables.IMSI = IMSI;
+    }
+
+    public static String getRSRP() {
+        return RSRP;
+    }
+
+    public static void setRSRP(String RSRP) {
+        GlobalVariables.RSRP = RSRP;
     }
 }
