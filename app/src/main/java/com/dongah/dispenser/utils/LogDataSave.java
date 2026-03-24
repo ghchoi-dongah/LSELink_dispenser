@@ -62,10 +62,11 @@ public class LogDataSave {
         try {
             String fileName = new SimpleDateFormat("yyyyMMdd", Locale.getDefault()).format(new Date());
             String path = getConnectorPath(connectorId);
+            boolean check;
 
             File dir = new File(path);
             if (!dir.exists()) {
-                dir.mkdirs();
+                check = dir.mkdirs();
             }
 
             fileManagement.stringToFileSave(path, fileName, logData, true);

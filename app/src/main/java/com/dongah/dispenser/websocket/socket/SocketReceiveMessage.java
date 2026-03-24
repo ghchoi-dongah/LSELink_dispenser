@@ -190,7 +190,7 @@ public class SocketReceiveMessage extends JSONCommunicator implements SocketInte
                 if (obj != null) {
                     actionName = obj.getActionName();
                     this.connectorId = obj.getConnectorId();
-                    connectorIdForLog = normalizeConnectorId(obj.getConnectorId());
+                    connectorIdForLog = obj.getConnectorId();
                 } else {
                     logger.warn("No stored request for uuid={}", message.getId());
                     return;
@@ -201,13 +201,8 @@ public class SocketReceiveMessage extends JSONCommunicator implements SocketInte
             // resultType = 3 :
             JSONObject payload = new JSONObject(message.getPayload().toString());
             OcppHandler handler = null;
-            //log data save
-//            logDataSave.makeLogDate(actionName, text);
-            if (resultType == 2) {
-                connectorIdForLog = extractConnectorIdFromPayload(actionName, payload);
-            }
 
-            // 수신 로그 저장
+            // log data save
             logDataSave.makeLogDate(connectorIdForLog, actionName, text);
 
             /**
@@ -336,13 +331,11 @@ public class SocketReceiveMessage extends JSONCommunicator implements SocketInte
                         actionNameCompare = jsonObject.getString("messageId");
                         sendHashMapObject.setActionName(jsonObject.getString("messageId"));
                         newHashMapUuid.put(id, sendHashMapObject);
-//                        logDataSave.makeLogDate(jsonObject.getString("messageId"), call.toString());
                         logDataSave.makeLogDate(connectorId, jsonObject.getString("messageId"), call.toString());
                     } else {
                         actionNameCompare = actionName;
                         sendHashMapObject.setActionName(actionName);
                         newHashMapUuid.put(id, sendHashMapObject);
-//                        logDataSave.makeLogDate(actionName, call.toString());
                         logDataSave.makeLogDate(connectorId, actionName, call.toString());
                     }
                     // debug event listener register
@@ -355,7 +348,6 @@ public class SocketReceiveMessage extends JSONCommunicator implements SocketInte
                     if (actionList.contains(actionNameCompare)) {
                         logDataSaveDump.makeDump(call.toString());
                     }
-//                    logDataSave.makeLogDate("<<send fail>>" + actionName, call.toString());
                     logDataSave.makeLogDate(connectorId, "<<send fail>>" + actionName, call.toString());
                     logger.error("send error : {} ", e.toString());
                 }
@@ -376,7 +368,7 @@ public class SocketReceiveMessage extends JSONCommunicator implements SocketInte
             Object call = makeCallResult(uuid, actionName, packPayload(confirmation));
             if (call != null) {
                 this.webSocket.send(call.toString());
-                logDataSave.makeLogDate(actionName, call.toString());
+                logDataSave.makeLogDate(0, actionName, call.toString());
                 logger.trace(" Send a message: {}", call);
             }
         } catch (Exception e) {
@@ -477,33 +469,5 @@ public class SocketReceiveMessage extends JSONCommunicator implements SocketInte
             logger.error("getLocalAuthorizationListStrings error : {}", e.getMessage());
         }
         return result;
-    }
-
-    private int normalizeConnectorId(int connectorId) {
-        return (connectorId == 1 || connectorId == 2) ? connectorId : 0;
-    }
-
-    private int extractConnectorIdFromPayload(String actionName, JSONObject payload) {
-        try {
-            // 1차: payload 최상위 connectorId
-            if (payload.has("connectorId")) {
-                return normalizeConnectorId(payload.optInt("connectorId", 0));
-            }
-
-            // 2차: DataTransfer.data 안의 connectorId
-            if ("DataTransfer".equals(actionName)) {
-                String data = payload.optString("data", "");
-                if (!data.isEmpty()) {
-                    JSONObject dataJson = new JSONObject(data);
-                    if (dataJson.has("connectorId")) {
-                        return normalizeConnectorId(dataJson.optInt("connectorId", 0));
-                    }
-                }
-            }
-        } catch (Exception e) {
-            logger.warn("extractConnectorIdFromPayload error: {}", e.getMessage());
-        }
-
-        return 0;
     }
 }
