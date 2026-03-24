@@ -39,7 +39,39 @@ public class LogDataSave {
         if (!parent.exists()) {
             boolean aCheck = parent.mkdir();
         }
+
+        // log를 connectorId별 구분하기 위한 폴더 생성
+        if (logType.equals("log")) {
+            for (int i = 0; i <= GlobalVariables.maxChannel; i++) {
+                createConnectorDir(i);
+            }
+        }
+
         setRootPath(GlobalVariables.ROOT_PATH + File.separator + logType);
+    }
+
+    private void createConnectorDir(int connectorId) {
+        String path = GlobalVariables.ROOT_PATH + File.separator + logType + File.separator + connectorId;
+        File dir = new File(path);
+        if (!dir.exists()) {
+            boolean check = dir.mkdir();
+        }
+    }
+
+    public void makeLogDate(int connectorId, String actionName, String logData) {
+        try {
+            String fileName = new SimpleDateFormat("yyyyMMdd", Locale.getDefault()).format(new Date());
+            String path = getConnectorPath(connectorId);
+
+            File dir = new File(path);
+            if (!dir.exists()) {
+                dir.mkdirs();
+            }
+
+            fileManagement.stringToFileSave(path, fileName, logData, true);
+        } catch (Exception e) {
+            logger.error("Log data save fail", e);
+        }
     }
 
     public void makeLogDate(String actionName, String logData) {
@@ -89,6 +121,34 @@ public class LogDataSave {
     /**
      * log data delete 30일 초과 데이터
      */
+//    public void removeLogData() {
+//        String fName;
+//        Date fDate, tDate;
+//        long calDate;
+//        long calDateDays;
+//        @SuppressLint("SimpleDateFormat") SimpleDateFormat dateSet = new SimpleDateFormat("yyyyMMdd");
+//
+//        //30일 지난 화일만 삭제
+//        try {
+//            boolean chk;
+//            tDate = dateSet.parse(new SimpleDateFormat("yyyyMMdd", Locale.getDefault()).format(new Date()));
+//            File directory = new File(getRootPath());
+//            File[] files = directory.listFiles();
+//            if (files != null) {
+//                for (File file : files) {
+//                    fName = file.getName();
+//                    fDate = dateSet.parse(fName);
+//                    calDate = (tDate != null ? tDate.getTime() : 0) - (fDate != null ? fDate.getTime() : 0);
+//                    calDateDays = calDate / (24 * 60 * 60 * 1000);
+//                    if (calDateDays > 30) {
+//                        chk = file.delete();
+//                    }
+//                }
+//            }
+//        } catch (Exception e) {
+//            logger.error(e.getMessage());
+//        }
+
     public void removeLogData() {
         String fName;
         Date fDate, tDate;
@@ -96,13 +156,16 @@ public class LogDataSave {
         long calDateDays;
         @SuppressLint("SimpleDateFormat") SimpleDateFormat dateSet = new SimpleDateFormat("yyyyMMdd");
 
-        //30일 지난 화일만 삭제
         try {
             boolean chk;
             tDate = dateSet.parse(new SimpleDateFormat("yyyyMMdd", Locale.getDefault()).format(new Date()));
-            File directory = new File(getRootPath());
-            File[] files = directory.listFiles();
-            if (files != null) {
+
+            // 0/1/2 각각 순회
+            for (int connectorId = 0; connectorId <= GlobalVariables.maxChannel; connectorId++) {
+                File directory = new File(getConnectorPath(connectorId));
+                File[] files = directory.listFiles();
+                if (files == null) continue;
+
                 for (File file : files) {
                     fName = file.getName();
                     fDate = dateSet.parse(fName);
@@ -114,8 +177,17 @@ public class LogDataSave {
                 }
             }
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            logger.error("removeLogData error", e);
         }
+    }
+
+    private int normalizeConnectorId(int connectorId) {
+        return (connectorId == 1 || connectorId == 2) ? connectorId : 0;
+    }
+
+    private String getConnectorPath(int connectorId) {
+        int normalized = normalizeConnectorId(connectorId);
+        return getRootPath() + File.separator + normalized;
     }
 
     public String getRootPath() {
