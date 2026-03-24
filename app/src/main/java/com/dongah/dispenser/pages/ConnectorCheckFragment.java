@@ -28,6 +28,7 @@ import com.dongah.dispenser.R;
 import com.dongah.dispenser.basefunction.ChargerConfiguration;
 import com.dongah.dispenser.basefunction.ChargingCurrentData;
 import com.dongah.dispenser.basefunction.ClassUiProcess;
+import com.dongah.dispenser.basefunction.FragmentChange;
 import com.dongah.dispenser.basefunction.GlobalVariables;
 import com.dongah.dispenser.basefunction.UiSeq;
 import com.dongah.dispenser.controlboard.RxData;
@@ -79,9 +80,11 @@ public class ConnectorCheckFragment extends Fragment implements View.OnClickList
     Runnable countRunnable;
     SharedModel sharedModel;
     String[] requestStrings = new String[1];
+    MainActivity activity;
     ClassUiProcess classUiProcess;
     ChargerConfiguration chargerConfiguration;
     ChargingCurrentData chargingCurrentData;
+    FragmentChange fragmentChange;
 
     public ConnectorCheckFragment() {
         // Required empty public constructor
@@ -126,6 +129,7 @@ public class ConnectorCheckFragment extends Fragment implements View.OnClickList
         animationDrawable = (AnimationDrawable) imageViewLoading.getBackground();
         imageViewConnectionFailed = view.findViewById(R.id.imageViewConnectionFailed);
         textViewFailed = view.findViewById(R.id.textViewFailed);
+        textViewConnector = view.findViewById(R.id.textViewConnector);
 
         // textViewFailed animation
         fadeAnimator = ObjectAnimator.ofFloat(textViewFailed, "alpha", 1f, 0.2f);
@@ -134,10 +138,11 @@ public class ConnectorCheckFragment extends Fragment implements View.OnClickList
         fadeAnimator.setRepeatMode(ValueAnimator.REVERSE);
         fadeAnimator.setInterpolator(new AccelerateDecelerateInterpolator());
 
-        textViewConnector = view.findViewById(R.id.textViewConnector);
-        classUiProcess = ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel);
-        chargerConfiguration = ((MainActivity) MainActivity.mContext).getChargerConfiguration();
-        chargingCurrentData = ((MainActivity) MainActivity.mContext).getChargingCurrentData(mChannel);
+        activity = ((MainActivity) MainActivity.mContext);
+        classUiProcess = activity.getClassUiProcess(mChannel);
+        chargerConfiguration = activity.getChargerConfiguration();
+        chargingCurrentData = activity.getChargingCurrentData(mChannel);
+        fragmentChange = activity.getFragmentChange();
         return view;
     }
 
@@ -149,15 +154,15 @@ public class ConnectorCheckFragment extends Fragment implements View.OnClickList
             sharedModel = new ViewModelProvider(requireActivity()).get(SharedModel.class);
             requestStrings[0] = String.valueOf(mChannel);
             sharedModel.setMutableLiveData(requestStrings);
-            rxData = ((MainActivity) MainActivity.mContext).getControlBoard().getRxData(mChannel);
-            txData = ((MainActivity) MainActivity.mContext).getControlBoard().getTxData(mChannel);
+            rxData = activity.getControlBoard().getRxData(mChannel);
+            txData = activity.getControlBoard().getTxData(mChannel);
             cnt = 0;
             isFlag = false;
             isFlagAuthorize = true;
             animationDrawable.start();
 
             // connection time out
-            ((MainActivity) MainActivity.mContext).runOnUiThread(new Runnable() {
+            activity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
                     countHandler = new Handler();
@@ -165,10 +170,11 @@ public class ConnectorCheckFragment extends Fragment implements View.OnClickList
                         @Override
                         public void run() {
                             cnt++;
-                            if (Objects.equals(cnt, GlobalVariables.getConnectionTimeOut())) {
+                            if (cnt >= GlobalVariables.getConnectionTimeOut()) {
                                 // 충전기 종료
                                 txData.setStart(false);
                                 txData.setStop(true);
+                                countHandler.removeCallbacks(countRunnable);
 
                                 // preparing
                                 if (Objects.equals(chargingCurrentData.getChargePointStatus(), ChargePointStatus.Preparing) &&
@@ -182,8 +188,9 @@ public class ConnectorCheckFragment extends Fragment implements View.OnClickList
                                     statusNotificationReq.sendStatusNotification();
                                 }
 
-                                // 통신 실패 처리
-                                authorizeFailed();
+                                // 통신 실패
+                                classUiProcess.setUiSeq(UiSeq.CONNECTION_FAILED);
+                                fragmentChange.onFragmentChange(mChannel, UiSeq.CONNECTION_FAILED, "CONNECTION_FAILED", null);
                             } else {
                                 countHandler.postDelayed(countRunnable, 1000);
                             }
@@ -193,31 +200,14 @@ public class ConnectorCheckFragment extends Fragment implements View.OnClickList
                                 if (textViewConnectorCheckMessage.getTag() == null || !(boolean) textViewConnectorCheckMessage.getTag()) {
                                     textViewConnectorCheckMessage.setText(R.string.EVCheckMessage);
                                     textViewConnectorCheckMessage.setTag(true);
+                                }
 
-                                    // auto mode는 바로 CONNECT_CHECK
-//                                    switch (chargerConfiguration.getOpMode()) {
-//                                        case 0:
-//                                            // test mode
-//                                            classUiProcess.setUiSeq(UiSeq.CONNECT_CHECK);
-//                                            break;
-//                                        case 1:
-//                                            // server mode
-//                                            // auth type = 'M'면 authorize 진행. 'C'면 CONNECT_CHECk
-//                                            if (Objects.equals(chargingCurrentData.getAuthType(), "M")) {
-//                                                authorized();
-//                                            } else if (Objects.equals(chargingCurrentData.getAuthType(), "C")) {
-//                                                classUiProcess.setUiSeq(UiSeq.CONNECT_CHECK);
-//                                            }
-//                                            break;
-//                                    }
-                                    // start가 진행되어야 함.
-                                    // server mode는 회원 인증 완료 후 CONNECT_CHECK
-                                    if (Objects.equals(chargerConfiguration.getOpMode(), 1) &&
-                                            Objects.equals(chargingCurrentData.getAuthType(), "M") &&
-                                            txData.isStart() && isFlagAuthorize) {
-                                        authorized();
-                                        isFlagAuthorize = false;
-                                    }
+                                // 서버 모드 && MAC Address 인증 모드(authType = 'M')
+                                // Authorize(Mac Address) send, 1회 시도
+                                if (Objects.equals(chargerConfiguration.getOpMode(), 1) &&
+                                        Objects.equals(chargingCurrentData.getAuthType(), "M") &&
+                                        isFlagAuthorize) {
+                                    macAuthorize(); // Authorize(MAC Address)
                                 }
                             }
                         }
@@ -226,26 +216,34 @@ public class ConnectorCheckFragment extends Fragment implements View.OnClickList
                 }
             });
         } catch (Exception e) {
-            Log.e("ConnectorCheckFragment", "onViewCreated error", e);
             logger.error("ConnectorCheckFragment onViewCreated error : {}", e.getMessage());
         }
     }
 
     @Override
     public void onClick(View v) {
-        if (!isAdded() && !isFlag) return;
-        ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).onHome();
+        try {
+            return;
+//            if (!isAdded() && !isFlag) return;
+//            classUiProcess.onHome();
+        } catch (Exception e) {
+            logger.error("ConnectorCheckFragment onClick error : {}", e.getMessage());
+        }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
-    public void authorized() {
+    public void macAuthorize() {
         String[] idTagInfo;
         UiSeq uiSeq = classUiProcess.getUiSeq();
         SocketReceiveMessage socketReceiveMessage = ((MainActivity) MainActivity.mContext).getSocketReceiveMessage();
 
         String evccId = BitUtilities.toHexString(rxData.getCsmVehicleEvccId());
-        chargingCurrentData.setIdTag(evccId);
         Log.d("ConnectorCheckFragment", "mac address : " + evccId);
+//        chargingCurrentData.setIdTag(evccId);
+        chargingCurrentData.setIdTag("1364747EE708");
+
+        if (chargingCurrentData.getIdTag().equals("000000000000")) return;
+        isFlagAuthorize = false; // MAC Authorize 1회 시도
 
         // isLocalPreAuthorize == true : local authorization list 에서 사용자 인증
         // isLocalPreAuthorize: 사전 로컬 인증 모드
@@ -259,7 +257,7 @@ public class ConnectorCheckFragment extends Fragment implements View.OnClickList
                     ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.FINISH_WAIT, "FINISH_WAIT", null);
                 } else  {
                     classUiProcess.setUiSeq(UiSeq.CHARGING);
-                    ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.CHARGING, "CHARGING", null);
+                    fragmentChange.onFragmentChange(mChannel, UiSeq.CHARGING, "CHARGING", null);
                 }
             } else {
                 if (!Objects.equals(chargingCurrentData.getChargePointStatus(), ChargePointStatus.Preparing) &&
@@ -272,15 +270,15 @@ public class ConnectorCheckFragment extends Fragment implements View.OnClickList
                 if (Objects.equals(idTagInfo[0], chargingCurrentData.getIdTag())) {
                     chargingCurrentData.setAuthorizeResult(true);
                     chargingCurrentData.setParentIdTag(idTagInfo[1]);
-                    ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.PLUG_CHECK);
-                    ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.PLUG_CHECK, "PLUG_CHECK", null);
+                    classUiProcess.setUiSeq(UiSeq.PLUG_CHECK);
+                    fragmentChange.onFragmentChange(mChannel, UiSeq.PLUG_CHECK, "PLUG_CHECK", null);
                 } else if (Objects.equals(idTagInfo[0], "notFound")) {
                     AuthorizeReq authorizeReq = new AuthorizeReq(chargingCurrentData.getConnectorId());
                     authorizeReq.sendAuthorize("C" + chargingCurrentData.getIdTag());
                 } else {
                     // 인증 실패
                     ((MainActivity) MainActivity.mContext).getChargingCurrentData(mChannel).setAuthorizeResult(false);
-                    authorizeFailed();
+                    authorizedFailed();
                     RxData rxData = ((MainActivity) MainActivity.mContext).getControlBoard().getRxData(mChannel);
                     if (!rxData.isCsPilot() && Objects.equals(chargerConfiguration.getOpMode(), 1)) {
                         chargingCurrentData.setChargePointStatus(ChargePointStatus.Available);
@@ -294,7 +292,7 @@ public class ConnectorCheckFragment extends Fragment implements View.OnClickList
             SocketState state = socketReceiveMessage.getSocket().getState();
             if (state == SocketState.OPEN) {
                 if (Objects.equals(UiSeq.CHARGING, uiSeq) && Objects.equals(chargingCurrentData.getIdTag(), chargingCurrentData.getIdTagStop())) {
-                    ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.FINISH_WAIT, "FINISH_WAIT", null);
+                    fragmentChange.onFragmentChange(mChannel, UiSeq.FINISH_WAIT, "FINISH_WAIT", null);
                 } else {
                     if (chargingCurrentData.getChargePointStatus() == ChargePointStatus.Reserved) {
                         if (!Objects.equals(chargingCurrentData.getResIdTag(), chargingCurrentData.getIdTag())) {
@@ -315,10 +313,10 @@ public class ConnectorCheckFragment extends Fragment implements View.OnClickList
                         if (Objects.equals(chargingCurrentData.getParentIdTag(), idTagInfo[1]) ||
                                 Objects.equals(chargingCurrentData.getIdTag(), chargingCurrentData.getIdTagStop())) {
                             classUiProcess.setUiSeq(UiSeq.FINISH_WAIT);
-                            ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.FINISH_WAIT, "FINISH_WAIT", null);
+                            fragmentChange.onFragmentChange(mChannel, UiSeq.FINISH_WAIT, "FINISH_WAIT", null);
                         } else {
                             classUiProcess.setUiSeq(UiSeq.CHARGING);
-                            ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.CHARGING, "CHARGING", null);
+                            fragmentChange.onFragmentChange(mChannel, UiSeq.CHARGING, "CHARGING", null);
                         }
                     } else {
                         // isAllowOfflineTxForUnknownId: 오프라인에서 미등록 IdTag도 거래 허용
@@ -331,40 +329,55 @@ public class ConnectorCheckFragment extends Fragment implements View.OnClickList
                             // isStopTransactionOnInvalidId: 미등록 IdTag로 시작했으면 나중에 중단 사유 세팅
                             chargingCurrentData.setStopReason(!Objects.equals(idTagInfo[0], chargingCurrentData.getIdTag()) &&
                                     GlobalVariables.isStopTransactionOnInvalidId() ? Reason.DeAuthorized : chargingCurrentData.getStopReason());
-                            ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.PLUG_CHECK);
-                            ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.PLUG_CHECK, "PLUG_CHECK", null);
+                            classUiProcess.setUiSeq(UiSeq.PLUG_CHECK);
+                            fragmentChange.onFragmentChange(mChannel, UiSeq.PLUG_CHECK, "PLUG_CHECK", null);
                         } else {
                             // 인증 실패
-                            authorizeFailed();
+                            authorizedFailed();
                         }
                     }
                 } else {
                     Toast.makeText(getActivity(), "서버와 통신 DISCONNECT!!! 인증 실패. ", Toast.LENGTH_SHORT).show();
                     if (Objects.equals(UiSeq.CHARGING, uiSeq)) {
-                        ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.CHARGING);
-                        ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel,UiSeq.CHARGING, "CHARGING", null);
+                        classUiProcess.setUiSeq(UiSeq.CHARGING);
+                        fragmentChange.onFragmentChange(mChannel,UiSeq.CHARGING, "CHARGING", null);
                     } else {
-                        authorizeFailed();
+                        authorizedFailed();
                     }
                 }
             }
         }
     }
 
-    private void authorizeFailed() {
+    private void authorizedFailed() {
         try {
-            textViewConnectorCheckMessage.setText(R.string.connectorRetryMessage);
-            imageViewLoading.setVisibility(View.INVISIBLE);
-            imageViewConnectionFailed.setVisibility(View.VISIBLE);
-            textViewFailed.setVisibility(View.VISIBLE);
-            textViewConnector.setVisibility(View.VISIBLE);
-            animationDrawable.stop();
-            fadeAnimator.start();
-            isFlag = true;
+            countHandler.removeCallbacks(countRunnable);
+            classUiProcess.setUiSeq(UiSeq.MEMBER_CHECK_FAILED);
+            fragmentChange.onFragmentChange(mChannel, UiSeq.MEMBER_CHECK_FAILED, "MEMBER_CHECK_FAILED", null);
         } catch (Exception e) {
-            logger.error("ConnectorCheckFragment authorizeFailed error : {}", e.getMessage());
+            logger.error("ConnectorCheckFragment authorizedFailed error : {}", e.getMessage());
         }
     }
+
+
+//    private void authorizeFailed() {
+//        try {
+//            if (isFlag) return; // isFlag = true : 이미 실행 중
+//            textViewConnectorCheckMessage.setText(R.string.connectionFailedMessage);
+//            imageViewLoading.setVisibility(View.INVISIBLE);
+//            imageViewConnectionFailed.setVisibility(View.VISIBLE);
+//            textViewFailed.setVisibility(View.VISIBLE);
+//            textViewConnector.setVisibility(View.VISIBLE);
+//            animationDrawable.stop();
+//            fadeAnimator.start();
+//            txData.setStart(false);
+//            txData.setStop(true);
+//            countHandler.removeCallbacks(countRunnable);
+//            isFlag = true;
+//        } catch (Exception e) {
+//            logger.error("ConnectorCheckFragment authorizeFailed error : {}", e.getMessage());
+//        }
+//    }
 
     @Override
     public void onDestroyView() {
@@ -393,7 +406,6 @@ public class ConnectorCheckFragment extends Fragment implements View.OnClickList
             countRunnable = null;
 
         } catch (Exception e) {
-            Log.e("ConnectorCheckFragment", "onDestroyView error", e);
             logger.error("ConnectorCheckFragment onDestroyView error : {}", e.getMessage());
         }
         super.onDestroyView();
@@ -409,7 +421,6 @@ public class ConnectorCheckFragment extends Fragment implements View.OnClickList
                 countHandler.removeMessages(0);
             }
         } catch (Exception e) {
-            Log.e("ConnectorCheckFragment", "onDetach error", e);
             logger.error("ConnectorCheckFragment onDetach error : {}", e.getMessage());
         }
     }

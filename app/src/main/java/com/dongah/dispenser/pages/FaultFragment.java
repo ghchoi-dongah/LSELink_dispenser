@@ -197,8 +197,8 @@ public class FaultFragment extends Fragment {
                 paymentHandler = null;
             }
             // header title message change
-            SharedModel sharedModel = new ViewModelProvider(requireActivity()).get(SharedModel.class);
-            String[] requestStrings = new String[1];
+            sharedModel = new ViewModelProvider(requireActivity()).get(SharedModel.class);
+            requestStrings = new String[1];
             requestStrings[0] = "0";
             sharedModel.setMutableLiveData(requestStrings);
         } catch (Exception e) {

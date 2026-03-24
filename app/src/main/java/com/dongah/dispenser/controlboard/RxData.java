@@ -86,7 +86,7 @@ public class RxData {
     // CSM_STATUS_AUTH_CHECK = 4       CSM_STATUS_CHARGE_PARAM_CHECK = 5
     // CSM_STATUS_CABLE_CHECK = 6      CSM_STATUS_PRE_CHARGE = 7
     // CSM_STATUS_CHARGING = 8         CSM_STATUS_STOP_CHARGING = 9
-    // CSM_STATUS_FAULT_STOPPED = 10   CSM_STATUS_NORMAL_STOPPED = 11
+    // CSM_STATUS_FAILURE_STOPPED = 10 CSM_STATUS_NORMAL_STOPPED = 11
     public byte csmSeccErrorCode = 0x00;
     public byte csmSeccSWVersion = 0x00;
     public byte csmProximityVoltage = 0x00;

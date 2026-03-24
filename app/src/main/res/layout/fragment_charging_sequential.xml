@@ -57,7 +57,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
         android:gravity="center"
-        android:text="@string/seqTime"
+        android:text=""
         android:textSize="18sp"
         app:layout_constraintTop_toBottomOf="@id/textViewInitMessage"
         app:layout_constraintStart_toStartOf="@id/textViewInitMessage"

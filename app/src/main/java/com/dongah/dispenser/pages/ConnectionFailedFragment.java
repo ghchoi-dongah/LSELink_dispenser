@@ -14,7 +14,6 @@ import android.widget.TextView;
 
 import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.R;
-import com.dongah.dispenser.basefunction.UiSeq;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -94,17 +93,20 @@ public class ConnectionFailedFragment extends Fragment implements View.OnClickLi
     @Override
     public void onClick(View v) {
         if (!isAdded()) return;
-        ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.INIT);
-        ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.INIT, "INIT", null);
+        ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).onHome();
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
 
-        if (fadeAnimator != null) {
-            fadeAnimator.cancel();
-            fadeAnimator = null;
+        try {
+            if (fadeAnimator != null) {
+                fadeAnimator.cancel();
+                fadeAnimator = null;
+            }
+        } catch (Exception e) {
+            logger.error("ConnectionFailedFragment onDestroyView error : {}", e.getMessage());
         }
     }
 }

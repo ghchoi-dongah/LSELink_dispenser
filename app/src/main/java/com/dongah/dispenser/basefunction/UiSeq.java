@@ -3,14 +3,14 @@ package com.dongah.dispenser.basefunction;
 public enum UiSeq {
     NONE(0),
     INIT(1),
-    CABLE_SELECT(2),
-    AUTH_SELECT(3),
-    SOC(4),
+    SEQUENTIAL_CHARGING(2),
+    CONNECTION_FAILED(3),
+    MEMBER_CHECK_FAILED(4),
     MEMBER_CARD(5),
     MEMBER_CHECK_WAIT(6),
     CREDIT_CARD(7),
     CREDIT_CARD_WAIT(8),
-    QR_CODE(9),
+    OP_STOP(9),
     PLUG_CHECK(10),
     CONNECT_CHECK(11),
     RUN_CHECK(12),
@@ -31,12 +31,7 @@ public enum UiSeq {
     LOAD_TEST(27),
     LOAD_TEST_TOTAL(28),
     LOAD_TEST_IO(29),
-    CONNECTION_FAILED(30),
-    MEMBER_CHECK_FAILED(31),
-    SMS(32),
-    SEQUENTIAL_CHARGING(33),
-    OP_STOP(34),
-    SCREEN_SAVER(35);
+    SCREEN_SAVER(30);
 
     private final int value;
 

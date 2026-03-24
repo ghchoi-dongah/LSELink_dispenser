@@ -166,7 +166,6 @@ public class ControlDebugFragment extends Fragment implements View.OnClickListen
                     @Override
                     public void run() {
                         listViewRxAdapter.clearItem();
-                        listViewRxAdapter.addItem("RX", "EvccId", BitUtilities.toHexString(rxData[getCurrCh()].csmVehicleEvccId));   // 16진수(Hex)
                         listViewRxAdapter.addItem("RX", "csPilot", String.valueOf(rxData[getCurrCh()].isCsPilot()));
                         listViewRxAdapter.addItem("RX", "csStart", String.valueOf(rxData[getCurrCh()].isCsStart()));
                         listViewRxAdapter.addItem("RX", "csStop", String.valueOf(rxData[getCurrCh()].isCsStop()));
@@ -207,6 +206,7 @@ public class ControlDebugFragment extends Fragment implements View.OnClickListen
                         listViewRxAdapter.addItem("RX", "csModule3Error", String.valueOf(rxData[getCurrCh()].isCsModule3Error()));
                         listViewRxAdapter.addItem("RX", "csModule4Error", String.valueOf(rxData[getCurrCh()].isCsModule4Error()));
                         listViewRxAdapter.addItem("RX", "커플러 온도", String.valueOf(rxData[getCurrCh()].getCouplerTemp()));
+                        listViewRxAdapter.addItem("RX", "EvccId", BitUtilities.toHexString(rxData[getCurrCh()].csmVehicleEvccId));   // 16진수(Hex)
 
                         ///나중에 PLC 모뎀
                         listViewRxAdapter.notifyDataSetChanged();

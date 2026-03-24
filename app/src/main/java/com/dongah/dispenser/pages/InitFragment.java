@@ -9,8 +9,6 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import android.os.Handler;
-import android.os.Looper;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,24 +16,20 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.R;
 import com.dongah.dispenser.basefunction.ChargerConfiguration;
 import com.dongah.dispenser.basefunction.ChargerPointType;
 import com.dongah.dispenser.basefunction.ChargingCurrentData;
-import com.dongah.dispenser.basefunction.GlobalVariables;
 import com.dongah.dispenser.basefunction.UiSeq;
 import com.dongah.dispenser.controlboard.RxData;
-import com.dongah.dispenser.utils.BitUtilities;
 import com.dongah.dispenser.utils.SharedModel;
 import com.dongah.dispenser.websocket.socket.SocketState;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.util.Objects;
 
 /**
@@ -140,7 +134,6 @@ public class InitFragment extends Fragment implements View.OnClickListener {
                 textViewConnector.setText("2 커넥터");
             }
         } catch (Exception e) {
-            Log.e("InitFragment", "onCreateView error", e);
             logger.error("InitFragment onCreateView error : {}", e.getMessage());
         }
 
@@ -155,7 +148,6 @@ public class InitFragment extends Fragment implements View.OnClickListener {
             requestStrings[0] = String.valueOf(0);
             sharedModel.setMutableLiveData(requestStrings);
         } catch (Exception e) {
-            Log.e("InitFragment", "onViewCreated error", e);
             logger.error("InitFragment onViewCreated : {}", e.getMessage());
         }
     }
@@ -189,11 +181,6 @@ public class InitFragment extends Fragment implements View.OnClickListener {
                         switch (chargerConfiguration.getAuthMode()) {
                             case 0:
                             case 2:
-//                                String evccId = BitUtilities.toHexString(rxData.getCsmVehicleEvccId());
-//                                chargingCurrentData.setIdTag(evccId);
-//                                chargingCurrentData.setIdTag("1364747EE708");
-
-
                                 activity.getChargingCurrentData(mChannel).setAuthType("M");
                                 activity.getClassUiProcess(mChannel).setUiSeq(UiSeq.PLUG_CHECK);
                                 activity.getFragmentChange().onFragmentChange(mChannel, UiSeq.PLUG_CHECK, "PLUG_CHECK", null);
@@ -212,12 +199,10 @@ public class InitFragment extends Fragment implements View.OnClickListener {
                     }
                 } catch (Exception e) {
                     activity.getToastPositionMake().onShowToast(mChannel, "서버 연결 DISCONNECT.\n충전을 할 수 없습니다.");
-                    Log.e("InitFragment", "server disconnect error", e);
                     logger.error("InitFragment server disconnect error : {}", e.getMessage());
                 }
             }
         } catch (Exception e) {
-            Log.e("InitFragment", "changeFragment error", e);
             logger.error("InitFragment changeFragment error : {}", e.getMessage());
         }
     }
@@ -235,7 +220,6 @@ public class InitFragment extends Fragment implements View.OnClickListener {
                 handler.removeMessages(0);
             }
         } catch (Exception e) {
-            Log.e("InitFragment", "onDetach error", e);
             logger.error("InitFragment onDetach error : {}", e.getMessage());
         }
     }

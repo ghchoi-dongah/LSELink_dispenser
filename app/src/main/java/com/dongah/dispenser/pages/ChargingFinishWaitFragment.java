@@ -121,7 +121,6 @@ public class ChargingFinishWaitFragment extends Fragment {
                 }
             });
         } catch (Exception e) {
-            Log.e("ChargingFinishWaitFragment", "onViewCreated error", e);
             logger.error("ChargingFinishWaitFragment onViewCreated error : {}", e.getMessage());
         }
     }
@@ -148,7 +147,6 @@ public class ChargingFinishWaitFragment extends Fragment {
             countRunnable = null;
 
         } catch (Exception e) {
-            Log.e("ChargingFinishWaitFragment", "onDestroyView error", e);
             logger.error("ChargingFinishWaitFragment onDestroyView error : {}", e.getMessage());
         }
         super.onDestroyView();
@@ -164,7 +162,6 @@ public class ChargingFinishWaitFragment extends Fragment {
                 countHandler.removeMessages(0);
             }
         } catch (Exception e) {
-            Log.e("ChargingFinishWaitFragment", "onDetach error", e);
             logger.error("ChargingFinishWaitFragment onDetach error : {}", e.getMessage());
         }
     }

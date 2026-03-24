@@ -180,8 +180,8 @@ public class MainActivity extends AppCompatActivity {
 //        sqLiteHelper.onCreate(sqLiteDatabase);          // create all tables
 //        testCrud(); // test data insert
 
+        imgNetwork = findViewById(R.id.imageViewNetwork);
         textViewVersion = findViewById(R.id.textViewVersionValue);
-        textViewVersion.setText("VER-DEVD " + GlobalVariables.VERSION + " | ");
         textViewTime = findViewById(R.id.textViewTime);
 
         // fragment current
@@ -199,6 +199,7 @@ public class MainActivity extends AppCompatActivity {
         chargerConfiguration = new ChargerConfiguration();
         chargerConfiguration.onLoadConfiguration();
         chargerConfiguration.setSigned(true);
+        textViewVersion.setText("VER-DEVD " + chargerConfiguration.getFirmwareVersion() + " | ");
 
         // 2. fragment change management
         fragmentChange = new FragmentChange();

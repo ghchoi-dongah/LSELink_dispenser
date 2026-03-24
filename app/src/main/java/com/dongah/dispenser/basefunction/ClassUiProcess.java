@@ -166,6 +166,14 @@ public class ClassUiProcess implements RfCardReaderListener {
                 case MEMBER_CARD:
                 case MEMBER_CHECK_WAIT:
                     break;
+
+                case CONNECTION_FAILED:
+                case MEMBER_CHECK_FAILED:
+                    if (!rxData.isCsPilot()) {
+                        onHome();
+                    }
+                    break;
+
                 case SEQUENTIAL_CHARGING:
                     handleSequentialCharging();
                     break;
@@ -369,9 +377,13 @@ public class ClassUiProcess implements RfCardReaderListener {
     public void onRfCardDataReceive(int ch, String cardNum, boolean value) {
         try {
             if (cardNum.isEmpty() || Objects.equals(cardNum,"0000000000000000")) {
+                MainActivity activity = (MainActivity) MainActivity.mContext;
                 setUiSeq(UiSeq.INIT);
                 fragmentChange.onFragmentChange(ch, UiSeq.INIT,"INIT",null);
-                Toast.makeText(((MainActivity) MainActivity.mContext), "카드 리더기에서 응답이 없습니다.",Toast.LENGTH_SHORT).show();
+
+                activity.runOnUiThread(() -> {
+                    Toast.makeText(activity, "카드 리더기에서 응답이 없습니다.", Toast.LENGTH_SHORT).show();
+                });
             } else {
                 onRfCardDataReceiveEvent(ch, cardNum, true);
             }
@@ -392,7 +404,7 @@ public class ClassUiProcess implements RfCardReaderListener {
                     chargingCurrentData.setAuthType("C");
                     chargingCurrentData.setIdTag(cardNum);
 
-                    setUiSeq(UiSeq.MEMBER_CHECK_WAIT);
+                    activity.getClassUiProcess(ch).setUiSeq(UiSeq.MEMBER_CHECK_WAIT);
                     fragmentChange.onFragmentChange(ch, UiSeq.MEMBER_CHECK_WAIT,"MEMBER_CHECK_WAIT",null);
                     rfCardReaderReceive.rfCardReadRelease();
                 }
@@ -417,13 +429,14 @@ public class ClassUiProcess implements RfCardReaderListener {
         chargingAlarm = true;
         onMeterValueStop();
 
-        // 예약
-        // isCsReady = false : 예약
+        // isCsReady: 예약(false)
         if (!controlBoard.getRxData(channel).isCsReady() && chargingCurrentData.isConnectUse()) {
-            Log.d("ClassUiProcess", "isCsReady is false, sequential charging start");
             setUiSeq(UiSeq.SEQUENTIAL_CHARGING);
             fragmentChange.onFragmentChange(getCh(), UiSeq.SEQUENTIAL_CHARGING, "SEQUENTIAL_CHARGING", null);
         }
+
+        // TODO: 자동 충전
+        // case: isCsReady = true && isConnectUse = true && MAC auth mode && csPilot = true
     }
 
     // Rebooting
@@ -440,10 +453,8 @@ public class ClassUiProcess implements RfCardReaderListener {
 
     // sequential charging
     private void handleSequentialCharging() {
-        // 예약 → 대기
-        // isCsReady = true : 대기
+        // isCsReady: 대기(true)
         if (controlBoard.getRxData(channel).isCsReady() || !chargingCurrentData.isConnectUse()) {
-            Log.d("ClassUiProcess", "isCsReady is true, init start");
             setUiSeq(UiSeq.INIT);
             fragmentChange.onFragmentChange(getCh(), UiSeq.INIT, "INIT", null);
         }
@@ -499,7 +510,6 @@ public class ClassUiProcess implements RfCardReaderListener {
         } else if (rxData.isCsStop() || rxData.getCsmSeccStatusCode() == (byte) 0x10) {
             controlBoard.getTxData(getCh()).setStop(true);
             controlBoard.getTxData(getCh()).setStart(false);
-            onHome();
         }
     }
 
@@ -527,7 +537,7 @@ public class ClassUiProcess implements RfCardReaderListener {
                 if (rxData.isCsStop() || !rxData.isCsPilot() || isSocReached) {
                     if (chargingCurrentData.getStopReason() == Reason.Remote || chargingCurrentData.isUserStop()) {
                         controlBoard.getTxData(getCh()).setStop(true);
-                        controlBoard.getTxData(getCh()).setStop(false);
+                        controlBoard.getTxData(getCh()).setStart(false);
                         if (!rxData.isCsPilot()) {
                             // status notification send to server : ChargePointStatus.SuspendedEV
                             // 2.4.5. EV Side Disconnected
@@ -568,6 +578,7 @@ public class ClassUiProcess implements RfCardReaderListener {
             // 충전 사용량 정리
             chargingCurrentData.setPowerMeterStop(rxData.getPowerMeter()*10);
             chargingCurrentData.setChargingEndTime(zonedDateTimeConvert.getStringCurrentTimeZone());
+            chargingCurrentData.setChargePointStatus(ChargePointStatus.Finishing);
 
             if (Objects.equals(chargerConfiguration.getOpMode(), 1)) {
                 // StopTransaction
@@ -592,7 +603,7 @@ public class ClassUiProcess implements RfCardReaderListener {
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void handleFault(RxData rxData) {
         UiSeq currentViewSeq = ((MainActivity) MainActivity.mContext).getFragmentSeq(getCh());
-        if (currentViewSeq.getValue() < 16) {
+        if (currentViewSeq.getValue() < 18) {
             if (!(getCurrentFragment() instanceof FaultFragment)) {
                 // server mode 및 charging
                 if (Objects.equals(chargerConfiguration.getOpMode(), 1) &&

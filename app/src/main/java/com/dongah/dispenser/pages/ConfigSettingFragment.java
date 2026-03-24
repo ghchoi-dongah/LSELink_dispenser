@@ -196,7 +196,6 @@ public class ConfigSettingFragment extends Fragment implements View.OnClickListe
             InitializationComponents(view);
 
         } catch (Exception e) {
-            Log.e("ConfigSettingFragment", "onCreateView error", e);
             logger.error("ConfigSettingFragment onCreateView error : {}", e.getMessage());
         }
         return view;
@@ -211,7 +210,6 @@ public class ConfigSettingFragment extends Fragment implements View.OnClickListe
                 transaction.replace(R.id.frameFull, environmentFragment);
                 transaction.commit();
             } catch (Exception e) {
-                Log.e("ConfigSettingFragment", "fragment change fail", e);
                 logger.error("ConfigSettingFragment fragment change fail : {}", e.getMessage());
             }
         } else if (Objects.equals(v.getId(), R.id.btnSave)) {
@@ -389,7 +387,6 @@ public class ConfigSettingFragment extends Fragment implements View.OnClickListe
             editDR = v.findViewById(R.id.editDR);
             editDR.setText(String.valueOf(chargerConfiguration.getDr()));
         } catch (Exception e) {
-            Log.e("ConfigSettingFragment", "InitializationComponents error", e);
             logger.error("ConfigSettingFragment InitializationComponents error : {}",  e.getMessage());
         }
     }
@@ -400,7 +397,6 @@ public class ConfigSettingFragment extends Fragment implements View.OnClickListe
             chargerConfiguration.onSaveConfiguration();
             chargerConfiguration.onLoadConfiguration();
         } catch (Exception e) {
-            Log.e("ConfigSettingFragment", "onSaveConfiguration error", e);
             logger.error("ConfigSettingFragment onSaveConfiguration error : {}",  e.getMessage());
         }
     }
@@ -434,7 +430,6 @@ public class ConfigSettingFragment extends Fragment implements View.OnClickListe
             chargerConfiguration.setTargetSoc(Integer.parseInt(editSoc.getText().toString()));
             chargerConfiguration.setDr(Integer.parseInt(editDR.getText().toString()));
         } catch (Exception e) {
-            Log.e("ConfigSettingFragment", "onConfigurationUpdate error", e);
             logger.error("ConfigSettingFragment onConfigurationUpdate error : {}",  e.getMessage());
         }
     }

@@ -115,7 +115,6 @@ public class ChargingWaitFragment extends Fragment implements View.OnClickListen
             sharedModel.setMutableLiveData(requestStrings);
             showLoading();
         } catch (Exception e) {
-            Log.e("ChargingWaitFragment", "onViewCreated error", e);
             logger.error("ChargingWaitFragment onViewCreated error : {}", e.getMessage());
         }
     }
@@ -147,7 +146,6 @@ public class ChargingWaitFragment extends Fragment implements View.OnClickListen
             }
             hideLoading();
         } catch (Exception e) {
-            Log.e("ChargingWaitFragment", "onDetach error", e);
             logger.error("ChargingWaitFragment onDetach error : {}", e.getMessage());
         }
     }

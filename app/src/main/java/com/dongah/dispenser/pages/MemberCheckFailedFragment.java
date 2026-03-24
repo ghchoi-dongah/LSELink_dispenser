@@ -16,12 +16,16 @@ import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.R;
 import com.dongah.dispenser.basefunction.UiSeq;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * A simple {@link Fragment} subclass.
  * Use the {@link MemberCheckFailedFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
 public class MemberCheckFailedFragment extends Fragment implements View.OnClickListener {
+    private static final Logger logger = LoggerFactory.getLogger(MemberCheckFailedFragment.class);
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -90,7 +94,21 @@ public class MemberCheckFailedFragment extends Fragment implements View.OnClickL
     @Override
     public void onClick(View v) {
         if (!isAdded()) return;
-        ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.SEQUENTIAL_CHARGING);
-        ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.SEQUENTIAL_CHARGING, "SEQUENTIAL_CHARGING", null);
+        ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).onHome();
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+
+        try {
+            if (fadeAnimator != null) {
+                fadeAnimator.cancel();
+                fadeAnimator = null;
+            }
+        } catch (Exception e) {
+            logger.error("ConnectionFailedFragment onDestroyView error : {}", e.getMessage());
+
+        }
     }
 }

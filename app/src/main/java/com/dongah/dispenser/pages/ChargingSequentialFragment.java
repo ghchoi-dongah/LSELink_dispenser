@@ -33,7 +33,7 @@ import java.util.Objects;
  * Use the {@link ChargingSequentialFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class ChargingSequentialFragment extends Fragment implements View.OnClickListener {
+public class ChargingSequentialFragment extends Fragment {
     private static final Logger logger = LoggerFactory.getLogger(ChargingSequentialFragment.class);
 
     // TODO: Rename parameter arguments, choose names that match
@@ -93,7 +93,6 @@ public class ChargingSequentialFragment extends Fragment implements View.OnClick
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_charging_sequential, container, false);
-        view.setOnClickListener(this);
         chargingCurrentData = ((MainActivity) MainActivity.mContext).getChargingCurrentData(mChannel);
         rxData = ((MainActivity) MainActivity.mContext).getControlBoard().getRxData(mChannel);
         animBlink = AnimationUtils.loadAnimation(getActivity(), R.anim.blink_animation);
@@ -103,7 +102,6 @@ public class ChargingSequentialFragment extends Fragment implements View.OnClick
         textViewInitMessageSub = view.findViewById(R.id.textViewInitMessageSub);
         imageViewBus = view.findViewById(R.id.imageViewBus);
         viewCircle = view.findViewById(R.id.viewCircle);
-        viewCircle.setOnClickListener(this);
 
         try {
             // ch0, ch1 구분 => 이미지 위치 조절
@@ -126,6 +124,7 @@ public class ChargingSequentialFragment extends Fragment implements View.OnClick
         try {
             handler = new Handler(Looper.getMainLooper());
             runnable = new Runnable() {
+                @SuppressLint("SetTextI18n")
                 @Override
                 public void run() {
                     try {
@@ -146,11 +145,6 @@ public class ChargingSequentialFragment extends Fragment implements View.OnClick
         } catch (Exception e) {
             logger.error("ChargingSequentialFragment onViewCreated error : {}", e.getMessage());
         }
-    }
-
-    @Override
-    public void onClick(View v) {
-        if (!Objects.equals(v.getId(), R.id.viewCircle)) return;
     }
 
     @Override

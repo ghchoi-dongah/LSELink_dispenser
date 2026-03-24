@@ -93,7 +93,6 @@ public class HeaderFragment extends Fragment implements View.OnClickListener {
             chargerConfiguration = ((MainActivity) MainActivity.mContext).getChargerConfiguration();
             textViewChargerId.setText("| ID-" + chargerConfiguration.getChargerId());
         } catch (Exception e) {
-            Log.e("HeaderFragment", "onCreateView error", e);
             logger.error("HeaderFragment onCreateView error : {}", e.getMessage());
         }
         return view;
@@ -122,17 +121,16 @@ public class HeaderFragment extends Fragment implements View.OnClickListener {
                                             (ui1 == UiSeq.INIT || ui1 == UiSeq.SEQUENTIAL_CHARGING || ui1 == UiSeq.FAULT);
                     System.out.println("clickedCnt > 8, ui0: " + ui0 + ", ui1: " + ui1 + ", chkUiSeq: " + chkUiSeq + ", mChannel:" + mChannel);
                     if (chkUiSeq) {
-                        ((MainActivity) MainActivity.mContext).runOnUiThread(new Runnable() {
+                        activity.runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.ADMIN_PASS);
-                                ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.ADMIN_PASS,"ADMIN_PASS",null);
+                                activity.getClassUiProcess(mChannel).setUiSeq(UiSeq.ADMIN_PASS);
+                                activity.getFragmentChange().onFragmentChange(mChannel, UiSeq.ADMIN_PASS,"ADMIN_PASS",null);
                             }
                         });
                     }
                     clickedCnt = 0;
                 } catch (Exception e) {
-                    Log.e("HeaderFragment", "btnLogo error", e);
                     logger.error("HeaderFragment btnLogo error : {}", e.getMessage());
                 }
             }

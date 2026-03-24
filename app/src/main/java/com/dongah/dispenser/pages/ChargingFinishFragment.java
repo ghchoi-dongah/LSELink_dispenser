@@ -158,7 +158,6 @@ public class ChargingFinishFragment extends Fragment implements View.OnClickList
             mediaPlayer.setOnCompletionListener(me -> releasePlayer());
             mediaPlayer.start();
         } catch (Exception e) {
-            Log.e("ChargingFinishFragment", "mediaPlayer error", e);
             logger.error("ChargingFinishFragment mediaPlayer error : {}", e.getMessage());
         }
     }
@@ -168,7 +167,6 @@ public class ChargingFinishFragment extends Fragment implements View.OnClickList
             try {
                 mediaPlayer.release();
             } catch (Exception e) {
-                Log.e("ChargingFinishFragment", "releasePlayer error", e);
                 logger.error("ChargingFinishFragment releasePlayer error : {}", e.getMessage());
             }
             mediaPlayer = null;
@@ -184,7 +182,6 @@ public class ChargingFinishFragment extends Fragment implements View.OnClickList
                 uiCheckHandler.removeMessages(0);
             }
         } catch (Exception e) {
-            Log.e("ChargingFinishFragment", "onDetach error", e);
             logger.error("ChargingFinishFragment onDetach error : {}", e.getMessage());
         }
     }
