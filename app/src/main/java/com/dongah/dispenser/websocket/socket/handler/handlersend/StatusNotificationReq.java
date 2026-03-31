@@ -64,7 +64,8 @@ public class StatusNotificationReq {
         try {
             MainActivity activity = (MainActivity) MainActivity.mContext;
             ZonedDateTimeConvert zonedDateTimeConvert = new ZonedDateTimeConvert();
-            ZonedDateTime timestamp = zonedDateTimeConvert.doZonedDateTimeToDatetime();
+//            ZonedDateTime timestamp = zonedDateTimeConvert.doZonedDateTimeToDatetime();
+            ZonedDateTime timestamp = zonedDateTimeConvert.doGetCurrentTime();
 
             StatusNotificationRequest statusNotificationRequest = new StatusNotificationRequest(timestamp);
             statusNotificationRequest.setConnectorId(connectorId);
@@ -95,7 +96,8 @@ public class StatusNotificationReq {
         try {
             MainActivity activity = (MainActivity) MainActivity.mContext;
             ZonedDateTimeConvert zonedDateTimeConvert = new ZonedDateTimeConvert();
-            ZonedDateTime timestamp = zonedDateTimeConvert.doZonedDateTimeToDatetime();
+//            ZonedDateTime timestamp = zonedDateTimeConvert.doZonedDateTimeToDatetime();
+            ZonedDateTime timestamp = zonedDateTimeConvert.doGetCurrentTime();
             StatusNotificationRequest statusNotificationRequest = new StatusNotificationRequest(timestamp);
 
             statusNotificationRequest.setConnectorId(connectorId);

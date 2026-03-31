@@ -7,7 +7,10 @@ import androidx.annotation.RequiresApi;
 
 import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.basefunction.ChargingCurrentData;
+import com.dongah.dispenser.basefunction.FragmentChange;
+import com.dongah.dispenser.basefunction.UiSeq;
 import com.dongah.dispenser.utils.LogDataSave;
+import com.dongah.dispenser.websocket.ocpp.core.ChargePointStatus;
 import com.dongah.dispenser.websocket.ocpp.core.StartTransactionRequest;
 import com.dongah.dispenser.websocket.ocpp.utilities.ZonedDateTimeConvert;
 import com.dongah.dispenser.websocket.socket.SocketState;
@@ -42,12 +45,11 @@ public class StartTransactionReq {
 
         try {
             MainActivity activity = (MainActivity) MainActivity.mContext;
-            ChargingCurrentData chargingCurrentData = activity.getChargingCurrentData(connectorId-1);
+            ChargingCurrentData chargingCurrentData = activity.getChargingCurrentData(getConnectorId()-1);
 
             double meterStart = chargingCurrentData.getPowerMeterStart();
             String idTag = chargingCurrentData.getIdTag();
 
-            //test
             chargingCurrentData.setChargingStartTime(zonedDateTimeConvert.getStringCurrentTimeZone());
 
             ZonedDateTime timestamp = zonedDateTimeConvert.doZonedDateTimeToDatetime(chargingCurrentData.getChargingStartTime());
@@ -65,19 +67,22 @@ public class StartTransactionReq {
             if (socketState.equals(SocketState.OPEN)) {
                 //send
                 activity.getSocketReceiveMessage().onSend(
-                        connectorId,
+                        getConnectorId(),
                         startTransactionRequest.getActionName(),
                         startTransactionRequest);
             } else {
                 //통신이 안되면 저장
                 String uuid = UUID.randomUUID().toString();
-                saveFullStartTransaction(connectorId, uuid, startTransactionRequest);
+                saveFullStartTransaction(getConnectorId(), uuid, startTransactionRequest);
                 //화면 전환
-
+                chargingCurrentData.setChargePointStatus(ChargePointStatus.Charging);
+                activity.getClassUiProcess(getConnectorId()-1).setUiSeq(UiSeq.CHARGING);
+                FragmentChange fragmentChange = new FragmentChange();
+                fragmentChange.onFragmentChange(getConnectorId()-1, UiSeq.CHARGING, "CHARGING", null);
             }
 
         } catch (Exception e) {
-            logger.error(" sendStartTransactionReq error :  {}", e.getMessage());
+            logger.error("sendStartTransactionReq error : {}", e.getMessage());
         }
     }
 
@@ -106,10 +111,10 @@ public class StartTransactionReq {
             frame.put(payload);
 
             LogDataSave logDataSave = new LogDataSave();
-            logDataSave.makeDump(frame.toString());
+            logDataSave.makeDump(frame.toString()); // TODO : 커넥터별 dump 수정
 
         } catch (Exception e) {
-            logger.error(" saveFullStartTransaction error : {}", e.getMessage());
+            logger.error("saveFullStartTransaction error : {}", e.getMessage());
         }
     }
 }

@@ -31,11 +31,11 @@ public class ChangeElecModeHandler implements OcppHandler {
         String msgId = payload.getString("messageId");  //changeelecmode.req
         String dataStr = payload.getString("data");
 
-        //파일 저장
+        // 파일 저장
         saveChangeElecModeToFile(dataStr);
         // 응답
         sendResponse(connectorId, messageId);
-        // 출력제한 반영
+        // 출력 제한
         ChangeElecModeThread.processChangeElecMode();
     }
 
@@ -94,7 +94,7 @@ public class ChangeElecModeHandler implements OcppHandler {
                     messageId,
                     changeElecModeConfirm);
         } catch (Exception e) {
-            logger.error(" sendResponse error : {}", e.getMessage());
+            logger.error("sendResponse error : {}", e.getMessage());
         }
     }
 }

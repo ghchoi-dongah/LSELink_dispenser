@@ -436,9 +436,12 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
-        super.onDestroy();
 //        inactivityHandler.removeCallbacks(inactivityRunnable);
         handler.removeCallbacks(runnable);
+        for (int i = 0; i < GlobalVariables.maxChannel; i++) {
+            classUiProcess[i].stopEventLoop();
+        }
+        super.onDestroy();
     }
 
     private String parseToLocal(String number) {

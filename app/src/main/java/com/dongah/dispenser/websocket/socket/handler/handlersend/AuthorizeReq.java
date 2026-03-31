@@ -24,12 +24,11 @@ public class AuthorizeReq {
         try {
             MainActivity activity = (MainActivity) MainActivity.mContext;
             AuthorizeRequest authorizeRequest = new AuthorizeRequest(idTag);
-            activity.getSocketReceiveMessage().onSend(getConnectorId(), authorizeRequest.getActionName(), authorizeRequest);
 
-            //test
-            activity.getChargingCurrentData(connectorId-1).setIdTag(idTag);
+            activity.getSocketReceiveMessage().onSend(getConnectorId(), authorizeRequest.getActionName(), authorizeRequest);
+            activity.getChargingCurrentData(getConnectorId()-1).setIdTag(idTag);
         } catch (Exception e) {
-            logger.error("sendAuthorize error :  {}", e.getMessage());
+            logger.error("sendAuthorize error : {}", e.getMessage());
         }
     }
 

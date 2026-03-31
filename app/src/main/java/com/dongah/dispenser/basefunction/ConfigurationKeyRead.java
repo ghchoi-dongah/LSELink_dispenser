@@ -68,6 +68,8 @@ public class ConfigurationKeyRead {
                         GlobalVariables.setPersonUtztnLmtHr(Integer.parseInt(contDetail.getString("value")));
                     } else if (Objects.equals("MinimunStatusDuration", contDetail.getString("key"))) {
                         GlobalVariables.setMinimunStatusDuration(Integer.parseInt(contDetail.getString("value")));
+                    } else if (Objects.equals("webSocketURL", contDetail.getString("key"))) {
+                        GlobalVariables.setWebSocketURL(contDetail.getString("value"));
                     }
                 }
             }

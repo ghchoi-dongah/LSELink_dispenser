@@ -11,6 +11,7 @@ import com.dongah.dispenser.websocket.ocpp.core.DataTransferStatus;
 import com.dongah.dispenser.websocket.ocpp.core.datatransfer.lselink.ChangeModeConfirm;
 import com.dongah.dispenser.websocket.socket.OcppHandler;
 import com.dongah.dispenser.websocket.socket.handler.handlersend.ChangeModeThread;
+import com.dongah.dispenser.websocket.socket.handler.handlersend.StatusNotificationReq;
 
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -31,7 +32,7 @@ public class ChangeModeHandler implements OcppHandler {
         String msgId = payload.getString("messageId");  //changemode.req
         String dataStr = payload.getString("data");
 
-        //파일 저장
+        // 파일 저장
         saveChangeModeToFile(dataStr);
         // 응답
         sendResponse(connectorId, messageId);

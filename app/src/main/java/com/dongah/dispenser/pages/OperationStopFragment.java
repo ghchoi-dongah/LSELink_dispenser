@@ -77,7 +77,7 @@ public class OperationStopFragment extends Fragment implements View.OnClickListe
 
         // imageViewOpStop animation
         fadeAnimator = ObjectAnimator.ofFloat(imageViewOpStop, "alpha", 1f, 0.2f);
-        fadeAnimator.setDuration(1000);
+        fadeAnimator.setDuration(2000);
         fadeAnimator.setRepeatCount(ValueAnimator.INFINITE);
         fadeAnimator.setRepeatMode(ValueAnimator.REVERSE);
         fadeAnimator.setInterpolator(new AccelerateDecelerateInterpolator());

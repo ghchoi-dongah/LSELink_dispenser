@@ -22,6 +22,9 @@ public class VehicleInfoReq {
     private static final Logger logger = LoggerFactory.getLogger(VehicleInfoReq.class);
 
     private final int connectorId ;
+    public int getConnectorId() {
+        return connectorId;
+    }
 
     public VehicleInfoReq(int connectorId) {
         this.connectorId = connectorId;
@@ -33,11 +36,10 @@ public class VehicleInfoReq {
             MainActivity activity = (MainActivity) MainActivity.mContext;
 
             ChargerConfiguration chargerConfiguration = activity.getChargerConfiguration();
-            ChargingCurrentData chargingCurrentData = activity.getChargingCurrentData(connectorId-1);
-            RxData rxData = activity.getControlBoard().getRxData(connectorId-1);
-//            String evccId = String.valueOf(rxData.getCsmVehicleEvccId());
+            ChargingCurrentData chargingCurrentData = activity.getChargingCurrentData(getConnectorId()-1);
+            RxData rxData = activity.getControlBoard().getRxData(getConnectorId()-1);
             String evccId = BitUtilities.toHexString(rxData.getCsmVehicleEvccId());
-//            String evccId = "1364747EE704";
+//            String evccId = "1364747EE704";   // test code
 
             VehicleInfoData vehicleInfoData = createVehicleInfoData(evccId);
 
@@ -48,21 +50,21 @@ public class VehicleInfoReq {
             vehicleInfoRequest.setData(gson.toJson(vehicleInfoData));
 
             activity.getSocketReceiveMessage().onSend(
-                    connectorId,
+                    getConnectorId(),
                     vehicleInfoRequest.getActionName(),
                     vehicleInfoRequest);
 
         } catch (Exception e) {
-            logger.error(" {}", e.getMessage());
+            logger.error("sendVehicleInfo error : {}", e.getMessage());
         }
     }
 
     private VehicleInfoData createVehicleInfoData(String evccId) {
         MainActivity activity = (MainActivity) MainActivity.mContext;
-        ChargingCurrentData chargingCurrentData = activity.getChargingCurrentData(connectorId-1);
+        ChargingCurrentData chargingCurrentData = activity.getChargingCurrentData(getConnectorId()-1);
 
         VehicleInfoData vehicleInfoData = new VehicleInfoData();
-        vehicleInfoData.setConnectorId(connectorId);
+        vehicleInfoData.setConnectorId(getConnectorId());
         vehicleInfoData.setIdTag(chargingCurrentData.getIdTag());
         vehicleInfoData.setEvccId(evccId);
 

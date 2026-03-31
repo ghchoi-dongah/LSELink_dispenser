@@ -36,7 +36,7 @@ public class EnvironmentFragment extends Fragment implements View.OnClickListene
     private String mParam2;
     private int mChannel;
 
-    Button btnConfig, btnWebSocket, btnControl, btnDbControl, btnLoadTest, btnUi, btnSystemExit;
+    Button btnConfig, btnWebSocket, btnControl, btnDbControl, btnLoadTest, btnUi, btnSystemExit, btnRemoteTest;
     FragmentTransaction transaction;
 
     public EnvironmentFragment() {
@@ -89,6 +89,8 @@ public class EnvironmentFragment extends Fragment implements View.OnClickListene
         btnUi.setOnClickListener(this);
         btnSystemExit = view.findViewById(R.id.btnSystemExit);
         btnSystemExit.setOnClickListener(this);
+        btnRemoteTest = view.findViewById(R.id.btnRemoteTest);
+        btnRemoteTest.setOnClickListener(this);
         return  view;
     }
 
@@ -130,6 +132,11 @@ public class EnvironmentFragment extends Fragment implements View.OnClickListene
         } else if (Objects.equals(getId, R.id.btnSystemExit)) {
             ActivityCompat.finishAffinity((MainActivity) MainActivity.mContext);
             System.exit(0);
+        } else if (Objects.equals(getId, R.id.btnRemoteTest)) {
+            for (int i = 0; i < GlobalVariables.maxChannel; i++) {
+                ((MainActivity) MainActivity.mContext).getClassUiProcess(i).setUiSeq(UiSeq.REMOTE_TEST);
+            }
+            ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel,UiSeq.REMOTE_TEST, "REMOTE_TEST", null);
         }
     }
 }

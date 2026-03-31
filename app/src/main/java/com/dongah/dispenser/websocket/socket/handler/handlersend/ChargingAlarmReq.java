@@ -36,7 +36,7 @@ public class ChargingAlarmReq {
             if (activity == null) return;
 
             ChargerConfiguration chargerConfiguration = activity.getChargerConfiguration();
-            ChargingCurrentData chargingCurrentData = activity.getChargingCurrentData(connectorId-1);
+            ChargingCurrentData chargingCurrentData = activity.getChargingCurrentData(getConnectorId()-1);
 
             ChargingAlarmData chargingAlarmData = createChargingAlarmData(msgType);
 
@@ -51,18 +51,18 @@ public class ChargingAlarmReq {
                     chargingAlarmRequest.getActionName(),
                     chargingAlarmRequest);
         } catch (Exception e) {
-            logger.error("sendChargingAlarmReq error :  {}", e.getMessage());
+            logger.error("sendChargingAlarmReq error : {}", e.getMessage());
         }
     }
 
     private ChargingAlarmData createChargingAlarmData(int msgType) {
 
         MainActivity activity = (MainActivity) MainActivity.mContext;
-        ChargingCurrentData chargingCurrentData = activity.getChargingCurrentData(connectorId-1);
-        UiSeq uiSeq = activity.getClassUiProcess(connectorId-1).getUiSeq();
+        ChargingCurrentData chargingCurrentData = activity.getChargingCurrentData(getConnectorId()-1);
+        UiSeq uiSeq = activity.getClassUiProcess(getConnectorId()-1).getUiSeq();
 
         ChargingAlarmData chargingAlarmData = new ChargingAlarmData();
-        chargingAlarmData.setConnectorId(connectorId);
+        chargingAlarmData.setConnectorId(getConnectorId());
         //(1: 충전 시작, 2: 충전률 90% 도달, 3: 충전 종료
         chargingAlarmData.setMsgType(msgType);
         chargingAlarmData.setTransactionId(chargingCurrentData.getTransactionId());
@@ -70,7 +70,5 @@ public class ChargingAlarmReq {
         chargingAlarmData.setPhoneNum("");
 
         return chargingAlarmData;
-
     }
-
 }

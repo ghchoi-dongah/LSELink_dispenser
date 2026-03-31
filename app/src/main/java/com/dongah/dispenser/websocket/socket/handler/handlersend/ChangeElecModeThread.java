@@ -55,7 +55,7 @@ public class ChangeElecModeThread extends Thread {
                 logger.info("ChangeElecModeThread error : {}", e.getMessage());
             }
         }
-        logger.info("ChangeElecModeThread termiated");
+        logger.info("ChangeElecModeThread terminated");
     }
 
     // 시간대별 충전제한
@@ -86,7 +86,6 @@ public class ChangeElecModeThread extends Thread {
                 }
             }
         } catch (Exception e) {
-            Log.e("ChangeElecModeThread", "processChangeElecMode error : ", e);
             logger.error("processChangeElecMode error : {}", e.getMessage());
         }
     }
@@ -140,7 +139,6 @@ public class ChangeElecModeThread extends Thread {
             }
 
         } catch (Exception e) {
-            Log.e("setChangeElecMode", "error >> ", e);
             logger.error("setChangeElecMode error : {}", e.getMessage());
         }
     }
@@ -152,7 +150,6 @@ public class ChangeElecModeThread extends Thread {
 
         try {
             File file = new File(GlobalVariables.getRootPath() + File.separator + "changeMode");
-            Log.d("ChangeElecModeThread", "changeElecMode file not founded");
 
             if (!file.exists()) {
                 activity.getControlBoard().getTxData(connectorId).setOutPowerLimit((short) chargerConfiguration.getDr());
@@ -181,7 +178,6 @@ public class ChangeElecModeThread extends Thread {
             activity.getControlBoard().getTxData(connectorId).setOutPowerLimit((short) Integer.parseInt(value));
 
         } catch (Exception e) {
-            Log.e("setChangeMode", "error >> ", e);
             logger.error("setChangeMode error : {}", e.getMessage());
         }
     }

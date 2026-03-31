@@ -47,15 +47,21 @@ public class GlobalVariables {
     public static String AuthorizationKey = "dongahpassword1234";
     public static boolean LocalAuthListEnabled = true;
 
+    // LS E-Link Configuration Key
     public static int FullRechgAmt = 40000;
     public static  String PersonUtztnLmtYn = "N";
     public static int PersonUtztnLmtHr = 30;
+    public static String webSocketURL = "";
 
     public static int dumpTransactionId = 0;
+    public static boolean Scheduled = false;
 
     //modem tel number
     public static String IMSI = "" ;
     public static String RSRP = "";
+    public static boolean triggerSet = false;
+
+
 
 
     public static String getRootPath() {
@@ -235,12 +241,28 @@ public class GlobalVariables {
         PersonUtztnLmtHr = personUtztnLmtHr;
     }
 
+    public static String getWebSocketURL() {
+        return webSocketURL;
+    }
+
+    public static void setWebSocketURL(String url) {
+        webSocketURL = url;
+    }
+
     public static int getDumpTransactionId() {
         return dumpTransactionId;
     }
 
     public static void setDumpTransactionId(int dumpTransactionId) {
         GlobalVariables.dumpTransactionId = dumpTransactionId;
+    }
+
+    public static boolean isScheduled() {
+        return Scheduled;
+    }
+
+    public static void setScheduled(boolean scheduled) {
+        Scheduled = scheduled;
     }
 
     public static String getIMSI() {
@@ -257,5 +279,13 @@ public class GlobalVariables {
 
     public static void setRSRP(String RSRP) {
         GlobalVariables.RSRP = RSRP;
+    }
+
+    public static boolean isTriggerSet() {
+        return triggerSet;
+    }
+
+    public static void setTriggerSet(boolean triggerSet) {
+        GlobalVariables.triggerSet = triggerSet;
     }
 }

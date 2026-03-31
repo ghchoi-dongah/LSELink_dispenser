@@ -34,6 +34,7 @@ import com.dongah.dispenser.websocket.socket.handler.handlerreceive.SendLocalLis
 import com.dongah.dispenser.websocket.socket.handler.handlerreceive.StartTransactionHandler;
 import com.dongah.dispenser.websocket.socket.handler.handlerreceive.StatusNotificationHandler;
 import com.dongah.dispenser.websocket.socket.handler.handlerreceive.StopTransactionHandler;
+import com.dongah.dispenser.websocket.socket.handler.handlerreceive.TriggerMessageHandler;
 import com.dongah.dispenser.websocket.socket.handler.handlerreceive.UnitPriceHandler;
 import com.dongah.dispenser.websocket.socket.handler.handlerreceive.UpdateFirmwareHandler;
 import com.dongah.dispenser.websocket.socket.handler.handlerreceive.VehicleInfoHandler;
@@ -153,6 +154,7 @@ public class SocketReceiveMessage extends JSONCommunicator implements SocketInte
         handlerMap.put("Reset", new ResetHandler());
         handlerMap.put("UpdateFirmware", new UpdateFirmwareHandler());
         handlerMap.put("FirmwareStatusNotification", new FirmwareStatusNotificationHandler());
+        handlerMap.put("TriggerMessage", new TriggerMessageHandler());
 
         // DataTransfer messageId별 핸들러
         handlerMap.put("unitprice.req", new UnitPriceHandler());
@@ -260,6 +262,7 @@ public class SocketReceiveMessage extends JSONCommunicator implements SocketInte
         logger.error(t.toString());
     }
 
+    // never used
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public void onSend(String actionName, Request request) throws OccurenceConstraintException {

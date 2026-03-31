@@ -11,6 +11,7 @@ import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.basefunction.ChargerConfiguration;
 import com.dongah.dispenser.basefunction.ChargingCurrentData;
 import com.dongah.dispenser.basefunction.GlobalVariables;
+import com.dongah.dispenser.websocket.ocpp.core.ChargePointStatus;
 import com.dongah.dispenser.websocket.ocpp.core.datatransfer.lselink.MeterValuesData;
 import com.dongah.dispenser.websocket.ocpp.core.datatransfer.lselink.MeterValuesRequest;
 import com.dongah.dispenser.websocket.ocpp.utilities.ZonedDateTimeConvert;
@@ -18,6 +19,8 @@ import com.google.gson.Gson;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Objects;
 
 public class MeterValuesReq {
     private static final Logger logger = LoggerFactory.getLogger(MeterValuesReq.class);
@@ -62,7 +65,7 @@ public class MeterValuesReq {
                 try {
                     sendMeterValues(connectorId);
                 } catch (Exception e) {
-                    logger.error(" meterRunnable error : {}", e.getMessage());
+                    logger.error("meterRunnable error : {}", e.getMessage());
                 }
                 meterHandler.postDelayed(this, intervalSec * 1000L);
             }
@@ -85,10 +88,12 @@ public class MeterValuesReq {
         if (activity == null) return;
         // 충전 상태가 아니면 중지
         ChargingCurrentData chargingCurrentData = activity.getChargingCurrentData(connectorId-1);
-//        if (!Objects.equals(chargingCurrentData.getChargePointStatus(), ChargePointStatus.Charging)) {
+//        if (!Objects.equals(chargingCurrentData.getChargePointStatus(), ChargePointStatus.Charging) ||
+//                !GlobalVariables.isTriggerSet()) {
 //            stopMeterValues();
 //            return;
 //        }
+
         ZonedDateTimeConvert zonedDateTimeConvert = new ZonedDateTimeConvert();
         ChargerConfiguration chargerConfiguration = activity.getChargerConfiguration();
 
@@ -107,7 +112,7 @@ public class MeterValuesReq {
         meterValuesData.connectorId = getConnectorId();
         meterValuesData.transactionId = chargingCurrentData.getTransactionId();
         meterValuesData.idTag = chargingCurrentData.getIdTag();
-        meterValuesData.timestamp = zonedDateTimeConvert.doGetUtcDatetimeAsString();
+        meterValuesData.timestamp = zonedDateTimeConvert.doGetKstDatetimeAsString();
         meterValuesData.power = (float) ((chargingCurrentData.getOutPutVoltage() * 10) * (chargingCurrentData.getOutPutCurrent() * 0.001));
         meterValuesData.eps = (int) (chargingCurrentData.getOutPutVoltage() * 10);
         meterValuesData.ecu = (int) (chargingCurrentData.getOutPutCurrent() * 0.001) ;
@@ -135,5 +140,8 @@ public class MeterValuesReq {
                 connectorId,
                 meterValuesRequest.getActionName(), // DataTransfer
                 meterValuesRequest);
+
+        // Trigger MeterValues 한 번만 실행
+//        GlobalVariables.setTriggerSet(false);
     }
 }

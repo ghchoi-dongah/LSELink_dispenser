@@ -82,13 +82,13 @@ public class BootNotificationThread extends Thread {
             bootNotificationRequest = new BootNotificationRequest(
                     chargerConfiguration.getChargePointVendor(),
                     chargerConfiguration.getChargerPointModel());
-            bootNotificationRequest.setFirmwareVersion(GlobalVariables.VERSION);
+            bootNotificationRequest.setFirmwareVersion(GlobalVariables.FW_VERSION);
             bootNotificationRequest.setImsi(chargerConfiguration.getImsi());
-            bootNotificationRequest.setChargeBoxSerialNumber("000000");       //충전소ID
-            bootNotificationRequest.setChargePointSerialNumber("26");     //c충전기시리얼
-            bootNotificationRequest.setMeterSerialNumber("");
-            bootNotificationRequest.setMeterType("");
-            bootNotificationRequest.setIccid("");
+            bootNotificationRequest.setChargeBoxSerialNumber(chargerConfiguration.getChargeBoxSerialNumber());      // 충전소ID
+            bootNotificationRequest.setChargePointSerialNumber(chargerConfiguration.getChargerId());                // 충전기시리얼 → 충전기ID
+            bootNotificationRequest.setMeterSerialNumber(chargerConfiguration.getMeterSerialNumber());              // 충전기의 주전력량계의 시리얼 번호
+            bootNotificationRequest.setMeterType(chargerConfiguration.getMeterType());  // 충전기의 주전력량계의 타입 포함
+            bootNotificationRequest.setIccid(chargerConfiguration.getIccid());          // 모뎀 SIM 카드의 IMSI
 
             socketReceiveMessage.onSend(
                     100,
@@ -131,7 +131,8 @@ public class BootNotificationThread extends Thread {
 
 
                 if (status == SignedFirmwareStatus.Installed) {
-                    ZonedDateTime timestamp = new ZonedDateTimeConvert().doZonedDateTimeToDatetime();
+//                    ZonedDateTime timestamp = new ZonedDateTimeConvert().doZonedDateTimeToDatetime();
+                    ZonedDateTime timestamp = new ZonedDateTimeConvert().doGetCurrentTime();
                     SecurityEventNotificationRequest req =
                             new SecurityEventNotificationRequest("FirmwareUpdated", timestamp);
                     socketReceiveMessage.onSend(100, req.getActionName(), req);

@@ -19,7 +19,10 @@ public class UserSetSocReq {
     private static final Logger logger = LoggerFactory.getLogger(UserSetSocReq.class);
 
 
-    private final int connectorId ;
+    private final int connectorId;
+    public int getConnectorId() {
+        return connectorId;
+    }
 
     public UserSetSocReq(int connectorId) {
         this.connectorId = connectorId;
@@ -42,7 +45,7 @@ public class UserSetSocReq {
             userSetSocRequest.setData(gson.toJson(userSetSocData));
 
             activity.getSocketReceiveMessage().onSend(
-                    connectorId,
+                    getConnectorId(),
                     userSetSocRequest.getActionName(),
                     userSetSocRequest);
 
@@ -55,17 +58,17 @@ public class UserSetSocReq {
     private UserSetSocData createUserSocData() {
         MainActivity activity = (MainActivity) MainActivity.mContext;
         ChargerConfiguration chargerConfiguration = activity.getChargerConfiguration();
-        ChargingCurrentData chargingCurrentData = activity.getChargingCurrentData(connectorId-1);
+        ChargingCurrentData chargingCurrentData = activity.getChargingCurrentData(getConnectorId()-1);
 
         UserSetSocData userSetSocData = new UserSetSocData();
         userSetSocData.setChargeBoxSerialNumber(chargerConfiguration.getChargeBoxSerialNumber());
         userSetSocData.setChargePointSerialNumber(chargerConfiguration.getChargerId());
-        userSetSocData.setConnectorId(connectorId);
+        userSetSocData.setConnectorId(getConnectorId());
         userSetSocData.setIdTag(chargingCurrentData.getIdTag());
         userSetSocData.setTransactionId(chargingCurrentData.getTransactionId());
         userSetSocData.setSetSoc(chargerConfiguration.getTargetSoc());
         ZonedDateTimeConvert zonedDateTimeConvert = new ZonedDateTimeConvert();
-        userSetSocData.setTimestamp(zonedDateTimeConvert.doGetUtcDatetimeAsString());
+        userSetSocData.setTimestamp(zonedDateTimeConvert.doGetKstDatetimeAsString());
 
         return userSetSocData;
     }

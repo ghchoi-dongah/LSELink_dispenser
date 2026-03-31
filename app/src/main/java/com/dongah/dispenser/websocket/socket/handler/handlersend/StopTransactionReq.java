@@ -32,6 +32,9 @@ public class StopTransactionReq {
     private static final Logger logger = LoggerFactory.getLogger(StopTransactionReq.class);
 
     private final int connectorId ;
+    public int getConnectorId() {
+        return connectorId;
+    }
 
     final ZonedDateTimeConvert zonedDateTimeConvert = new ZonedDateTimeConvert();
 
@@ -44,12 +47,13 @@ public class StopTransactionReq {
     public void sendStopTransactionReq() {
         try {
             MainActivity activity = (MainActivity) MainActivity.mContext;
-            ChargingCurrentData chargingCurrentData = activity.getChargingCurrentData(connectorId-1);
+            ChargingCurrentData chargingCurrentData = activity.getChargingCurrentData(getConnectorId()-1);
             ZonedDateTime timestamp = zonedDateTimeConvert.doZonedDateTimeToDatetime(chargingCurrentData.getChargingEndTime());
+//            ZonedDateTime timestamp = zonedDateTimeConvert.doGetCurrentTime(chargingCurrentData.getChargingEndTime());
 
-            MeterValuesReq req = new MeterValuesReq(connectorId);
-            req.sendMeterValues(connectorId);
-            activity.getClassUiProcess(connectorId-1).onMeterValueStop();
+            MeterValuesReq req = new MeterValuesReq(getConnectorId());
+            req.sendMeterValues(getConnectorId());
+            activity.getClassUiProcess(getConnectorId()-1).onMeterValueStop();
 
             StopTransactionRequest stopTransactionRequest = new StopTransactionRequest(
                     chargingCurrentData.getPowerMeterStop(),
@@ -84,19 +88,23 @@ public class StopTransactionReq {
             list.add(energy);
             list.add(soc);
             SampledValue[] sampledArray = list.toArray(new SampledValue[0]);
-            MeterValue meterValue = new MeterValue(ZonedDateTime.now(), sampledArray);
+
+            ZonedDateTime now = zonedDateTimeConvert.doGetCurrentTime();
+
+            MeterValue meterValue = new MeterValue(now, sampledArray);
             stopTransactionRequest.setTransactionData(new MeterValue[] {meterValue});
+
 
             SocketState socketState = activity.getSocketReceiveMessage().getSocket().getState();
             if (socketState.equals(SocketState.OPEN)) {
                 //send
                 activity.getSocketReceiveMessage().onSend(
-                        connectorId,
+                        getConnectorId(),
                         stopTransactionRequest.getActionName(),
                         stopTransactionRequest);
             } else {
                 String uuid = UUID.randomUUID().toString();
-                saveFullStartTransaction(connectorId, uuid, stopTransactionRequest);
+                saveFullStartTransaction(getConnectorId(), uuid, stopTransactionRequest);
             }
         } catch (Exception e) {
             Log.e("StopTransactionReq", "sendStopTransactionReq error", e);
@@ -125,7 +133,7 @@ public class StopTransactionReq {
             frame.put(payload);
 
             LogDataSave logDataSave = new LogDataSave();
-            logDataSave.makeDump(frame.toString());
+            logDataSave.makeDump(frame.toString()); // TODO : 커넥터별 dump 분리
 
         } catch (Exception e) {
             logger.error(" saveFullStartTransaction error : {}", e.getMessage());

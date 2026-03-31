@@ -62,6 +62,7 @@ public class ZonedDateTimeConvert {
         return null;
     }
 
+    // yyyy-MM-dd'T'HH:mm:ss'Z
     @RequiresApi(api = Build.VERSION_CODES.O)
     public ZonedDateTime doZonedDateTimeToDatetime(String inputDateTime) {
         Date parsed = null;
@@ -197,14 +198,13 @@ public class ZonedDateTimeConvert {
         return ZonedDateTime.ofInstant(instant, zoneId);
     }
 
+    // yyyyMMddHHmmss
     @RequiresApi(api = Build.VERSION_CODES.O)
     public String getStringCurrentTimeZone() {
         try {
-//            LocalDateTime utcTime = LocalDateTime.now(ZoneOffset.UTC);
-//            return utcTime.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
             @SuppressLint("SimpleDateFormat") SimpleDateFormat sdf = new SimpleDateFormat(SIMPLE_DATE_TIME_FORMAT);
-            sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
-//            sdf.setTimeZone(TimeZone.getTimeZone("Asia/Seoul"));
+//            sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+            sdf.setTimeZone(TimeZone.getTimeZone("Asia/Seoul"));
             return sdf.format(new Date());
         } catch (Exception e) {
             logger.error(e.getMessage());
@@ -212,18 +212,54 @@ public class ZonedDateTimeConvert {
         return null;
     }
 
+    // KST : yyyy-MM-dd'T'HH:mm:ss'Z
     @RequiresApi(api = Build.VERSION_CODES.O)
     public ZonedDateTime doGetCurrentTime() {
         try {
             @SuppressLint("SimpleDateFormat") final SimpleDateFormat sdf = new SimpleDateFormat(ZONED_DATE_TIME_FORMAT);
             sdf.setTimeZone(TimeZone.getTimeZone("Asia/Seoul"));
             String utcTime = sdf.format(new Date());
-            //return doZonedDateTimeToDatetime(utcTime);
             return ZonedDateTime.parse(utcTime, DateTimeFormatter.ISO_DATE_TIME);
         } catch (Exception e) {
             logger.error(e.getMessage());
         }
         return null;
+    }
+
+    // KST
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    public ZonedDateTime doGetCurrentTime(String inputDateTime) {
+        try {
+            SimpleDateFormat dfInput = new SimpleDateFormat(SIMPLE_DATE_TIME_FORMAT, Locale.getDefault());
+            dfInput.setTimeZone(TimeZone.getTimeZone("UTC"));  // 입력은 UTC
+            Date parsed = dfInput.parse(inputDateTime);
+
+            // Date → Instant → ZonedDateTime(UTC)
+            ZonedDateTime utcTime = parsed.toInstant().atZone(ZoneId.of("UTC"));
+
+            // KST로 변환
+            ZonedDateTime kstTime = utcTime.withZoneSameInstant(ZoneId.of("Asia/Seoul"));
+
+            return kstTime;
+        } catch (Exception e) {
+            logger.error("time parse error", e);
+        }
+        return null;
+    }
+
+    // KST : yyyy-MM-dd'T'HH:mm:ss'Z
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    public String doGetKstDatetimeAsString() {
+        @SuppressLint("SimpleDateFormat")  final SimpleDateFormat sdf = new SimpleDateFormat(ZONED_DATE_TIME_FORMAT);
+        sdf.setTimeZone(TimeZone.getTimeZone("Asia/Seoul"));
+        return sdf.format(new Date());
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    public ZonedDateTime doGetCurrentTimeKst(String inputDateTime) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+        return LocalDateTime.parse(inputDateTime, formatter)
+                .atZone(ZoneId.of("Asia/Seoul"));
     }
 
     public String doGetCurrentTimeUTC() {

@@ -71,7 +71,7 @@ public class DiagnosticsThread extends Thread {
             if (count > delayTime) {
                 try {
                     count = 0;
-                    String startTime = zonedDateTimeConvert.doGetUtcDatetimeAsString();
+                    String startTime = zonedDateTimeConvert.doGetKstDatetimeAsString();
                     String powerMeter = powerFormatter.format(((MainActivity) MainActivity.mContext).getControlBoard().getRxData(0).getPowerMeter() * 0.01);
                     JSONArray data = insertData(startTime, powerMeter);
                     JSONObject obj = new JSONObject();

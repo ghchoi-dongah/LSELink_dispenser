@@ -20,6 +20,9 @@ public class FullRechgSocReq {
     private static final Logger logger = LoggerFactory.getLogger(FullRechgSocReq.class);
 
     private final int connectorId ;
+    public int getConnectorId() {
+        return connectorId;
+    }
 
     public FullRechgSocReq(int connectorId) {
         this.connectorId = connectorId;
@@ -31,12 +34,12 @@ public class FullRechgSocReq {
         try {
             MainActivity activity = (MainActivity) MainActivity.mContext;
             ChargerConfiguration chargerConfiguration = activity.getChargerConfiguration();
-            ChargingCurrentData chargingCurrentData = activity.getChargingCurrentData(connectorId-1);
+            ChargingCurrentData chargingCurrentData = activity.getChargingCurrentData(getConnectorId()-1);
 
             FullRechgSocData fullRechgSocData = createFullRechgSocData();
 
             ZonedDateTimeConvert zonedDateTimeConvert = new ZonedDateTimeConvert();
-            fullRechgSocData.setTimestamp(zonedDateTimeConvert.doGetUtcDatetimeAsString());
+            fullRechgSocData.setTimestamp(zonedDateTimeConvert.doGetKstDatetimeAsString());
 
             FullRechgSocRequest fullRechgSocRequest = new FullRechgSocRequest();
             fullRechgSocRequest.setVendorId(chargerConfiguration.getChargePointVendor());
@@ -45,7 +48,7 @@ public class FullRechgSocReq {
             fullRechgSocRequest.setData(gson.toJson(fullRechgSocData));
 
             activity.getSocketReceiveMessage().onSend(
-                    connectorId,
+                    getConnectorId(),
                     fullRechgSocRequest.getActionName(),
                     fullRechgSocRequest
             );
@@ -59,17 +62,14 @@ public class FullRechgSocReq {
 
         MainActivity activity = (MainActivity) MainActivity.mContext;
         ChargerConfiguration chargerConfiguration = activity.getChargerConfiguration();
-        ChargingCurrentData chargingCurrentData = activity.getChargingCurrentData(connectorId-1);
+        ChargingCurrentData chargingCurrentData = activity.getChargingCurrentData(getConnectorId()-1);
 
         FullRechgSocData fullRechgSocData = new FullRechgSocData();
         fullRechgSocData.setChargeBoxSerialNumber(chargerConfiguration.getChargeBoxSerialNumber());
         fullRechgSocData.setChargePointSerialNumber(chargerConfiguration.getChargerId());
-        fullRechgSocData.setConnectorId(connectorId);
+        fullRechgSocData.setConnectorId(getConnectorId());
         fullRechgSocData.setIdTag(chargingCurrentData.getIdTag());
 
         return fullRechgSocData;
     }
-
-
-
 }

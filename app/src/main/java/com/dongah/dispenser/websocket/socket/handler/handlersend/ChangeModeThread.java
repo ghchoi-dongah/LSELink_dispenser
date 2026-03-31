@@ -81,13 +81,13 @@ public class ChangeModeThread extends Thread {
                 // DM(양구), NM(1구), WM(충전대기), IM(충전불가)
                 for (int i = 0; i < GlobalVariables.maxChannel; i++) {
                     String content = readFile(file, i+1);
-                    Log.d("ChangeModeThread", "content" + (i+1) + ": " + content);
+//                    Log.d("ChangeModeThread", "content" + (i+1) + ": " + content);
 
                     // content == null 이면 connectorId에 해당하는 changeMode이 없음
                     if (content == null) {
                         // connectorId: 0으로 대체
                         String content0 = readFile(file, 0);
-                        Log.d("ChangeModeThread", "content0" + content0);
+//                        Log.d("ChangeModeThread", "content0" + content0);
                         // connectorId: 0에 대한 content가 없으면 "DM"으로 처리
                         if (content0 == null) {
                             activity.getChargingCurrentData(i).setChangeMode("DM");
@@ -159,7 +159,6 @@ public class ChangeModeThread extends Thread {
             String value = rootJson.optString(hourKey, "DM");
             activity.getChargingCurrentData(connectorId).setChangeMode(value);
         } catch (Exception e) {
-            Log.e("setChangeMode", "error >> ", e);
             logger.error("setChangeMode error : {}", e.getMessage());
         }
     }

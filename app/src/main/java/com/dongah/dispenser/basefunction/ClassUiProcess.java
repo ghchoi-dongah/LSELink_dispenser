@@ -57,6 +57,8 @@ public class ClassUiProcess implements RfCardReaderListener {
     ProcessHandler processHandler;
     Timer eventTimer;
     ZonedDateTimeConvert zonedDateTimeConvert;
+    private Handler eventHandler;
+    private Runnable eventRunnable;
 
     int powerMeterCheck = 0;
     boolean chargingAlarm = true;
@@ -119,16 +121,16 @@ public class ClassUiProcess implements RfCardReaderListener {
             processHandler = ((MainActivity) MainActivity.mContext).getProcessHandler();
             statusNotificationReq = new StatusNotificationReq(ch);
             // loop
-            eventTimer = new Timer();
-            eventTimer.schedule(new TimerTask() {
-                @RequiresApi(api = Build.VERSION_CODES.O)
-                @Override
-                public void run() {
-                    onEventAction();
-                }
-            }, 3000, 2000);
+//            eventTimer = new Timer();
+//            eventTimer.schedule(new TimerTask() {
+//                @RequiresApi(api = Build.VERSION_CODES.O)
+//                @Override
+//                public void run() {
+//                    onEventAction();
+//                }
+//            }, 3000, 2000);
+            startEventLoop();
         } catch (Exception e) {
-            Log.e("ClassUiProcess", "construct error", e);
             logger.error("ClassUiProcess - construct error : {}", e.getMessage());
         }
     }
@@ -204,6 +206,10 @@ public class ClassUiProcess implements RfCardReaderListener {
 
                 case FAULT:
                     handleFault(rxData);
+                    break;
+
+                case OP_STOP:
+                    handleOpStop();
                     break;
 
                 default:
@@ -414,10 +420,31 @@ public class ClassUiProcess implements RfCardReaderListener {
         }
     }
 
+    private void startEventLoop() {
+        eventHandler = new Handler(Looper.getMainLooper());
+        eventRunnable = new Runnable() {
+            @RequiresApi(api = Build.VERSION_CODES.O)
+            @Override
+            public void run() {
+                onEventAction();
+                eventHandler.postDelayed(this, 500);
+            }
+        };
+        eventHandler.postDelayed(eventRunnable, 3000);
+    }
+
+    public void stopEventLoop() {
+        if (eventHandler != null && eventRunnable != null) {
+            eventHandler.removeCallbacks(eventRunnable);
+        }
+    }
+
     // init
     private void handleInit() {
         setoSeq(UiSeq.INIT);
         setPowerMeterCheck(0);
+        chargingAlarm = true;
+        onMeterValueStop();
         if (Objects.equals(controlBoard.getTxData(channel).getChargerPointMode(), 0)) {
             controlBoard.getTxData(getCh()).setUiSequence((short) 1);
             controlBoard.getTxData(getCh()).setStart(false);
@@ -426,11 +453,13 @@ public class ClassUiProcess implements RfCardReaderListener {
         if (chargingCurrentData.isReBoot() && onRebootCheck()) {
             setUiSeq(UiSeq.REBOOTING);
         }
-        chargingAlarm = true;
-        onMeterValueStop();
-
+        // 운영 중지
+        else if (!GlobalVariables.ChargerOperation[getCh()+1]) {
+            setUiSeq(UiSeq.OP_STOP);
+            fragmentChange.onFragmentChange(getCh(), UiSeq.OP_STOP, "OP_STOP", null);
+        }
         // isCsReady: 예약(false)
-        if (!controlBoard.getRxData(channel).isCsReady() && chargingCurrentData.isConnectUse()) {
+        else if (!controlBoard.getRxData(channel).isCsReady() && chargingCurrentData.isConnectUse()) {
             setUiSeq(UiSeq.SEQUENTIAL_CHARGING);
             fragmentChange.onFragmentChange(getCh(), UiSeq.SEQUENTIAL_CHARGING, "SEQUENTIAL_CHARGING", null);
         }
@@ -441,13 +470,17 @@ public class ClassUiProcess implements RfCardReaderListener {
 
     // Rebooting
     private void handleRebooting() {
-        if (!(getCurrentFragment() instanceof FaultFragment)) {
-            fragmentChange.onFragmentChange(
-                    getCh(),
-                    UiSeq.REBOOTING,
-                    "REBOOTING",
-                    chargingCurrentData.getStopReason() == Reason.HardReset ? "Hard" : "Soft"
-            );
+        try {
+            if (!(getCurrentFragment() instanceof FaultFragment)) {
+                fragmentChange.onFragmentChange(
+                        getCh(),
+                        UiSeq.REBOOTING,
+                        "REBOOTING",
+                        chargingCurrentData.getStopReason() == Reason.HardReset ? "Hard" : "Soft"
+                );
+            }
+        } catch (Exception e) {
+            logger.error("ClassUiProcess handleRebooting error : {}", e.getMessage());
         }
     }
 
@@ -504,6 +537,7 @@ public class ClassUiProcess implements RfCardReaderListener {
             // server mode
             if (Objects.equals(chargerConfiguration.getOpMode(), 1)) {
                 // start transaction send to server(Accepted → Charging Fragment)
+                Log.e("ClassUiProcess", "StartTransactionReq");
                 StartTransactionReq startTransactionReq = new StartTransactionReq(chargingCurrentData.getConnectorId());
                 startTransactionReq.sendStartTransactionReq();
             }
@@ -549,7 +583,7 @@ public class ClassUiProcess implements RfCardReaderListener {
                 }
             } else {
                 if (rxData.isCsStop() || !rxData.isCsPilot() || chargingCurrentData.isUserStop() || isSocReached
-                        || !GlobalVariables.ChargerOperation[getCh()]) {
+                        || !GlobalVariables.ChargerOperation[getCh()+1]) {
                     controlBoard.getTxData(getCh()).setStop(true);
                     controlBoard.getTxData(getCh()).setStart(false);
                     if (!rxData.isCsPilot()) {
@@ -586,7 +620,7 @@ public class ClassUiProcess implements RfCardReaderListener {
                 stopTransactionReq.sendStopTransactionReq();
             }
 
-            if (!GlobalVariables.ChargerOperation[getCh()]) {
+            if (!GlobalVariables.ChargerOperation[getCh()+1]) {
                 setUiSeq(UiSeq.OP_STOP);
                 fragmentChange.onFragmentChange(getCh(), UiSeq.OP_STOP, "OP_STOP", null);
             } else {
@@ -651,6 +685,15 @@ public class ClassUiProcess implements RfCardReaderListener {
                 }
                 onHome();
             }
+        }
+    }
+
+    // 점검 상태
+    private void handleOpStop() {
+        // OP_STOp → INIT
+        if (GlobalVariables.ChargerOperation[getCh()+1]) {
+            setUiSeq(UiSeq.INIT);
+            fragmentChange.onFragmentChange(getCh(), UiSeq.INIT, "INIT", null);
         }
     }
 }
