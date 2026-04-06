@@ -47,6 +47,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -57,7 +58,6 @@ import okhttp3.WebSocket;
 public class SocketReceiveMessage extends JSONCommunicator implements SocketInterface {
 
     private static final Logger logger = LoggerFactory.getLogger(SocketReceiveMessage.class);
-
 
     private final Map<String, OcppHandler> handlerMap = new HashMap<>();
     private final Map<String, OcppHandler> dataTransferHandlerMap = new HashMap<>();
@@ -90,12 +90,11 @@ public class SocketReceiveMessage extends JSONCommunicator implements SocketInte
     /**
      * dump data save actions
      */
-    String[] actionNames = {"StopTransaction", "partialCancel", "resultPrice"};
+    String[] actionNames = { "Authorize", "StartTransaction", "StopTransaction", "MeterValues", "chargingAlarm" };
     ArrayList<String> actionList = new ArrayList<>();
     LogDataSave logDataSaveDump = new LogDataSave("dump");
 
     FileManagement fileManagement;
-
 
     /**
      * socket getter
@@ -107,22 +106,26 @@ public class SocketReceiveMessage extends JSONCommunicator implements SocketInte
     public SocketReceiveMessage(String url) {
         this.url = url;
         initHandlers(); // 핸들러 등록
+        Collections.addAll(actionList, actionNames);
         onSocketInitialize();
     }
 
     public void onSocketInitialize() {
         try {
             if (socket != null) {
-                socket.fullClose();   // 아래에서 정의
+                socket.fullClose(); // 아래에서 정의
                 socket = null;
             }
 
-            if (hashMapUuid != null) hashMapUuid = null;
+            if (hashMapUuid != null)
+                hashMapUuid = null;
             hashMapUuid = new HashMap<String, String>();
-            if (newHashMapUuid != null) newHashMapUuid = null;
+            if (newHashMapUuid != null)
+                newHashMapUuid = null;
             newHashMapUuid = new HashMap<String, Object>();
             // connectorId to channel (remoteStart ==> remoteStop)
-            if (getConnectorIdHashMap != null) getConnectorIdHashMap = null;
+            if (getConnectorIdHashMap != null)
+                getConnectorIdHashMap = null;
             getConnectorIdHashMap = new HashMap<Integer, Integer>();
 
             socket = new Socket(url);
@@ -133,7 +136,6 @@ public class SocketReceiveMessage extends JSONCommunicator implements SocketInte
             logger.error("onSocketInitialize error  {}", e.getMessage());
         }
     }
-
 
     private void initHandlers() {
         // 신규 기능 추가 시 핸들러 클래스만 만들어서 여기에 한 줄 추가하면 끝입니다.
@@ -290,16 +292,44 @@ public class SocketReceiveMessage extends JSONCommunicator implements SocketInte
                         hashMapUuid.put(id, actionName);
                         logDataSave.makeLogDate(actionName, call.toString());
                     }
-                    // debug event listener register
-//                    if (socketMessageDebugListener != null) {
-//                        socketMessageDebugListener.onMessageReceiveDebugEvent(2, call.toString(), actionName);
-//                    }
+
                     logger.trace("Send a message : {}", call);
                 } catch (Exception e) {
-                    //dump data
-                    if (actionList.contains(actionNameCompare)) {
-                        logDataSaveDump.makeDump(call.toString());
+                    if (actionNameCompare == null) {
+                        if (Objects.equals(actionName, "DataTransfer")) {
+                            try {
+                                org.json.JSONArray reqArray = new org.json.JSONArray(call.toString());
+                                org.json.JSONObject payloadObj = reqArray.getJSONObject(3);
+                                actionNameCompare = payloadObj.optString("messageId", "");
+                            } catch (Exception ex) {
+                                actionNameCompare = actionName;
+                            }
+                        } else {
+                            actionNameCompare = actionName;
+                        }
                     }
+
+                    // dump data
+                    if (actionNameCompare != null && actionList.contains(actionNameCompare)) {
+                        int cId = 0;
+                        try {
+                            org.json.JSONArray reqArray = new org.json.JSONArray(call.toString());
+                            org.json.JSONObject payloadObj = reqArray.getJSONObject(3);
+                            if (payloadObj.has("connectorId")) {
+                                cId = payloadObj.getInt("connectorId");
+                            } else if (payloadObj.has("data")) { // Try to get from data string for DataTransfer
+                                String dataStr = payloadObj.optString("data", "{}");
+                                org.json.JSONObject dataObj = new org.json.JSONObject(dataStr);
+                                if (dataObj.has("connectorId")) {
+                                    cId = dataObj.getInt("connectorId");
+                                }
+                            }
+                        } catch (Exception ex) {
+                            logger.error("dump data error : {}", ex.getMessage());
+                        }
+                        logDataSaveDump.makeDump(cId, call.toString());
+                    }
+
                     logDataSave.makeLogDate("<<send fail>>" + actionName, call.toString());
                     logger.error("send error  : {} ", e.toString());
 
@@ -324,7 +354,14 @@ public class SocketReceiveMessage extends JSONCommunicator implements SocketInte
             String actionNameCompare = null;
             if (call != null) {
                 try {
-                    this.webSocket.send(call.toString());
+                    // this.webSocket.send(call.toString());
+                    boolean isSent = false;
+                    if (this.webSocket != null && socket != null && socket.getState() == SocketState.OPEN) {
+                        isSent = this.webSocket.send(call.toString());
+                    }
+                    if (!isSent) {
+                        throw new IllegalStateException("WebSocket is offline or send failed");
+                    }
                     SendHashMapObject sendHashMapObject = new SendHashMapObject();
                     sendHashMapObject.setConnectorId(connectorId);
                     if (Objects.equals(actionName, "DataTransfer")) {
@@ -341,17 +378,29 @@ public class SocketReceiveMessage extends JSONCommunicator implements SocketInte
                         newHashMapUuid.put(id, sendHashMapObject);
                         logDataSave.makeLogDate(connectorId, actionName, call.toString());
                     }
-                    // debug event listener register
-//                    if (socketMessageDebugListener != null) {
-//                        socketMessageDebugListener.onMessageReceiveDebugEvent(2, call.toString(), actionName);
-//                    }
+
                     logger.trace("Send a message: {}", call);
                 } catch (Exception e) {
-                    //dump data
-                    if (actionList.contains(actionNameCompare)) {
-                        logDataSaveDump.makeDump(call.toString());
+                    if (actionNameCompare == null) {
+                        if (Objects.equals(actionName, "DataTransfer")) {
+                            try {
+                                org.json.JSONArray reqArray = new org.json.JSONArray(call.toString());
+                                org.json.JSONObject payloadObj = reqArray.getJSONObject(3);
+                                actionNameCompare = payloadObj.optString("messageId", "");
+                            } catch (Exception ex) {
+                                actionNameCompare = actionName;
+                            }
+                        } else {
+                            actionNameCompare = actionName;
+                        }
                     }
-                    logDataSave.makeLogDate(connectorId, "<<send fail>>" + actionName, call.toString());
+
+                    // dump data
+                    if (actionNameCompare != null && actionList.contains(actionNameCompare)) {
+                        logDataSaveDump.makeDump(connectorId, call.toString());
+                    }
+
+                    logDataSave.makeLogDate(connectorId, "<<send fail>>", call.toString());
                     logger.error("send error : {} ", e.toString());
                 }
             }
@@ -362,7 +411,8 @@ public class SocketReceiveMessage extends JSONCommunicator implements SocketInte
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
-    public void onResultSend(String actionName, String uuid, Confirmation confirmation) throws OccurenceConstraintException {
+    public void onResultSend(String actionName, String uuid, Confirmation confirmation)
+            throws OccurenceConstraintException {
         if (!confirmation.validate()) {
             logger.error("Can't send request:  not validated. Payload {}: ", confirmation);
             throw new OccurenceConstraintException();
@@ -389,7 +439,7 @@ public class SocketReceiveMessage extends JSONCommunicator implements SocketInte
      *
      * @param text json string
      */
-    public void onSend(String text) {
+    public void onSend(int connectorId, String text) {
         try {
             this.webSocket.send(text);
             Message message = parse(text);
@@ -403,7 +453,7 @@ public class SocketReceiveMessage extends JSONCommunicator implements SocketInte
                 hashMapUuid.put(uuid, actionName);
             }
             LogDataSave logDataSave = new LogDataSave("log");
-            logDataSave.makeLogDate(actionName, text);
+            logDataSave.makeLogDate(connectorId, actionName, text);
             logger.trace(" Send a message : {}", message);
         } catch (Exception e) {
             logger.error(" onSend error : {} ", e.toString());
@@ -414,7 +464,6 @@ public class SocketReceiveMessage extends JSONCommunicator implements SocketInte
         Stopwatch stopwatch = Stopwatch.createStarted();
         return UUID.randomUUID().toString();
     }
-
 
     public android.os.Message onMakeHandlerMessage(
             int messageType,
@@ -463,7 +512,7 @@ public class SocketReceiveMessage extends JSONCommunicator implements SocketInte
                     }
                 }
             }
-            //idTag 값이 없는 경우
+            // idTag 값이 없는 경우
             if (!idTagCheck) {
                 result[0] = "notFound";
                 result[1] = "";

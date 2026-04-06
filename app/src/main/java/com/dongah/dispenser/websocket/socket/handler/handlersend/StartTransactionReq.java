@@ -74,6 +74,11 @@ public class StartTransactionReq {
                 //통신이 안되면 저장
                 String uuid = UUID.randomUUID().toString();
                 saveFullStartTransaction(getConnectorId(), uuid, startTransactionRequest);
+
+                // DataTransfer ChargingAlarm
+                ChargingAlarmReq chargingAlarmReq = new ChargingAlarmReq(connectorId);
+                chargingAlarmReq.sendChargingAlarmReq(1);
+
                 //화면 전환
                 chargingCurrentData.setChargePointStatus(ChargePointStatus.Charging);
                 activity.getClassUiProcess(getConnectorId()-1).setUiSeq(UiSeq.CHARGING);
@@ -111,8 +116,7 @@ public class StartTransactionReq {
             frame.put(payload);
 
             LogDataSave logDataSave = new LogDataSave();
-            logDataSave.makeDump(frame.toString()); // TODO : 커넥터별 dump 수정
-
+            logDataSave.makeDump(connectorId, frame.toString());
         } catch (Exception e) {
             logger.error("saveFullStartTransaction error : {}", e.getMessage());
         }

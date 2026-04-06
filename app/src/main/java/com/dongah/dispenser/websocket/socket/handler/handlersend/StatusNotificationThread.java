@@ -40,6 +40,11 @@ public class StatusNotificationThread extends Thread {
                     count = 0;
                     statusNotificationReq.sendStatusNotification();
                 }
+            } catch (InterruptedException e) {
+                // interrupt()로 인해 발생한 예외이므로 종료를 위해 루프를 빠져나가도록 유도
+                logger.info("StatusNotificationThread is interrupted. Stopping...");
+                Thread.currentThread().interrupt(); // Interrupt 플래그를 다시 세팅
+                break;
             } catch (Exception e) {
                 logger.error("StatusNotificationThread error : {}", e.getMessage());
             }

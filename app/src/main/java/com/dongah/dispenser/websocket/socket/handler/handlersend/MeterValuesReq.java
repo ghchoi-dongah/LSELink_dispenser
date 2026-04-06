@@ -11,16 +11,20 @@ import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.basefunction.ChargerConfiguration;
 import com.dongah.dispenser.basefunction.ChargingCurrentData;
 import com.dongah.dispenser.basefunction.GlobalVariables;
-import com.dongah.dispenser.websocket.ocpp.core.ChargePointStatus;
+import com.dongah.dispenser.utils.LogDataSave;
 import com.dongah.dispenser.websocket.ocpp.core.datatransfer.lselink.MeterValuesData;
 import com.dongah.dispenser.websocket.ocpp.core.datatransfer.lselink.MeterValuesRequest;
 import com.dongah.dispenser.websocket.ocpp.utilities.ZonedDateTimeConvert;
+import com.dongah.dispenser.websocket.socket.SocketState;
 import com.google.gson.Gson;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Objects;
+import java.util.UUID;
+
 
 public class MeterValuesReq {
     private static final Logger logger = LoggerFactory.getLogger(MeterValuesReq.class);
@@ -136,12 +140,41 @@ public class MeterValuesReq {
         meterValuesRequest.setData(jsonData);
 
         // 4. 전송
-        activity.getSocketReceiveMessage().onSend(
-                connectorId,
-                meterValuesRequest.getActionName(), // DataTransfer
-                meterValuesRequest);
+        SocketState socketState = activity.getSocketReceiveMessage().getSocket().getState();
+        if (socketState.equals(SocketState.OPEN)) {
+            activity.getSocketReceiveMessage().onSend(
+                    connectorId,
+                    meterValuesRequest.getActionName(), // DataTransfer
+                    meterValuesRequest);
+        } else {
+            // 통신이 안되면 저장
+            String uuid = UUID.randomUUID().toString();
+            saveFullMeterValues(getConnectorId(), uuid, meterValuesRequest);
+        }
+    }
 
-        // Trigger MeterValues 한 번만 실행
-//        GlobalVariables.setTriggerSet(false);
+    private void saveFullMeterValues(
+            int connectorId,
+            String uniqueId,
+            MeterValuesRequest req) {
+        try {
+            JSONArray frame = new JSONArray();
+
+            frame.put(2);
+            frame.put(uniqueId);
+            frame.put(req.getActionName());
+
+            JSONObject payload = new JSONObject();
+            payload.put("vendorId", req.getVendorId());
+            payload.put("messageId", req.getMessageId());
+            payload.put("data", req.getData());
+
+            frame.put(payload);
+
+            LogDataSave logDataSave = new LogDataSave();
+            logDataSave.makeDump(connectorId, frame.toString());
+        } catch (Exception e) {
+            logger.error("saveFullMeterValues error : {}", e.getMessage());
+        }
     }
 }

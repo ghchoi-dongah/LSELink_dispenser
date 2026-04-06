@@ -9,6 +9,7 @@ import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.basefunction.ChargerConfiguration;
 import com.dongah.dispenser.basefunction.ChargingCurrentData;
 import com.dongah.dispenser.basefunction.FragmentChange;
+import com.dongah.dispenser.basefunction.GlobalVariables;
 import com.dongah.dispenser.basefunction.UiSeq;
 import com.dongah.dispenser.utils.ToastPositionMake;
 import com.dongah.dispenser.websocket.ocpp.core.AuthorizationStatus;
@@ -40,6 +41,12 @@ public class AuthorizeHandler implements OcppHandler {
         AuthorizationStatus status = AuthorizationStatus.valueOf(idTagInfo.getString("status"));
         String parentIdTag = idTagInfo.has("parentIdTag") ? idTagInfo.getString("parentIdTag") : "";
         String expiryDate = idTagInfo.has("expiryDate") ? idTagInfo.getString("expiryDate") : "";
+
+        if (GlobalVariables.isDumpSending(connectorId)) {
+            logger.info("Dump Authorize Conf 수신 : {}", idTagInfo);
+            activity.getSocketReceiveMessage().getSocket().getDumpDataSend(connectorId).onReceiveAuthorizeConf(connectorId);
+            return;
+        }
 
         try {
             // 차량 번호

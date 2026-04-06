@@ -69,6 +69,10 @@ public class LogDataSave {
                 check = dir.mkdirs();
             }
 
+            if ("<<send fail>>".equals(actionName)) {
+                logData = actionName + " " + logData;
+            }
+
             fileManagement.stringToFileSave(path, fileName, logData, true);
         } catch (Exception e) {
             logger.error("Log data save fail", e);
@@ -87,11 +91,11 @@ public class LogDataSave {
     }
 
 
-    public void makeDump(String data) {
+    public void makeDump(int connectorId, String data) {
         try {
             boolean chk;
             rootPath = GlobalVariables.getRootPath() + File.separator + "dump";
-            String fileName = "dump";
+            String fileName = "dump" + connectorId;
             File parent = new File(rootPath);
             if (!parent.exists()) chk = parent.mkdir();
             fileManagement.stringToFileSave(rootPath, fileName, data, true);

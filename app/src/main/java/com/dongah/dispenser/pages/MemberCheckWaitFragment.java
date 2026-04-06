@@ -265,6 +265,13 @@ public class MemberCheckWaitFragment extends Fragment implements View.OnClickLis
                             // isAllowOfflineTxForUnknownId: 오프라인에서 미등록 IdTag도 거래 허용
                             if (Objects.equals(idTagInfo[0], chargingCurrentData.getIdTag()) || GlobalVariables.isAllowOfflineTxForUnknownId() ||
                                     GlobalVariables.isStopTransactionOnInvalidId()) {
+                                if (!chargingCurrentData.getIdTag().startsWith("C")) {
+                                    chargingCurrentData.setIdTag("C" + chargingCurrentData.getIdTag());
+                                }
+                                
+                                AuthorizeReq authorizeReq = new AuthorizeReq(chargingCurrentData.getConnectorId());
+                                authorizeReq.sendAuthorize(chargingCurrentData.getIdTag());
+                                
                                 chargingCurrentData.setChargePointStatus(ChargePointStatus.Preparing);
                                 StatusNotificationReq statusNotificationReq = new StatusNotificationReq(chargingCurrentData.getConnectorId());
                                 statusNotificationReq.sendStatusNotification();

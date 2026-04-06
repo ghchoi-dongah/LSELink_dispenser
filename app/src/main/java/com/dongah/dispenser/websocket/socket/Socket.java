@@ -11,6 +11,7 @@ import androidx.annotation.RequiresApi;
 
 import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.basefunction.ChargerConfiguration;
+import com.dongah.dispenser.basefunction.DumpDataSend;
 import com.dongah.dispenser.basefunction.GlobalVariables;
 import com.dongah.dispenser.utils.FileManagement;
 import com.dongah.dispenser.utils.LogDataSave;
@@ -67,7 +68,9 @@ public class Socket extends WebSocketListener {
     private WebSocket webSocket;
     private OkHttpClient client;
     private final Base64Util base64Util = new Base64Util();
+
     private boolean signedType;
+    DumpDataSend[] dumpDataSends;
 
     private static final ZonedDateTimeConvert zonedDateTimeConvert = new ZonedDateTimeConvert();
     private static final FileManagement fileManagement = new FileManagement();
@@ -82,7 +85,12 @@ public class Socket extends WebSocketListener {
      */
     private final Handler reconnectHandler = new Handler(Looper.getMainLooper());
 
-    //
+    public DumpDataSend getDumpDataSend(int connectorId) {
+        if (connectorId > 0 && connectorId <= GlobalVariables.maxChannel) {
+            return dumpDataSends[connectorId - 1];
+        }
+        return null;
+    }
 
     public SocketState getState() {
         return state;
@@ -96,9 +104,14 @@ public class Socket extends WebSocketListener {
     }
     public Socket(String url) {
         this.url = url;
+        dumpDataSends = new DumpDataSend[GlobalVariables.maxChannel];
+        for (int i = 0; i < GlobalVariables.maxChannel; i++) {
+            dumpDataSends[i] = new DumpDataSend();
+        }
     }
 
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public void onOpen(@NonNull WebSocket webSocket, @NonNull Response response) {
         try {
@@ -108,6 +121,9 @@ public class Socket extends WebSocketListener {
             socketInterface.onOpen(webSocket);
             ((MainActivity) MainActivity.mContext)
                     .getProcessHandler().onBootNotificationStart(5);
+
+            // dump data 전송은 BootNotification Accepted 이후 BootNotificationHandler에서 처리
+            // (여기서 호출하면 BootNotificationHandler와 이중 실행되어 중복 전송 발생)
         } catch (Exception e) {
             logger.error("onOpen Error : {}", e.getMessage());
         }
@@ -329,6 +345,7 @@ public class Socket extends WebSocketListener {
                 webSocket = null;
             }
             reconnect();
+            GlobalVariables.setReconnectCheck(true);
         } catch (Exception e) {
             logger.error("disconnect error {}", e.getMessage());
         }
@@ -454,7 +471,7 @@ public class Socket extends WebSocketListener {
         return null;
     }
 
-    // log save
+    // log save : socket disconnect
     @SuppressLint("NewApi")
     private void saveFailureLog(WebSocket webSocket,
                                 Throwable t,
@@ -480,10 +497,11 @@ public class Socket extends WebSocketListener {
                     log.put("cipherSuite", response.handshake().cipherSuite().javaName());
                 }
             }
-            // JSON append 저장
 
+
+            // JSON append 저장
             LogDataSave logDataSave = new LogDataSave("log");
-            logDataSave.makeLogDate("SOCKET_ERROR", log.toString());
+            logDataSave.makeLogDate(100,"SOCKET_ERROR", log.toString());
 
             logger.error("WebSocket Failure logged : {}", log.toString());
         } catch (Exception e) {

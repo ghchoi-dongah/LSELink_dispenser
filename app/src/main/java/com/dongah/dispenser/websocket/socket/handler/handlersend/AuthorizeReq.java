@@ -5,15 +5,24 @@ import android.os.Build;
 import androidx.annotation.RequiresApi;
 
 import com.dongah.dispenser.MainActivity;
+import com.dongah.dispenser.utils.LogDataSave;
 import com.dongah.dispenser.websocket.ocpp.core.AuthorizeRequest;
+import com.dongah.dispenser.websocket.socket.SocketState;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.UUID;
 
 public class AuthorizeReq {
     private static final Logger logger = LoggerFactory.getLogger(AuthorizeReq.class);
 
     private final int connectorId ;
+    public int getConnectorId() {
+        return connectorId;
+    }
 
     public AuthorizeReq(int connectorId) {
         this.connectorId = connectorId;
@@ -25,14 +34,43 @@ public class AuthorizeReq {
             MainActivity activity = (MainActivity) MainActivity.mContext;
             AuthorizeRequest authorizeRequest = new AuthorizeRequest(idTag);
 
-            activity.getSocketReceiveMessage().onSend(getConnectorId(), authorizeRequest.getActionName(), authorizeRequest);
+            SocketState socketState = activity.getSocketReceiveMessage().getSocket().getState();
+            if (socketState.equals(SocketState.OPEN)) {
+                activity.getSocketReceiveMessage().onSend(
+                        getConnectorId(),
+                        authorizeRequest.getActionName(),
+                        authorizeRequest);
+            } else {
+                // 통신이 안되면 저장
+                String uuid = UUID.randomUUID().toString();
+                saveFullAuthorize(getConnectorId(), uuid, authorizeRequest);
+            }
             activity.getChargingCurrentData(getConnectorId()-1).setIdTag(idTag);
         } catch (Exception e) {
             logger.error("sendAuthorize error : {}", e.getMessage());
         }
     }
 
-    public int getConnectorId() {
-        return connectorId;
+    private void saveFullAuthorize(
+            int connectorId,
+            String uniqueId,
+            AuthorizeRequest req) {
+        try {
+            JSONArray frame = new JSONArray();
+
+            frame.put(2);
+            frame.put(uniqueId);
+            frame.put(req.getActionName());
+
+            JSONObject payload = new JSONObject();
+            payload.put("idTag", req.getIdTag());
+
+            frame.put(payload);
+
+            LogDataSave logDataSave = new LogDataSave();
+            logDataSave.makeDump(connectorId, frame.toString());
+        } catch (Exception e) {
+            logger.error("saveFullAuthorize error : {}", e.getMessage());
+        }
     }
 }

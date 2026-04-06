@@ -9,21 +9,27 @@ import com.dongah.dispenser.basefunction.ChargingCurrentData;
 import com.dongah.dispenser.basefunction.FragmentChange;
 import com.dongah.dispenser.basefunction.GlobalVariables;
 import com.dongah.dispenser.basefunction.UiSeq;
+import com.dongah.dispenser.controlboard.RxData;
 import com.dongah.dispenser.controlboard.TxData;
 import com.dongah.dispenser.websocket.ocpp.core.AuthorizationStatus;
 import com.dongah.dispenser.websocket.ocpp.core.ChargePointStatus;
+import com.dongah.dispenser.websocket.ocpp.utilities.ZonedDateTimeConvert;
 import com.dongah.dispenser.websocket.socket.OcppHandler;
 import com.dongah.dispenser.websocket.socket.handler.handlersend.ChargingAlarmReq;
 import com.dongah.dispenser.websocket.socket.handler.handlersend.FullRechgSocReq;
 import com.dongah.dispenser.websocket.socket.handler.handlersend.MeterValuesReq;
 import com.dongah.dispenser.websocket.socket.handler.handlersend.StatusNotificationReq;
+import com.dongah.dispenser.websocket.socket.handler.handlersend.StopTransactionReq;
 import com.dongah.dispenser.websocket.socket.handler.handlersend.UserSetSocReq;
 
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
 
 public class StartTransactionHandler implements OcppHandler  {
+    private static final Logger logger = LoggerFactory.getLogger(StartTransactionHandler.class);
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
@@ -32,12 +38,19 @@ public class StartTransactionHandler implements OcppHandler  {
         ChargingCurrentData chargingCurrentData = activity.getChargingCurrentData(connectorId-1);
         //서버에서 transactionId 받음 ==> stopTransaction 계속하여 사용.
         chargingCurrentData.setTransactionId(payload.getInt("transactionId"));
-        GlobalVariables.setDumpTransactionId(payload.getInt("transactionId"));
-        MeterValuesReq meterValuesReq = new MeterValuesReq(connectorId);
 
         JSONObject idTagInfo = payload.getJSONObject("idTagInfo");
         AuthorizationStatus status = AuthorizationStatus.valueOf(idTagInfo.getString("status"));
         String parentIdTag = idTagInfo.has("parentIdTag") ? idTagInfo.getString("parentIdTag") : "";
+
+        // dump data
+        if (GlobalVariables.isDumpSending(connectorId)) {
+            logger.info("Dump StartTransaction Conf 수신 : {}", payload.getInt("transactionId"));
+            GlobalVariables.setDumpTransactionId(connectorId, payload.getInt("transactionId"));
+            activity.getSocketReceiveMessage().getSocket()
+                    .getDumpDataSend(connectorId).onReceiveStartTransactionConf(connectorId, payload.getInt("transactionId"));
+            return;
+        }
 
         //accept continue
         if (Objects.equals(status, AuthorizationStatus.Accepted)) {
@@ -46,11 +59,6 @@ public class StartTransactionHandler implements OcppHandler  {
             // DataTransfer ChargingAlarm
             ChargingAlarmReq chargingAlarmReq = new ChargingAlarmReq(connectorId);
             chargingAlarmReq.sendChargingAlarmReq(1);
-
-            // DataTransfer MeterValues
-            if (GlobalVariables.getMeterValueSampleInterval() > 0) {
-                activity.getClassUiProcess(connectorId-1).onMeterValueStart(connectorId);
-            }
 
             // DataTransfer fullrechgsoc
             FullRechgSocReq fullRechgSocReq = new FullRechgSocReq(connectorId);
@@ -72,9 +80,17 @@ public class StartTransactionHandler implements OcppHandler  {
             TxData txData = activity.getControlBoard().getTxData(connectorId-1);
             txData.setStop(true);
             txData.setStart(false);
+            txData.setUiSequence((short) 3);
 
             // DataTransfer MeterValues
             activity.getClassUiProcess(connectorId-1).onMeterValueStop();
+
+            // StopTransaction
+            ZonedDateTimeConvert zonedDateTimeConvert = new ZonedDateTimeConvert();
+            chargingCurrentData.setPowerMeterStop(chargingCurrentData.getPowerMeterStart());
+            chargingCurrentData.setChargingEndTime(zonedDateTimeConvert.getStringCurrentTimeZone());
+            StopTransactionReq stopTransactionReq = new StopTransactionReq(connectorId);
+            stopTransactionReq.sendStopTransactionReq();
 
             // home
             activity.getClassUiProcess(connectorId-1).onHome();

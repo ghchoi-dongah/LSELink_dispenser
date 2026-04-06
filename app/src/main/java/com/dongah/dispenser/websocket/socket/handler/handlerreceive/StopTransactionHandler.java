@@ -8,6 +8,7 @@ import androidx.annotation.RequiresApi;
 
 import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.basefunction.ChargingCurrentData;
+import com.dongah.dispenser.basefunction.GlobalVariables;
 import com.dongah.dispenser.websocket.ocpp.core.AuthorizationStatus;
 import com.dongah.dispenser.websocket.ocpp.core.ChargePointStatus;
 import com.dongah.dispenser.websocket.ocpp.core.Reason;
@@ -33,8 +34,15 @@ public class StopTransactionHandler implements OcppHandler  {
         AuthorizationStatus status = AuthorizationStatus.valueOf(idTagInfo.getString("status"));
         String parentIdTag = idTagInfo.has("parentIdTag") ? idTagInfo.getString("parentIdTag") : null;
 
+        if (GlobalVariables.isDumpSending(connectorId)) {
+            activity.getSocketReceiveMessage().getSocket()
+                    .getDumpDataSend(connectorId).onReceiveStopTransactionConf(connectorId);
+            return;
+        }
+
         //accept continue
         if (Objects.equals(status, AuthorizationStatus.Accepted)) {
+
             statusNotificationReq = new StatusNotificationReq(connectorId);
             chargingCurrentData.setChargePointStatus(ChargePointStatus.Finishing);
             statusNotificationReq.sendStatusNotification(connectorId, ChargePointStatus.Finishing);

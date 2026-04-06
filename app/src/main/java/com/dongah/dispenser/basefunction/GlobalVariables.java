@@ -53,7 +53,9 @@ public class GlobalVariables {
     public static int PersonUtztnLmtHr = 30;
     public static String webSocketURL = "";
 
-    public static int dumpTransactionId = 0;
+    public static int[] dumpTransactionId = new int[2];
+    public static boolean[] dumpSending = new boolean[2];
+    public static boolean reconnectCheck = false;
     public static boolean Scheduled = false;
 
     //modem tel number
@@ -249,12 +251,34 @@ public class GlobalVariables {
         webSocketURL = url;
     }
 
-    public static int getDumpTransactionId() {
-        return dumpTransactionId;
+    public static int getDumpTransactionId(int connectorId) {
+        if (connectorId > 0 && connectorId <= maxChannel) {
+            return dumpTransactionId[connectorId - 1];
+        }
+        return 0;
     }
 
-    public static void setDumpTransactionId(int dumpTransactionId) {
-        GlobalVariables.dumpTransactionId = dumpTransactionId;
+    public static void setDumpTransactionId(int connectorId, int dumpTransactionIdValue) {
+        if (connectorId > 0 && connectorId <= maxChannel) {
+            dumpTransactionId[connectorId - 1] = dumpTransactionIdValue;
+        }
+    }
+
+    public static boolean isDumpSending(int connectorId)
+    {
+        return dumpSending[connectorId-1];
+    }
+
+    public static void setDumpSending(int connectorId, boolean dumpSending) {
+        GlobalVariables.dumpSending[connectorId - 1] = dumpSending;
+    }
+
+    public static boolean isReconnectCheck() {
+        return reconnectCheck;
+    }
+
+    public static void setReconnectCheck(boolean reconnectCheck) {
+        GlobalVariables.reconnectCheck = reconnectCheck;
     }
 
     public static boolean isScheduled() {

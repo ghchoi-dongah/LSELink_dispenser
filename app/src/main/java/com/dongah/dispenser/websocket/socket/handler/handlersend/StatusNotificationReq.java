@@ -18,6 +18,8 @@ import com.dongah.dispenser.websocket.ocpp.core.ChargePointErrorCode;
 import com.dongah.dispenser.websocket.ocpp.core.ChargePointStatus;
 import com.dongah.dispenser.websocket.ocpp.core.StatusNotificationRequest;
 import com.dongah.dispenser.websocket.ocpp.utilities.ZonedDateTimeConvert;
+import com.dongah.dispenser.websocket.socket.Socket;
+import com.dongah.dispenser.websocket.socket.SocketState;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,8 +56,7 @@ public class StatusNotificationReq {
                 }, 2000);
             }
         } catch (Exception e) {
-            Log.e("StatusNotificationReq", "sendStatusNotification error", e);
-            logger.error("sendStatusNotification error :  {}", e.getMessage());
+            logger.error("sendStatusNotification error : {}", e.getMessage());
         }
     }
 
@@ -64,7 +65,6 @@ public class StatusNotificationReq {
         try {
             MainActivity activity = (MainActivity) MainActivity.mContext;
             ZonedDateTimeConvert zonedDateTimeConvert = new ZonedDateTimeConvert();
-//            ZonedDateTime timestamp = zonedDateTimeConvert.doZonedDateTimeToDatetime();
             ZonedDateTime timestamp = zonedDateTimeConvert.doGetCurrentTime();
 
             StatusNotificationRequest statusNotificationRequest = new StatusNotificationRequest(timestamp);
@@ -86,8 +86,7 @@ public class StatusNotificationReq {
             StatusNotiReq statusNotiReq = new StatusNotiReq(connectorId);
             statusNotiReq.sendStatusNotification();
         } catch (Exception e) {
-            Log.e("StatusNotificationReq", "sendStatusNotification Overloading error", e);
-            logger.error("sendStatusNotification Overloading {}", e.getMessage());
+            logger.error("sendStatusNotification2  error : {}", e.getMessage());
         }
     }
 
@@ -96,7 +95,6 @@ public class StatusNotificationReq {
         try {
             MainActivity activity = (MainActivity) MainActivity.mContext;
             ZonedDateTimeConvert zonedDateTimeConvert = new ZonedDateTimeConvert();
-//            ZonedDateTime timestamp = zonedDateTimeConvert.doZonedDateTimeToDatetime();
             ZonedDateTime timestamp = zonedDateTimeConvert.doGetCurrentTime();
             StatusNotificationRequest statusNotificationRequest = new StatusNotificationRequest(timestamp);
 
@@ -122,8 +120,7 @@ public class StatusNotificationReq {
             StatusNotiReq statusNotiReq = new StatusNotiReq(connectorId);
             statusNotiReq.sendStatusNotification();
         } catch (Exception e) {
-            Log.e("StatusNotificationReq", "sendSingleStatusNotification error", e);
-            logger.error("sendSingleStatusNotification {}", e.getMessage());
+            logger.error("sendSingleStatusNotification error : {}", e.getMessage());
         }
     }
 

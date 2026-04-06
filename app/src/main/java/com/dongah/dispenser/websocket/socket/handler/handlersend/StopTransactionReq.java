@@ -105,10 +105,13 @@ public class StopTransactionReq {
             } else {
                 String uuid = UUID.randomUUID().toString();
                 saveFullStartTransaction(getConnectorId(), uuid, stopTransactionRequest);
+
+                // DataTransfer ChargingAlarm
+                ChargingAlarmReq chargingAlarmReq = new ChargingAlarmReq(connectorId);
+                chargingAlarmReq.sendChargingAlarmReq(3);
             }
         } catch (Exception e) {
-            Log.e("StopTransactionReq", "sendStopTransactionReq error", e);
-            logger.error(" sendStopTransactionReq error : {}", e.getMessage());
+            logger.error("sendStopTransactionReq error : {}", e.getMessage());
         }
     }
 
@@ -129,15 +132,55 @@ public class StopTransactionReq {
             payload.put("timestamp", req.getTimestamp().toString());
             payload.put("transactionId", req.getTransactionId());
             payload.put("reason", req.getReason());
+            payload.put("transactionData", meterValuesToJsonArray(req.getTransactionData()));
 
             frame.put(payload);
 
             LogDataSave logDataSave = new LogDataSave();
-            logDataSave.makeDump(frame.toString()); // TODO : 커넥터별 dump 분리
+            logDataSave.makeDump(connectorId, frame.toString());
 
         } catch (Exception e) {
             logger.error(" saveFullStartTransaction error : {}", e.getMessage());
         }
+    }
+
+    /**
+     * MeterValue[] → JSONArray 직렬화
+     * [
+     *   {
+     *     "timestamp": "...",
+     *     "sampledValue": [
+     *       { "value": "...", "context": "...", ... }
+     *     ]
+     *   }
+     * ]
+     */
+    private JSONArray meterValuesToJsonArray(MeterValue[] meterValues) throws Exception {
+        JSONArray result = new JSONArray();
+        if (meterValues == null) return result;
+
+        for (MeterValue mv : meterValues) {
+            JSONObject mvObj = new JSONObject();
+            mvObj.put("timestamp", mv.getTimestamp().toString());
+
+            JSONArray sampledArr = new JSONArray();
+            if (mv.getSampledValue() != null) {
+                for (SampledValue sv : mv.getSampledValue()) {
+                    JSONObject svObj = new JSONObject();
+                    if (sv.getValue()     != null) svObj.put("value",     sv.getValue());
+                    if (sv.getContext()   != null) svObj.put("context",   sv.getContext());
+                    if (sv.getFormat()    != null) svObj.put("format",    sv.getFormat().name());
+                    if (sv.getMeasurand() != null) svObj.put("measurand", sv.getMeasurand());
+                    if (sv.getPhase()     != null) svObj.put("phase",     sv.getPhase());
+                    if (sv.getLocation()  != null) svObj.put("location",  sv.getLocation().name());
+                    if (sv.getUnit()      != null) svObj.put("unit",      sv.getUnit());
+                    sampledArr.put(svObj);
+                }
+            }
+            mvObj.put("sampledValue", sampledArr);
+            result.put(mvObj);
+        }
+        return result;
     }
 
 }

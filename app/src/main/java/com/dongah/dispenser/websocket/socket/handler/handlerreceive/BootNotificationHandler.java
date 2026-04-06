@@ -1,6 +1,8 @@
 package com.dongah.dispenser.websocket.socket.handler.handlerreceive;
 
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 
 import androidx.annotation.RequiresApi;
 
@@ -43,8 +45,17 @@ public class BootNotificationHandler implements OcppHandler {
                 // DataTransfer ChangeElecMode
                 activity.getProcessHandler().onChangeElecModeStart();
             }
+
+            // dump data send
+            new Handler(Looper.getMainLooper()).postDelayed(() -> {
+               for (int i = 1; i <= GlobalVariables.maxChannel; i++) {
+                   GlobalVariables.setDumpSending(i, true);
+                   activity.getSocketReceiveMessage().getSocket().getDumpDataSend(i).onDumpSend(i);
+               }
+            }, 8000);
         } else {
             activity.getProcessHandler().onBootNotificationStart(5);
+            GlobalVariables.setReconnectCheck(false);
         }
     }
 }

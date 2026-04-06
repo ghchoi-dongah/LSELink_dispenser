@@ -8,12 +8,18 @@ import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.basefunction.ChargerConfiguration;
 import com.dongah.dispenser.basefunction.ChargingCurrentData;
 import com.dongah.dispenser.basefunction.UiSeq;
+import com.dongah.dispenser.utils.LogDataSave;
 import com.dongah.dispenser.websocket.ocpp.core.datatransfer.lselink.ChargingAlarmData;
 import com.dongah.dispenser.websocket.ocpp.core.datatransfer.lselink.ChargingAlarmRequest;
+import com.dongah.dispenser.websocket.socket.SocketState;
 import com.google.gson.Gson;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.UUID;
 
 public class ChargingAlarmReq {
     private static final Logger logger = LoggerFactory.getLogger(ChargingAlarmReq.class);
@@ -46,10 +52,17 @@ public class ChargingAlarmReq {
             Gson gson = new Gson();
             chargingAlarmRequest.setData(gson.toJson(chargingAlarmData));
 
-            activity.getSocketReceiveMessage().onSend(
-                    getConnectorId(),
-                    chargingAlarmRequest.getActionName(),
-                    chargingAlarmRequest);
+            SocketState socketState = activity.getSocketReceiveMessage().getSocket().getState();
+            if (socketState.equals(SocketState.OPEN)) {
+                activity.getSocketReceiveMessage().onSend(
+                        getConnectorId(),
+                        chargingAlarmRequest.getActionName(),
+                        chargingAlarmRequest);
+            } else {
+                // 통신이 안되면 저장
+                String uuid = UUID.randomUUID().toString();
+                saveFullChargingAlarm(getConnectorId(), uuid, chargingAlarmRequest);
+            }
         } catch (Exception e) {
             logger.error("sendChargingAlarmReq error : {}", e.getMessage());
         }
@@ -70,5 +83,30 @@ public class ChargingAlarmReq {
         chargingAlarmData.setPhoneNum("");
 
         return chargingAlarmData;
+    }
+
+    private void saveFullChargingAlarm(
+            int connectorId,
+            String uniqueId,
+            ChargingAlarmRequest req) {
+        try {
+            JSONArray frame = new JSONArray();
+
+            frame.put(2);
+            frame.put(uniqueId);
+            frame.put(req.getActionName());
+
+            JSONObject payload = new JSONObject();
+            payload.put("vendorId", req.getVendorId());
+            payload.put("messageId", req.getMessageId());
+            payload.put("data", req.getData());
+
+            frame.put(payload);
+
+            LogDataSave logDataSave = new LogDataSave();
+            logDataSave.makeDump(connectorId, frame.toString());
+        } catch (Exception e) {
+            logger.error("saveFullChargingAlarm error : {}", e.getMessage());
+        }
     }
 }

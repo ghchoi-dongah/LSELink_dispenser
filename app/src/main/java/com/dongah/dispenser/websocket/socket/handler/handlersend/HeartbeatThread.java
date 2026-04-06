@@ -112,20 +112,97 @@ public class HeartbeatThread extends Thread{
     }
 
     private void onDumpData(SocketReceiveMessage socketReceiveMessage) {
+        for (int connectorId = 1; connectorId <= GlobalVariables.maxChannel; connectorId++) {
+            processDumpFile(socketReceiveMessage, connectorId);
+        }
+    }
+
+    private void processDumpFile(SocketReceiveMessage socketReceiveMessage, int connectorId) {
         File file = new File(GlobalVariables.getRootPath()
-                + File.separator + "dump" + File.separator + "dump");
+                + File.separator + "dump" + File.separator + "dump" + connectorId);
 
         if (!file.exists()) return;
+
+        java.util.List<String> allLines = new java.util.ArrayList<>();
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String line;
             while ((line = br.readLine()) != null) {
-                socketReceiveMessage.onSend(line);
+                allLines.add(line);
             }
-            // 성공 시 삭제
-            file.delete();
-
         } catch (Exception e) {
-            logger.error("onDumpData error", e);
+            logger.error("processDumpFile read error", e);
+            return;
+        }
+
+        if (allLines.isEmpty()) {
+            file.delete();
+            return;
+        }
+
+        java.util.List<String> remainingLines = new java.util.ArrayList<>();
+        int count = 0;
+        boolean pauseForStartTx = false;
+
+        for (int i = 0; i < allLines.size(); i++) {
+            String line = allLines.get(i);
+
+            if (pauseForStartTx || count >= 9) {
+                remainingLines.add(line);
+                continue;
+            }
+
+            try {
+                org.json.JSONArray reqArray = new org.json.JSONArray(line);
+                String actionName = reqArray.getString(2);
+                org.json.JSONObject payload = reqArray.getJSONObject(3);
+
+                if ("StopTransaction".equals(actionName)) {
+                    int currentTxId = payload.optInt("transactionId", 0);
+                    int validDumpTxId = GlobalVariables.getDumpTransactionId(connectorId);
+
+                    if (currentTxId <= 0 && validDumpTxId > 0) {
+                        payload.put("transactionId", validDumpTxId);
+                        reqArray.put(3, payload);
+                        line = reqArray.toString();
+                    }
+                } else if ("DataTransfer".equals(actionName)) {
+                    String messageId = payload.optString("messageId", "");
+                    if ("MeterValues".equals(messageId) || "chargingAlarm".equals(messageId)) {
+                        String dataStr = payload.optString("data", "{}");
+                        org.json.JSONObject dataObj = new org.json.JSONObject(dataStr);
+                        int currentTxId = dataObj.optInt("transactionId", 0);
+                        int validDumpTxId = GlobalVariables.getDumpTransactionId(connectorId);
+                        if (currentTxId <= 0 && validDumpTxId > 0) {
+                            dataObj.put("transactionId", validDumpTxId);
+                            payload.put("data", dataObj.toString());
+                            reqArray.put(3, payload);
+                            line = reqArray.toString();
+                        }
+                    }
+                }
+
+                socketReceiveMessage.onSend(connectorId, line);
+                count++;
+
+                if ("StartTransaction".equals(actionName)) {
+                    pauseForStartTx = true;
+                }
+            } catch (Exception e) {
+                logger.error("processDumpFile parse/send error", e);
+            }
+        }
+
+        if (remainingLines.isEmpty()) {
+            file.delete();
+        } else {
+            try (java.io.BufferedWriter bw = new java.io.BufferedWriter(new java.io.FileWriter(file))) {
+                for (String rLine : remainingLines) {
+                    bw.write(rLine);
+                    bw.newLine();
+                }
+            } catch (Exception e) {
+                logger.error("processDumpFile rewrite error", e);
+            }
         }
     }
 }
