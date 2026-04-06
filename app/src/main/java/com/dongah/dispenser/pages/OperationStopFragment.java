@@ -10,7 +10,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AccelerateDecelerateInterpolator;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.R;
@@ -34,8 +37,8 @@ public class OperationStopFragment extends Fragment implements View.OnClickListe
     private String mParam2;
     private int mChannel;
 
-    ImageView imageViewOpStop;
-    ObjectAnimator fadeAnimator;
+    Animation animBlink;
+    TextView textViewOpStopSubMessage;
 
     public OperationStopFragment() {
         // Required empty public constructor
@@ -73,15 +76,9 @@ public class OperationStopFragment extends Fragment implements View.OnClickListe
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_operation_stop, container, false);
-        imageViewOpStop = view.findViewById(R.id.imageViewOpStop);
-
-        // imageViewOpStop animation
-        fadeAnimator = ObjectAnimator.ofFloat(imageViewOpStop, "alpha", 1f, 0.2f);
-        fadeAnimator.setDuration(2000);
-        fadeAnimator.setRepeatCount(ValueAnimator.INFINITE);
-        fadeAnimator.setRepeatMode(ValueAnimator.REVERSE);
-        fadeAnimator.setInterpolator(new AccelerateDecelerateInterpolator());
-        fadeAnimator.start();
+        animBlink = AnimationUtils.loadAnimation(getActivity(), R.anim.blink_animation);
+        textViewOpStopSubMessage = view.findViewById(R.id.textViewOpStopSubMessage);
+        textViewOpStopSubMessage.startAnimation(animBlink);
 
         return view;
     }
@@ -94,10 +91,5 @@ public class OperationStopFragment extends Fragment implements View.OnClickListe
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-
-        if (fadeAnimator != null) {
-            fadeAnimator.cancel();
-            fadeAnimator = null;
-        }
     }
 }

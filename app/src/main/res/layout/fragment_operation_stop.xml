@@ -6,6 +6,11 @@
     android:layout_height="662dp"
     tools:context=".pages.OperationStopFragment">
 
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/layer_list_rect" />
+
     <TextView
         android:id="@+id/textViewOpStopMessage"
         android:layout_width="match_parent"
@@ -23,10 +28,22 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="90dp"
-        android:background="@drawable/op_error"
+        android:background="@drawable/spanner"
         app:layout_constraintTop_toBottomOf="@id/textViewOpStopMessage"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         tools:ignore="contentDescription" />
+
+    <TextView
+        android:id="@+id/textViewOpStopSubMessage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="70dp"
+        android:gravity="center"
+        android:text="@string/systemCheckMessage"
+        android:textSize="20sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/imageViewOpStop" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
