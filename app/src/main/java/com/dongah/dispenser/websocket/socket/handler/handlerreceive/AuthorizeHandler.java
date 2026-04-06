@@ -107,6 +107,7 @@ public class AuthorizeHandler implements OcppHandler {
                         // 충전 중지
                         activity.getControlBoard().getTxData(connectorId-1).setStart(false);
                         activity.getControlBoard().getTxData(connectorId-1).setStop(true);
+                        activity.getControlBoard().getTxData(connectorId-1).setUiSequence((short) 3);
 
                         if (Objects.equals(chargerConfiguration.getAuthMode(), 0)) {
                             activity.getClassUiProcess(connectorId-1).setUiSeq(UiSeq.MEMBER_CHECK_FAILED);

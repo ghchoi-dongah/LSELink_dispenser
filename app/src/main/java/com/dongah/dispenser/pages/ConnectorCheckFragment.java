@@ -224,8 +224,6 @@ public class ConnectorCheckFragment extends Fragment implements View.OnClickList
     public void onClick(View v) {
         try {
             return;
-//            if (!isAdded() && !isFlag) return;
-//            classUiProcess.onHome();
         } catch (Exception e) {
             logger.error("ConnectorCheckFragment onClick error : {}", e.getMessage());
         }
@@ -239,8 +237,9 @@ public class ConnectorCheckFragment extends Fragment implements View.OnClickList
 
         String evccId = BitUtilities.toHexString(rxData.getCsmVehicleEvccId());
         Log.d("ConnectorCheckFragment", "mac address : " + evccId);
-//        chargingCurrentData.setIdTag(evccId);
-        chargingCurrentData.setIdTag("1364747EE708");
+        chargingCurrentData.setIdTag(evccId);
+//        chargingCurrentData.setIdTag("1364747EE708"); // failed
+//        chargingCurrentData.setIdTag("1364747EE704"); // success
 
         if (chargingCurrentData.getIdTag().equals("000000000000")) return;
         isFlagAuthorize = false; // MAC Authorize 1회 시도
@@ -270,8 +269,6 @@ public class ConnectorCheckFragment extends Fragment implements View.OnClickList
                 if (Objects.equals(idTagInfo[0], chargingCurrentData.getIdTag())) {
                     chargingCurrentData.setAuthorizeResult(true);
                     chargingCurrentData.setParentIdTag(idTagInfo[1]);
-                    classUiProcess.setUiSeq(UiSeq.PLUG_CHECK);
-                    fragmentChange.onFragmentChange(mChannel, UiSeq.PLUG_CHECK, "PLUG_CHECK", null);
                 } else if (Objects.equals(idTagInfo[0], "notFound")) {
                     AuthorizeReq authorizeReq = new AuthorizeReq(chargingCurrentData.getConnectorId());
                     authorizeReq.sendAuthorize("C" + chargingCurrentData.getIdTag());
@@ -322,6 +319,8 @@ public class ConnectorCheckFragment extends Fragment implements View.OnClickList
                         // isAllowOfflineTxForUnknownId: 오프라인에서 미등록 IdTag도 거래 허용
                         if (Objects.equals(idTagInfo[0], chargingCurrentData.getIdTag()) || GlobalVariables.isAllowOfflineTxForUnknownId() ||
                                 GlobalVariables.isStopTransactionOnInvalidId()) {
+                            chargingCurrentData.setAuthorizeResult(true);
+
                             if (!chargingCurrentData.getIdTag().startsWith("C")) {
                                 chargingCurrentData.setIdTag("C" + chargingCurrentData.getIdTag());
                             }
@@ -336,8 +335,6 @@ public class ConnectorCheckFragment extends Fragment implements View.OnClickList
                             // isStopTransactionOnInvalidId: 미등록 IdTag로 시작했으면 나중에 중단 사유 세팅
                             chargingCurrentData.setStopReason(!Objects.equals(idTagInfo[0], chargingCurrentData.getIdTag()) &&
                                     GlobalVariables.isStopTransactionOnInvalidId() ? Reason.DeAuthorized : chargingCurrentData.getStopReason());
-                            classUiProcess.setUiSeq(UiSeq.PLUG_CHECK);
-                            fragmentChange.onFragmentChange(mChannel, UiSeq.PLUG_CHECK, "PLUG_CHECK", null);
                         } else {
                             // 인증 실패
                             authorizedFailed();
@@ -358,6 +355,12 @@ public class ConnectorCheckFragment extends Fragment implements View.OnClickList
 
     private void authorizedFailed() {
         try {
+            // charging stop
+            activity.getControlBoard().getTxData(mChannel).setStop(true);
+            activity.getControlBoard().getTxData(mChannel).setStart(false);
+            activity.getControlBoard().getTxData(mChannel).setUiSequence((short) 3);
+
+            // member check failed fragment
             countHandler.removeCallbacks(countRunnable);
             classUiProcess.setUiSeq(UiSeq.MEMBER_CHECK_FAILED);
             fragmentChange.onFragmentChange(mChannel, UiSeq.MEMBER_CHECK_FAILED, "MEMBER_CHECK_FAILED", null);
@@ -365,26 +368,6 @@ public class ConnectorCheckFragment extends Fragment implements View.OnClickList
             logger.error("ConnectorCheckFragment authorizedFailed error : {}", e.getMessage());
         }
     }
-
-
-//    private void authorizeFailed() {
-//        try {
-//            if (isFlag) return; // isFlag = true : 이미 실행 중
-//            textViewConnectorCheckMessage.setText(R.string.connectionFailedMessage);
-//            imageViewLoading.setVisibility(View.INVISIBLE);
-//            imageViewConnectionFailed.setVisibility(View.VISIBLE);
-//            textViewFailed.setVisibility(View.VISIBLE);
-//            textViewConnector.setVisibility(View.VISIBLE);
-//            animationDrawable.stop();
-//            fadeAnimator.start();
-//            txData.setStart(false);
-//            txData.setStop(true);
-//            countHandler.removeCallbacks(countRunnable);
-//            isFlag = true;
-//        } catch (Exception e) {
-//            logger.error("ConnectorCheckFragment authorizeFailed error : {}", e.getMessage());
-//        }
-//    }
 
     @Override
     public void onDestroyView() {

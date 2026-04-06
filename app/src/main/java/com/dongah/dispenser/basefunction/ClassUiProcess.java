@@ -521,10 +521,10 @@ public class ClassUiProcess implements RfCardReaderListener {
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void handleConnectCheck(RxData rxData) {
         // 서버 모드 && MAC 인증 모드 : 회원 인증이 완료 돼야 충전 시작
-//        if (Objects.equals(chargerConfiguration.getOpMode(), 1) && Objects.equals(chargingCurrentData.getAuthType(), "M")
-//                && !chargingCurrentData.isAuthorizeResult()) {
-//            return;
-//        }
+        if (Objects.equals(chargerConfiguration.getOpMode(), 1) && Objects.equals(chargingCurrentData.getAuthType(), "M")
+                && !chargingCurrentData.isAuthorizeResult()) {
+            return;
+        }
 
         if (rxData.isCsStart() && startCheck) {
             chargingCurrentData.setChargePointStatus(ChargePointStatus.Charging);
@@ -543,7 +543,6 @@ public class ClassUiProcess implements RfCardReaderListener {
             // server mode
             if (Objects.equals(chargerConfiguration.getOpMode(), 1)) {
                 // start transaction send to server(Accepted → Charging Fragment)
-                Log.e("ClassUiProcess", "StartTransactionReq");
                 StartTransactionReq startTransactionReq = new StartTransactionReq(chargingCurrentData.getConnectorId());
                 startTransactionReq.sendStartTransactionReq();
                 startMeterValuesWithDelay();
