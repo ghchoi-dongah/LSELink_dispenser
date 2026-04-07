@@ -19,12 +19,16 @@ import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.R;
 import com.dongah.dispenser.basefunction.UiSeq;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * A simple {@link Fragment} subclass.
  * Use the {@link OperationStopFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
 public class OperationStopFragment extends Fragment implements View.OnClickListener {
+    private static final Logger logger = LoggerFactory.getLogger(OperationStopFragment.class);
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -37,8 +41,8 @@ public class OperationStopFragment extends Fragment implements View.OnClickListe
     private String mParam2;
     private int mChannel;
 
-    Animation animBlink;
-    TextView textViewOpStopSubMessage;
+    ImageView imageViewOpStop;
+    ObjectAnimator fadeAnimator;
 
     public OperationStopFragment() {
         // Required empty public constructor
@@ -76,9 +80,15 @@ public class OperationStopFragment extends Fragment implements View.OnClickListe
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_operation_stop, container, false);
-        animBlink = AnimationUtils.loadAnimation(getActivity(), R.anim.blink_animation);
-        textViewOpStopSubMessage = view.findViewById(R.id.textViewOpStopSubMessage);
-        textViewOpStopSubMessage.startAnimation(animBlink);
+        imageViewOpStop = view.findViewById(R.id.imageViewOpStop);
+
+        // imageViewOpStop animation
+        fadeAnimator = ObjectAnimator.ofFloat(imageViewOpStop, "alpha", 1f, 0.3f);
+        fadeAnimator.setDuration(1000);
+        fadeAnimator.setRepeatCount(ValueAnimator.INFINITE);
+        fadeAnimator.setRepeatMode(ValueAnimator.REVERSE);
+        fadeAnimator.setInterpolator(new AccelerateDecelerateInterpolator());
+        fadeAnimator.start();
 
         return view;
     }
@@ -91,5 +101,14 @@ public class OperationStopFragment extends Fragment implements View.OnClickListe
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+
+        try {
+            if (fadeAnimator != null) {
+                fadeAnimator.cancel();
+                fadeAnimator = null;
+            }
+        } catch (Exception e) {
+            logger.error("OperationStopFragment onDestroyView error : {}", e.getMessage());
+        }
     }
 }
