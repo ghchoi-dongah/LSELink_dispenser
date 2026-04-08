@@ -42,6 +42,7 @@ public class RemoteStopTransactionHandler implements OcppHandler  {
             RemoteStopTransactionConfirmation remoteStopTransactionConfirmation =
                     new RemoteStopTransactionConfirmation(status);
             activity.getSocketReceiveMessage().onResultSend(
+                    connectorId,
                     remoteStopTransactionConfirmation.getActionName(),
                     messageId,
                     remoteStopTransactionConfirmation

@@ -53,6 +53,7 @@ public class ChangeAvailabilityHandler implements OcppHandler {
         // change availability response
         ChangeAvailabilityConfirmation changeAvailabilityConfirmation = new ChangeAvailabilityConfirmation(result);
         activity.getSocketReceiveMessage().onResultSend(
+                100,
                 changeAvailabilityConfirmation.getActionName(),
                 messageId,
                 changeAvailabilityConfirmation);

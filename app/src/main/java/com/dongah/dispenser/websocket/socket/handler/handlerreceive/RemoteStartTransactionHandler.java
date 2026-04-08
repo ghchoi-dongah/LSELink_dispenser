@@ -29,15 +29,27 @@ public class RemoteStartTransactionHandler implements OcppHandler  {
     @Override
     public void handle(JSONObject payload, int connectorId, String messageId) throws Exception {
 
+        logger.info("RemoteStartTransactionHandler.handle() param connectorId={}, payload connectorId={}, messageId={}, payload={}",
+                connectorId,
+                payload.optInt("connectorId", -999),
+                messageId,
+                payload.toString());
+
         MainActivity activity = ((MainActivity) MainActivity.mContext);
-        ChargingCurrentData chargingCurrentData = activity.getChargingCurrentData(connectorId-1);
 
-        chargingCurrentData.setConnectorId(payload.getInt("connectorId"));
-        chargingCurrentData.setIdTag(payload.getString("idTag"));
-        chargingCurrentData.setPaymentType(PaymentType.MEMBER);
+        try {
+            int connector = payload.getInt("connectorId");
+            ChargingCurrentData chargingCurrentData = activity.getChargingCurrentData(connector-1);
 
-        // 응답
-        sendResponse(connectorId, messageId);
+            chargingCurrentData.setConnectorId(payload.getInt("connectorId"));
+            chargingCurrentData.setIdTag(payload.getString("idTag"));
+            chargingCurrentData.setPaymentType(PaymentType.MEMBER);
+
+            // 응답
+            sendResponse(connector, messageId);
+        } catch (Exception e) {
+            logger.error("RemoteStartTransactionHandler handle error : {}", e.getMessage());
+        }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -52,6 +64,7 @@ public class RemoteStartTransactionHandler implements OcppHandler  {
             RemoteStartTransactionConfirmation remoteStartTransactionConfirmation =
                     new RemoteStartTransactionConfirmation(status);
             activity.getSocketReceiveMessage().onResultSend(
+                    connectorId,
                     remoteStartTransactionConfirmation.getActionName(),
                     messageId,
                     remoteStartTransactionConfirmation
@@ -70,7 +83,7 @@ public class RemoteStartTransactionHandler implements OcppHandler  {
                 statusNotificationReq.sendStatusNotification();
             }
         } catch (Exception e) {
-            logger.error(" sendResponse error : {}", e.getMessage());
+            logger.error("RemoteStartTransactionHandler sendResponse error : {}", e.getMessage());
         }
     }
 }

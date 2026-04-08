@@ -189,6 +189,12 @@ public class SocketReceiveMessage extends JSONCommunicator implements SocketInte
              */
             if (resultType == 2) {
                 actionName = message.getAction();
+                JSONObject payload = new JSONObject((String) message.getPayload());
+
+                if (payload.has("connectorId")) {
+                    this.connectorId = payload.getInt("connectorId");
+                    connectorIdForLog = this.connectorId;
+                }
             } else if (resultType == 3) {
                 SendHashMapObject obj = (SendHashMapObject) newHashMapUuid.get(message.getId());
                 if (obj != null) {
@@ -240,16 +246,6 @@ public class SocketReceiveMessage extends JSONCommunicator implements SocketInte
                 handler.handle(payload, connectorId, message.getId());
             }
 
-            // Call (Type 2) 또는 CallResult (Type 3) 판별
-            if (message.getResultType() == 2) {
-                actionName = message.getAction();
-            } else if (message.getResultType() == 3) {
-                SendHashMapObject obj = (SendHashMapObject) newHashMapUuid.get(message.getId());
-                if (obj != null) {
-                    actionName = obj.getActionName();
-                    this.connectorId = obj.getConnectorId();
-                }
-            }
             // 공통 처리 (ID 삭제 등)
             newHashMapUuid.remove(message.getId());
         } catch (Exception e) {
@@ -421,11 +417,31 @@ public class SocketReceiveMessage extends JSONCommunicator implements SocketInte
             Object call = makeCallResult(uuid, actionName, packPayload(confirmation));
             if (call != null) {
                 this.webSocket.send(call.toString());
-                logDataSave.makeLogDate(0, actionName, call.toString());
+                logDataSave.makeLogDate(actionName, call.toString());
                 logger.trace(" Send a message: {}", call);
             }
         } catch (Exception e) {
             logger.error("onResultSend : {}", e.getMessage());
+        }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    @Override
+    public void onResultSend(int connectorId, String actionName, String uuid, Confirmation confirmation)
+            throws OccurenceConstraintException {
+        if (!confirmation.validate()) {
+            logger.error("[onResultSend2] Can't send request:  not validated. Payload {}: ", confirmation);
+            throw new OccurenceConstraintException();
+        }
+        try {
+            Object call = makeCallResult(uuid, actionName, packPayload(confirmation));
+            if (call != null) {
+                this.webSocket.send(call.toString());
+                logDataSave.makeLogDate(connectorId, actionName, call.toString());
+                logger.trace("[onResultSend2] Send a message: {}", call);
+            }
+        } catch (Exception e) {
+            logger.error("onResultSend2 : {}", e.getMessage());
         }
     }
 

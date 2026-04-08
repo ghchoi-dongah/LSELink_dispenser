@@ -20,6 +20,7 @@ public interface SocketInterface {
     void onSend(int connectorId, String actionName, Request request) throws OccurenceConstraintException;
 
     void onResultSend(String actionName, String uuid, Confirmation confirmation) throws OccurenceConstraintException;
+    void onResultSend(int connectorId, String actionName, String uuid, Confirmation confirmation) throws OccurenceConstraintException;
 
     /**
      * 응답

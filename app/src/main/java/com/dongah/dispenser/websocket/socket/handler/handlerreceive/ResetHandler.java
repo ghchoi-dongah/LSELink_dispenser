@@ -29,6 +29,7 @@ public class ResetHandler implements OcppHandler {
         ResetType type = ResetType.valueOf(payload.getString("type"));
         ResetConfirmation resetConfirmation = new ResetConfirmation(ResetStatus.Accepted);
         activity.getSocketReceiveMessage().onResultSend(
+                100,
                 resetConfirmation.getActionName(),
                 messageId,
                 resetConfirmation

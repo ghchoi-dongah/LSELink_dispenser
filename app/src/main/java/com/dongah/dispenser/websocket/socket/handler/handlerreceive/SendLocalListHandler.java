@@ -94,7 +94,12 @@ public class SendLocalListHandler implements OcppHandler  {
             //send
             MainActivity activity = (MainActivity) MainActivity.mContext;
             SendLocalListConfirmation sendLocalListConfirmation = new SendLocalListConfirmation(GlobalVariables.updateStatus);
-            activity.getSocketReceiveMessage().onResultSend(sendLocalListConfirmation.getActionName(), messageId, sendLocalListConfirmation);
+            activity.getSocketReceiveMessage().onResultSend(
+                    100,
+                    sendLocalListConfirmation.getActionName(),
+                    messageId,
+                    sendLocalListConfirmation
+            );
         } catch (Exception e) {
             logger.error("SendLocalList error : {}", e.getMessage());
         }

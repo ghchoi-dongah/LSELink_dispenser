@@ -38,6 +38,7 @@ public class TriggerMessageHandler implements OcppHandler {
         TriggerMessageStatus status = TriggerMessageStatus.Accepted;
         TriggerMessageConfirmation triggerMessageConfirmation = new TriggerMessageConfirmation(status);
         activity.getSocketReceiveMessage().onResultSend(
+                connectorId,
                 triggerMessageConfirmation.getActionName(),
                 messageId,
                 triggerMessageConfirmation

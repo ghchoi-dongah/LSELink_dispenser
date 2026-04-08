@@ -49,7 +49,11 @@ public class ChangeConfigurationHandler implements OcppHandler {
             ConfigurationStatus configurationStatus = GlobalVariables.isNotSupportedKey() ? ConfigurationStatus.NotSupported :
                     result ? ConfigurationStatus.Accepted : ConfigurationStatus.Rejected;
             ChangeConfigurationConfirmation changeConfigurationConfirmation = new ChangeConfigurationConfirmation(configurationStatus);
-            activity.getSocketReceiveMessage().onResultSend(changeConfigurationConfirmation.getActionName(), messageId, changeConfigurationConfirmation);
+            activity.getSocketReceiveMessage().onResultSend(
+                    100,
+                    changeConfigurationConfirmation.getActionName(),
+                    messageId,
+                    changeConfigurationConfirmation);
         } catch (Exception e) {
             logger.error("ChangeConfigurationHandler error :  {}", e.getMessage());
         }

@@ -93,6 +93,7 @@ public class ChangeModeHandler implements OcppHandler {
             changeModeConfirm.setStatus(DataTransferStatus.Accepted);
 
             activity.getSocketReceiveMessage().onResultSend(
+                    connectorId,
                     changeModeConfirm.getActionName(),
                     messageId,
                     changeModeConfirm);

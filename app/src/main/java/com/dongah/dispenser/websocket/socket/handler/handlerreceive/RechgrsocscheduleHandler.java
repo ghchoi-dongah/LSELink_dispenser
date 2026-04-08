@@ -35,7 +35,7 @@ public class RechgrsocscheduleHandler implements OcppHandler {
             saveRechgrsocscheduleToFile(dataStr);
 
             // response
-            sendResponse(messageId);
+            sendResponse(connectorId, messageId);
         } catch (Exception e) {
             logger.error("RechgrsocscheduleHandler error : {}", e.getMessage());
         }
@@ -85,7 +85,7 @@ public class RechgrsocscheduleHandler implements OcppHandler {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
-    private void sendResponse(String messageId) {
+    private void sendResponse(int connectorId, String messageId) {
         try {
             MainActivity activity = (MainActivity) MainActivity.mContext;
 
@@ -93,6 +93,7 @@ public class RechgrsocscheduleHandler implements OcppHandler {
             rechgrsocscheduleConfirm.setStatus(DataTransferStatus.Accepted);
 
             activity.getSocketReceiveMessage().onResultSend(
+                    connectorId,
                     rechgrsocscheduleConfirm.getActionName(),
                     messageId,
                     rechgrsocscheduleConfirm);

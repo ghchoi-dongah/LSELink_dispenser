@@ -41,6 +41,11 @@ public class GetLocalListVersionHandler implements OcppHandler  {
         }
         //response
         GetLocalListVersionConfirmation getLocalListVersionConfirmation = new GetLocalListVersionConfirmation(listVersion);
-        activity.getSocketReceiveMessage().onResultSend(getLocalListVersionConfirmation.getActionName(), messageId, getLocalListVersionConfirmation);
+        activity.getSocketReceiveMessage().onResultSend(
+                100,
+                getLocalListVersionConfirmation.getActionName(),
+                messageId,
+                getLocalListVersionConfirmation
+        );
     }
 }
