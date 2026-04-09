@@ -285,8 +285,10 @@ public class ClassUiProcess implements RfCardReaderListener {
         try {
             UiSeq uiSeq1 = ((MainActivity) MainActivity.mContext).getClassUiProcess(0).getUiSeq();
             UiSeq uiSeq2 = ((MainActivity) MainActivity.mContext).getClassUiProcess(1).getUiSeq();
-            result = Objects.equals(UiSeq.REBOOTING, uiSeq1) || Objects.equals(UiSeq.INIT, uiSeq1);
-            result = result && Objects.equals(UiSeq.REBOOTING, uiSeq2) || Objects.equals(UiSeq.INIT, uiSeq2);
+            result = Objects.equals(UiSeq.REBOOTING, uiSeq1) || Objects.equals(UiSeq.INIT, uiSeq1)
+                        || Objects.equals(UiSeq.OP_STOP, uiSeq1) || Objects.equals(UiSeq.SEQUENTIAL_CHARGING, uiSeq1);
+            result = result && Objects.equals(UiSeq.REBOOTING, uiSeq2) || Objects.equals(UiSeq.INIT, uiSeq2)
+                        || Objects.equals(UiSeq.OP_STOP, uiSeq2) || Objects.equals(UiSeq.SEQUENTIAL_CHARGING, uiSeq2);
         } catch (Exception e) {
             logger.error(e.getMessage());
         }
@@ -696,6 +698,10 @@ public class ClassUiProcess implements RfCardReaderListener {
         if (GlobalVariables.ChargerOperation[getCh()+1]) {
             setUiSeq(UiSeq.INIT);
             fragmentChange.onFragmentChange(getCh(), UiSeq.INIT, "INIT", null);
+        }
+
+        if (chargingCurrentData.isReBoot() && onRebootCheck()) {
+            setUiSeq(UiSeq.REBOOTING);
         }
     }
 }

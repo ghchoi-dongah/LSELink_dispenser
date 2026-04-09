@@ -10,12 +10,23 @@ android {
         version = release(36)
     }
 
+    // clear
+//    signingConfigs {
+//        platformkeystore {
+//            keyAlias "platform"
+//            keyPassword "android"
+//            storeFile file("D:\\AndroidDongah\\PlatformKeyClear\\keystore\\platform.jks")
+//            storePassword "android"
+//        }
+//    }
+
+    // senke
     signingConfigs {
-        platformkeystore {
-            keyAlias "platform"
-            keyPassword "android"
-            storeFile file("D:\\AndroidDongah\\PlatformKeyClear\\keystore\\platform.jks")
-            storePassword "android"
+        getByName("debug") {
+            keyAlias = "system-lztek"
+            keyPassword = "123456"
+            storeFile = file("D:\\AndroidDongah\\JSK_senke\\platform.jks")
+            storePassword = "123456"
         }
     }
 

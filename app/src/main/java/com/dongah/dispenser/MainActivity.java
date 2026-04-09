@@ -201,7 +201,7 @@ public class MainActivity extends AppCompatActivity {
         chargerConfiguration = new ChargerConfiguration();
         chargerConfiguration.onLoadConfiguration();
         chargerConfiguration.setSigned(true);
-        textViewVersion.setText("VER-DEVD " + chargerConfiguration.getFirmwareVersion() + " | ");
+        textViewVersion.setText("VER-DEVD " + GlobalVariables.VERSION + " | ");
 
         // 2. fragment change management
         fragmentChange = new FragmentChange();
@@ -406,8 +406,21 @@ public class MainActivity extends AppCompatActivity {
                 ActivityCompat.finishAffinity(((MainActivity) MainActivity.mContext));
                 System.exit(0);
             } else {
-                PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
-                powerManager.reboot("reboot");
+                try {
+                    PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
+                    powerManager.reboot("reboot");
+                } catch (SecurityException se) {
+                    logger.error("System reboot permission denied. Trying su reboot... : {}", se.getMessage());
+                    try {
+                        // Root 권한인 경우 reboot 명령 실행 시도
+                        Runtime.getRuntime().exec("su -c reboot");
+                    } catch (Exception re) {
+                        logger.error("su reboot failed: {}. Falling back to Soft reboot.", re.getMessage());
+                        // reboot 실패 시 앱 종료 후 워치독/런처에 의한 재시작 유도
+                        ActivityCompat.finishAffinity(((MainActivity) MainActivity.mContext));
+                        System.exit(0);
+                    }
+                }
             }
         } catch (Exception e) {
             logger.error("onRebooting error : {}", e.getMessage());

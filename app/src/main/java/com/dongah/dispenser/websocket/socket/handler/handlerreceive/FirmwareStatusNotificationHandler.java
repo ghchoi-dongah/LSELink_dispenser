@@ -9,6 +9,7 @@ import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.basefunction.ChargerConfiguration;
 import com.dongah.dispenser.basefunction.GlobalVariables;
 import com.dongah.dispenser.utils.FileManagement;
+import com.dongah.dispenser.websocket.ocpp.core.Reason;
 import com.dongah.dispenser.websocket.ocpp.firmware.FirmwareStatus;
 import com.dongah.dispenser.websocket.ocpp.firmware.FirmwareStatusNotificationRequest;
 import com.dongah.dispenser.websocket.socket.OcppHandler;
@@ -39,7 +40,7 @@ public class FirmwareStatusNotificationHandler implements OcppHandler  {
             FirmwareStatusNotificationRequest firmwareStatusNotificationRequest =
                     new FirmwareStatusNotificationRequest(chargerConfiguration.getFirmwareStatus());
             activity.getSocketReceiveMessage().onSend(
-                    connectorId,
+                    100,
                     firmwareStatusNotificationRequest.getActionName(),
                     firmwareStatusNotificationRequest);
         } else if (Objects.equals(chargerConfiguration.getFirmwareStatus(), FirmwareStatus.Installing)) {
@@ -47,7 +48,11 @@ public class FirmwareStatusNotificationHandler implements OcppHandler  {
             String fileName = "FirmwareStatusNotification";
             FileManagement fileManagement = new FileManagement();
             check = fileManagement.fileCreate(fileName, "Firmware-Installed");
-            activity.onRebooting("Hard");
+
+            for (int i = 0; i < GlobalVariables.maxChannel; i++) {
+                activity.getChargingCurrentData(i).setStopReason(Reason.HardReset);
+                activity.getChargingCurrentData(i).setReBoot(true);
+            }
         } else if (Objects.equals(chargerConfiguration.getFirmwareStatus(), FirmwareStatus.Installed)) {
             // update firmware 다운 전에 GlobalVariables.ChargerOperation[] = true ==> Unavailable
             Arrays.fill(GlobalVariables.ChargerOperation, true);
