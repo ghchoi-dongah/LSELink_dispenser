@@ -49,7 +49,7 @@ public class TriggerMessageHandler implements OcppHandler {
                     chargerConfiguration.getChargePointVendor(),
                     chargerConfiguration.getChargerPointModel()
             );
-            bootNotificationRequest.setFirmwareVersion(GlobalVariables.FW_VERSION);    // TODO: firmware version check
+            bootNotificationRequest.setFirmwareVersion(GlobalVariables.FW_VERSION);
             bootNotificationRequest.setImsi(chargerConfiguration.getImsi());
             bootNotificationRequest.setChargePointSerialNumber(chargerConfiguration.getChargerId());
             bootNotificationRequest.setIccid(chargerConfiguration.getIccid());
@@ -71,7 +71,7 @@ public class TriggerMessageHandler implements OcppHandler {
             FirmwareStatusNotificationRequest firmwareStatusNotificationRequest =
                     new FirmwareStatusNotificationRequest(chargerConfiguration.getFirmwareStatus());
             socketReceiveMessage.onSend(
-                    connectorId,
+                    100,
                     firmwareStatusNotificationRequest.getActionName(),
                     firmwareStatusNotificationRequest
             );
