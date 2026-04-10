@@ -80,7 +80,7 @@ public class RemoteStartTransactionHandler implements OcppHandler  {
                 // StatusNotification
                 chargingCurrentData.setChargePointStatus(ChargePointStatus.Preparing);
                 StatusNotificationReq statusNotificationReq = new StatusNotificationReq(connectorId);
-                statusNotificationReq.sendStatusNotification();
+                statusNotificationReq.sendStatusNotification(connectorId, ChargePointStatus.Preparing);
             }
         } catch (Exception e) {
             logger.error("RemoteStartTransactionHandler sendResponse error : {}", e.getMessage());
