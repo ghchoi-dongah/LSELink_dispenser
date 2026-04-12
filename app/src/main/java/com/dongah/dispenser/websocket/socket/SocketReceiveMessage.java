@@ -103,6 +103,10 @@ public class SocketReceiveMessage extends JSONCommunicator implements SocketInte
         return socket;
     }
 
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
     public SocketReceiveMessage(String url) {
         this.url = url;
         initHandlers(); // 핸들러 등록

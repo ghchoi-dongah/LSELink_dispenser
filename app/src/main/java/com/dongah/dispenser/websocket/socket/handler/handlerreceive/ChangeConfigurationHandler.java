@@ -5,7 +5,9 @@ import android.os.Build;
 import androidx.annotation.RequiresApi;
 
 import com.dongah.dispenser.MainActivity;
+import com.dongah.dispenser.basefunction.ChargerConfiguration;
 import com.dongah.dispenser.basefunction.GlobalVariables;
+import com.dongah.dispenser.basefunction.UiSeq;
 import com.dongah.dispenser.utils.DataTransformation;
 import com.dongah.dispenser.utils.FileManagement;
 import com.dongah.dispenser.websocket.ocpp.core.ChangeConfigurationConfirmation;
@@ -29,6 +31,7 @@ public class ChangeConfigurationHandler implements OcppHandler {
         try {
             boolean result;
             MainActivity activity = (MainActivity) MainActivity.mContext;
+            ChargerConfiguration chargerConfiguration = activity.getChargerConfiguration();
             GlobalVariables.setNotSupportedKey(false);
             String key = payload.has("key") ? payload.getString("key") : "";
             String value = payload.has("value") ? payload.getString("value") : "0";
@@ -54,6 +57,34 @@ public class ChangeConfigurationHandler implements OcppHandler {
                     changeConfigurationConfirmation.getActionName(),
                     messageId,
                     changeConfigurationConfirmation);
+
+
+            // websocket 주소 변경
+            if (Objects.equals(key, "webSocketURL")) {
+                if (result) {
+                    // config 변경 및 저장
+                    activity.getChargerConfiguration().setServerConnectingString(value);
+                    activity.getChargerConfiguration().onSaveConfiguration();
+
+                    // 충전 중이면 종료
+                    for (int i = 0; i < GlobalVariables.maxChannel; i++) {
+                        UiSeq uiSeq = activity.getClassUiProcess(i).getUiSeq();
+                        if (UiSeq.CHARGING.equals(uiSeq)) {
+                            activity.getControlBoard().getTxData(i).setStart(false);
+                            activity.getControlBoard().getTxData(i).setStop(true);
+                        }
+                    }
+
+                    // socket reconnect
+                    logger.info("webSocketURL changed. Reconnecting to: {}", value);
+                    // 5초 후 재연결
+                    new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+                        String url = value + "/" + chargerConfiguration.getChargeBoxSerialNumber() + chargerConfiguration.getChargerId();
+                        activity.getSocketReceiveMessage().setUrl(url);
+                        activity.getSocketReceiveMessage().onSocketInitialize();
+                    }, 5000);
+                }
+            }
         } catch (Exception e) {
             logger.error("ChangeConfigurationHandler error :  {}", e.getMessage());
         }
