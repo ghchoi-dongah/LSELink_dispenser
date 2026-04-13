@@ -42,6 +42,9 @@ public class ChangeConfigurationHandler implements OcppHandler {
             }  else if (Objects.equals(key, "SecurityProfile")) {
                 result = Integer.parseInt(GlobalVariables.getSecurityProfile()) <= Integer.parseInt(value);
                 if (result) setConfigurationValue(key, value);
+            } else if (Objects.equals(key, "UseBasicAuth") && !Boolean.parseBoolean(value)) {
+                setConfigurationValue(key, value);
+                result = false;
             } else {
                 result = setConfigurationValue(key, value);
             }
@@ -79,8 +82,41 @@ public class ChangeConfigurationHandler implements OcppHandler {
                     logger.info("webSocketURL changed. Reconnecting to: {}", value);
                     // 5초 후 재연결
                     new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
-                        String url = value + "/" + chargerConfiguration.getChargeBoxSerialNumber() + chargerConfiguration.getChargerId();
+                        // 1. 슬래시(/) 중복 체크: value 끝에 /가 있으면 제거 후 / 추가
+                        String baseUrl = value.endsWith("/") ? value.substring(0, value.length() - 1) : value;
+                        String url = baseUrl + "/" + chargerConfiguration.getChargeBoxSerialNumber() + chargerConfiguration.getChargerId();
+
+                        // 2. 연결 종료 명시: 재연결 전 기존 소켓 확실히 종료
+                        if (activity.getSocketReceiveMessage().getSocket() != null) {
+                            activity.getSocketReceiveMessage().getSocket().fullClose();
+                        }
+
+                        // 3. socket connect
                         activity.getSocketReceiveMessage().setUrl(url);
+                        activity.getSocketReceiveMessage().onSocketInitialize();
+                    }, 5000);
+                }
+            } else if (Objects.equals(key, "UseBasicAuth") && Boolean.parseBoolean(value)) {
+                if (result) {
+                    // 충전 중이면 종료
+                    for (int i = 0; i < GlobalVariables.maxChannel; i++) {
+                        UiSeq uiSeq = activity.getClassUiProcess(i).getUiSeq();
+                        if (UiSeq.CHARGING.equals(uiSeq)) {
+                            activity.getControlBoard().getTxData(i).setStart(false);
+                            activity.getControlBoard().getTxData(i).setStop(true);
+                        }
+                    }
+
+                    // socket reconnect
+                    logger.info("UseBasicAuth changed. Reconnecting to: {}", value);
+                    // 5초 후 재연결
+                    new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+                        // disconnect
+                        if (activity.getSocketReceiveMessage().getSocket() != null) {
+                            activity.getSocketReceiveMessage().getSocket().fullClose();
+                        }
+
+                        // reconnect
                         activity.getSocketReceiveMessage().onSocketInitialize();
                     }, 5000);
                 }

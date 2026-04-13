@@ -70,6 +70,8 @@ public class ConfigurationKeyRead {
                         GlobalVariables.setMinimunStatusDuration(Integer.parseInt(contDetail.getString("value")));
                     } else if (Objects.equals("webSocketURL", contDetail.getString("key"))) {
                         GlobalVariables.setWebSocketURL(contDetail.getString("value"));
+                    } else if (Objects.equals("UseBasicAuth", contDetail.getString("key"))) {
+                        GlobalVariables.setUseBasicAuth(Boolean.parseBoolean(contDetail.getString("value")));
                     }
                 }
             }

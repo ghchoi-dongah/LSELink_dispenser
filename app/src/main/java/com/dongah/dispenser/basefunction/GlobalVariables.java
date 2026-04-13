@@ -52,6 +52,7 @@ public class GlobalVariables {
     public static  String PersonUtztnLmtYn = "N";
     public static int PersonUtztnLmtHr = 30;
     public static String webSocketURL = "";
+    public static boolean UseBasicAuth = false;
 
     public static int[] dumpTransactionId = new int[2];
     public static boolean[] dumpSending = new boolean[2];
@@ -249,6 +250,14 @@ public class GlobalVariables {
 
     public static void setWebSocketURL(String url) {
         webSocketURL = url;
+    }
+
+    public static boolean isUseBasicAuth() {
+        return UseBasicAuth;
+    }
+
+    public static void setUseBasicAuth(boolean useBasicAuth) {
+        UseBasicAuth = useBasicAuth;
     }
 
     public static int getDumpTransactionId(int connectorId) {

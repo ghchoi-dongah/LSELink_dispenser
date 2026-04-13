@@ -69,7 +69,7 @@ public class Socket extends WebSocketListener {
     private OkHttpClient client;
     private final Base64Util base64Util = new Base64Util();
 
-    private boolean signedType;
+    private boolean useBasicAuth;
     DumpDataSend[] dumpDataSends;
 
     private static final ZonedDateTimeConvert zonedDateTimeConvert = new ZonedDateTimeConvert();
@@ -182,8 +182,8 @@ public class Socket extends WebSocketListener {
     private void run(String url) {
         try {
             ChargerConfiguration chargerConfiguration = ((MainActivity) MainActivity.mContext).getChargerConfiguration();
-            signedType = chargerConfiguration.isSigned();
-            if (signedType) {
+            useBasicAuth = GlobalVariables.isUseBasicAuth();
+            if (useBasicAuth) {
                 // SSL context 설정
                 FileInputStream keystoreInputStream = new FileInputStream(KEYSTORE_PATH);
                 FileInputStream truststoreInputStream = new FileInputStream(TRUSTSTORE_PATH);
@@ -232,10 +232,16 @@ public class Socket extends WebSocketListener {
         try {
             Request request;
             ChargerConfiguration chargerConfiguration = ((MainActivity) MainActivity.mContext).getChargerConfiguration();
-            signedType = chargerConfiguration.isSigned();
-            if (signedType) {
+            useBasicAuth = GlobalVariables.isUseBasicAuth();
+            if (useBasicAuth) {
                 //Basic <Based64encoded(chargerPointId:AuthorizationKey)>
                 String authorizationKey = com.dongah.dispenser.basefunction.GlobalVariables.getAuthorizationKey();
+                // 최초 인증 번호는 자체 생성
+                if (authorizationKey.isEmpty()) {
+                    String chargerId = chargerConfiguration.getChargeBoxSerialNumber() + chargerConfiguration.getChargerId();
+                    authorizationKey = SecurityBasic.initRechgrAuthorization(chargerId);
+                    GlobalVariables.setAuthorizationKey(authorizationKey);
+                }
                 String connectionString = chargerConfiguration.getChargerId() + ":" + authorizationKey;
                 request = new Request.Builder()
                         .url(url)
