@@ -44,7 +44,7 @@ public class GlobalVariables {
     public static int ClockAlignedDataInterval = 0;
     public static boolean LocalAuthorizeOffline = false;
     public static String SecurityProfile = "0";
-    public static String AuthorizationKey = "dongahpassword1234";
+    public static String AuthorizationKey = "";
     public static boolean LocalAuthListEnabled = true;
 
     // LS E-Link Configuration Key
