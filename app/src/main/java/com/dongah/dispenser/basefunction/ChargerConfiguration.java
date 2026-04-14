@@ -132,7 +132,7 @@ public class ChargerConfiguration {
                 setTargetSoc(obj.getInt("TARGET_SOC"));
                 setDr(obj.getInt("DR"));
                 setStartMode(obj.getInt("START_MODE"));
-//                setSigned(obj.getBoolean("SIGNED"));
+                setSigned(obj.getBoolean("SIGNED"));
             }
         } catch (Exception e) {
             logger.error("configuration load fail: {}", e.getMessage(), e);
@@ -169,7 +169,7 @@ public class ChargerConfiguration {
             obj.put("TARGET_SOC", getTargetSoc());
             obj.put("DR", getDr());
             obj.put("START_MODE", getStartMode());
-//            obj.put("SIGNED", isSigned());
+            obj.put("SIGNED", isSigned());
             fileManagement.stringToFileSave(rootPath, CONFIG_FILE_NAME, obj.toString(), false);
         } catch (Exception e) {
             logger.error("configuration save fail: {}", e.getMessage(), e);
