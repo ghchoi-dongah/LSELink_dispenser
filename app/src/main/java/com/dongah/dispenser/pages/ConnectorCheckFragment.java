@@ -243,6 +243,7 @@ public class ConnectorCheckFragment extends Fragment implements View.OnClickList
 
         if (chargingCurrentData.getIdTag().equals("000000000000")) return;
         isFlagAuthorize = false; // MAC Authorize 1회 시도
+        chargingCurrentData.setIdTag("C" + chargingCurrentData.getIdTag());
 
         // isLocalPreAuthorize == true : local authorization list 에서 사용자 인증
         // isLocalPreAuthorize: 사전 로컬 인증 모드
@@ -271,7 +272,7 @@ public class ConnectorCheckFragment extends Fragment implements View.OnClickList
                     chargingCurrentData.setParentIdTag(idTagInfo[1]);
                 } else if (Objects.equals(idTagInfo[0], "notFound")) {
                     AuthorizeReq authorizeReq = new AuthorizeReq(chargingCurrentData.getConnectorId());
-                    authorizeReq.sendAuthorize("C" + chargingCurrentData.getIdTag());
+                    authorizeReq.sendAuthorize(chargingCurrentData.getIdTag());
                 } else {
                     // 인증 실패
                     ((MainActivity) MainActivity.mContext).getChargingCurrentData(mChannel).setAuthorizeResult(false);
@@ -298,7 +299,7 @@ public class ConnectorCheckFragment extends Fragment implements View.OnClickList
                         }
                     }
                     AuthorizeReq authorizeReq = new AuthorizeReq(chargingCurrentData.getConnectorId());
-                    authorizeReq.sendAuthorize("C" + chargingCurrentData.getIdTag());
+                    authorizeReq.sendAuthorize(chargingCurrentData.getIdTag());
                 }
             } else {
                 // 서버와 연결이 안된 경우
@@ -320,11 +321,8 @@ public class ConnectorCheckFragment extends Fragment implements View.OnClickList
                         if (Objects.equals(idTagInfo[0], chargingCurrentData.getIdTag()) || GlobalVariables.isAllowOfflineTxForUnknownId() ||
                                 GlobalVariables.isStopTransactionOnInvalidId()) {
                             chargingCurrentData.setAuthorizeResult(true);
+                            chargingCurrentData.setParentIdTag(Objects.equals(idTagInfo[1], "") ? "미지원" : idTagInfo[1]);
 
-                            if (!chargingCurrentData.getIdTag().startsWith("C")) {
-                                chargingCurrentData.setIdTag("C" + chargingCurrentData.getIdTag());
-                            }
-                            
                             AuthorizeReq authorizeReq = new AuthorizeReq(chargingCurrentData.getConnectorId());
                             authorizeReq.sendAuthorize(chargingCurrentData.getIdTag());
                             

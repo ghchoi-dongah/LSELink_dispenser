@@ -187,6 +187,10 @@ public class MemberCheckWaitFragment extends Fragment implements View.OnClickLis
             UiSeq uiSeq = classUiProcess.getUiSeq();
             SocketReceiveMessage socketReceiveMessage = activity.getSocketReceiveMessage();
 
+            if (!chargingCurrentData.getIdTag().startsWith("C")) {
+                chargingCurrentData.setIdTag("C" + chargingCurrentData.getIdTag());
+            }
+
             // isLocalPreAuthorize == true : local authorization list 에서 사용자 인증
             // isLocalPreAuthorize: 사전 로컬 인증 모드
             if (GlobalVariables.isLocalPreAuthorize()) {
@@ -216,7 +220,7 @@ public class MemberCheckWaitFragment extends Fragment implements View.OnClickLis
                         activity.getFragmentChange().onFragmentChange(mChannel, UiSeq.PLUG_CHECK, "PLUG_CHECK", null);
                     } else if (Objects.equals(idTagInfo[0], "notFound")) {
                         AuthorizeReq authorizeReq = new AuthorizeReq(chargingCurrentData.getConnectorId());
-                        authorizeReq.sendAuthorize("C" + chargingCurrentData.getIdTag());
+                        authorizeReq.sendAuthorize(chargingCurrentData.getIdTag());
                     } else {
                         // 인증 실패
                         activity.getChargingCurrentData(mChannel).setAuthorizeResult(false);
@@ -244,7 +248,7 @@ public class MemberCheckWaitFragment extends Fragment implements View.OnClickLis
                             }
                         }
                         AuthorizeReq authorizeReq = new AuthorizeReq(chargingCurrentData.getConnectorId());
-                        authorizeReq.sendAuthorize("C" + chargingCurrentData.getIdTag());
+                        authorizeReq.sendAuthorize(chargingCurrentData.getIdTag());
                     }
                 } else {
                     // 서버와 연결이 안된 경우
@@ -265,10 +269,9 @@ public class MemberCheckWaitFragment extends Fragment implements View.OnClickLis
                             // isAllowOfflineTxForUnknownId: 오프라인에서 미등록 IdTag도 거래 허용
                             if (Objects.equals(idTagInfo[0], chargingCurrentData.getIdTag()) || GlobalVariables.isAllowOfflineTxForUnknownId() ||
                                     GlobalVariables.isStopTransactionOnInvalidId()) {
-                                if (!chargingCurrentData.getIdTag().startsWith("C")) {
-                                    chargingCurrentData.setIdTag("C" + chargingCurrentData.getIdTag());
-                                }
-                                
+
+                                chargingCurrentData.setParentIdTag(Objects.equals(idTagInfo[1], "") ? "미지원" : idTagInfo[1]);
+
                                 AuthorizeReq authorizeReq = new AuthorizeReq(chargingCurrentData.getConnectorId());
                                 authorizeReq.sendAuthorize(chargingCurrentData.getIdTag());
                                 

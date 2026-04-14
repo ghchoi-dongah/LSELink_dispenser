@@ -109,6 +109,7 @@ public class SocketReceiveMessage extends JSONCommunicator implements SocketInte
 
     public SocketReceiveMessage(String url) {
         this.url = url;
+        this.fileManagement = new FileManagement();
         initHandlers(); // 핸들러 등록
         Collections.addAll(actionList, actionNames);
         onSocketInitialize();
