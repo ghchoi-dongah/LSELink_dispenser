@@ -122,7 +122,8 @@ public class NotifyFaultCheck {
                 csUnPlug.setResultCompare(rxData.csPilot);
                 if (!rxData.csPilot) {
                     //unPlug
-                    chargingCurrentData.setConnectAuto(true);
+                    chargingCurrentData.setAutoStart(true);
+
                     boolean isPlugStatus = Objects.equals(chargingCurrentData.getChargePointStatus(), ChargePointStatus.Finishing) ||
                             Objects.equals(chargingCurrentData.getChargePointStatus(), ChargePointStatus.Preparing);
 

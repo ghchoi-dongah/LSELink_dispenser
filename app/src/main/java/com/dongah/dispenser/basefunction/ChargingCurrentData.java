@@ -77,7 +77,7 @@ public class ChargingCurrentData {
     String creditCardNumber = "";
     String responseCode = "";       //응답코드
     String responseMessage = "";    //응답메세지
-    String payId = "";           //충전기에서 30자리로 생성하여 Start Transaction Id로 사용
+    String payId = "";              //충전기에서 30자리로 생성하여 Start Transaction Id로 사용
     String cancelApprovalNo = "";
     String cancelApprovalDate = "";
     String cancelApprovalTime = "";
@@ -136,9 +136,6 @@ public class ChargingCurrentData {
     public boolean chgWait = false;
     public boolean chgFinishWait = false;
 
-    /* 커넥터 자동 충전 확인 */
-    public boolean connectAuto = true;
-
     /**
      * 인증타입(MAC Address or Membership Card)
      * M: MAC Address
@@ -160,67 +157,75 @@ public class ChargingCurrentData {
      * */
     public boolean connectUse = true;
 
+    /** 자동 충전 상태
+     * true: 자동 충전 가능 상태
+     * false: 충전 불가능 상태
+     * */
+    public boolean autoStart = true;
+
     public ChargingCurrentData() {
         sampleValueData = new SampleValueData();
     }
 
     public void onCurrentDataClear() {
-        sampleValueData.initSampledValues();
-        setIdTag("");
-        setPayId("");
-        setUserStop(false);
-        setPowerMeterStart(0);
-        setPowerMeterUse(0);
-        setPowerMeterUsePay(0);
-        setPowerUnitPrice(0);
-        setOutPutVoltage(0);
-        setOutPutCurrent(0);
-        setPowerMeterStop(0);
-        setPowerMeterCalculate(0);
-        setTradeCode("");
-        setTradeMethod("");
-        setPrePayment(0);
-        setPartialCancelPayment(0);
-        setApprovalNumber("");
-        setApprovalDate("");
-        setApprovalTime("");
-        setPgTranSeq("");
-        setCreditCardNumber("");
-        setStoreNumber("");
-        setTerminalNumber("");
-        setResponseCode("");
-        setResponseMessage("");
-        setPrePaymentResult(false);
-        setTradeUniqueNumber("");
-        setSurtax(0);
-        setTip(0);
-        setInstallment(0);
-        setIssuer("");
-        setBuyer("");
-        setChargingStartTime("");
-        setChargingEndTime("");
-        setTransactionId(0);
-        setChargerPointType(ChargerPointType.NONE);
-        setPaymentType(PaymentType.NONE);
-        setSmsTelNum(null);
-        setChargingTime(0);
-        setFaultCancelPayment(false);
-        setAuthorizeResult(false);
-        setRemaintime(0);
-        setParentIdTag("");
-        setIdTagStop("");
-        setParentIdTagStop("");
-        setResExpiryDate("");
-        setResIdTag("");
-        setResParentIdTag("");
-        setResReservationId("");
-        setRemoteStartSmartCharging(false);
-        setSoc(0);
-        setTargetSoc(80);
-        setTargetCurrent(0);
-        setConnectAuto(true);
-        setAuthType("M");
-        remoteSmartChargingJsonArray = null;
+        try {
+            sampleValueData.initSampledValues();
+            setIdTag("");
+            setPayId("");
+            setUserStop(false);
+            setPowerMeterStart(0);
+            setPowerMeterUse(0);
+            setPowerMeterUsePay(0);
+            setPowerUnitPrice(0);
+            setOutPutVoltage(0);
+            setOutPutCurrent(0);
+            setPowerMeterStop(0);
+            setPowerMeterCalculate(0);
+            setTradeCode("");
+            setTradeMethod("");
+            setPrePayment(0);
+            setPartialCancelPayment(0);
+            setApprovalNumber("");
+            setApprovalDate("");
+            setApprovalTime("");
+            setPgTranSeq("");
+            setCreditCardNumber("");
+            setStoreNumber("");
+            setTerminalNumber("");
+            setResponseCode("");
+            setResponseMessage("");
+            setPrePaymentResult(false);
+            setTradeUniqueNumber("");
+            setSurtax(0);
+            setTip(0);
+            setInstallment(0);
+            setIssuer("");
+            setBuyer("");
+            setChargingStartTime("");
+            setChargingEndTime("");
+            setTransactionId(0);
+            setChargerPointType(ChargerPointType.NONE);
+            setPaymentType(PaymentType.NONE);
+            setSmsTelNum(null);
+            setChargingTime(0);
+            setFaultCancelPayment(false);
+            setAuthorizeResult(false);
+            setRemaintime(0);
+            setParentIdTag("");
+            setIdTagStop("");
+            setParentIdTagStop("");
+            setResExpiryDate("");
+            setResIdTag("");
+            setResParentIdTag("");
+            setResReservationId("");
+            setRemoteStartSmartCharging(false);
+            setSoc(0);
+            setTargetSoc(80);
+            setTargetCurrent(0);
+            setAuthType("M");
+        } catch (Exception e) {
+            logger.error("ChargingCurrentData onCurrentDataClear error : {}", e.getMessage(), e);
+        }
     }
 
     public int getTargetSoc() {
@@ -847,14 +852,6 @@ public class ChargingCurrentData {
         this.chgFinishWait = chgFinishWait;
     }
 
-    public boolean isConnectAuto() {
-        return connectAuto;
-    }
-
-    public void setConnectAuto(boolean connectAuto) {
-        this.connectAuto = connectAuto;
-    }
-
     public String getAuthType() {
         return authType;
     }
@@ -877,5 +874,13 @@ public class ChargingCurrentData {
 
     public void setConnectUse(boolean connectUse) {
         this.connectUse = connectUse;
+    }
+
+    public boolean isAutoStart() {
+        return autoStart;
+    }
+
+    public void setAutoStart(boolean autoStart) {
+        this.autoStart = autoStart;
     }
 }

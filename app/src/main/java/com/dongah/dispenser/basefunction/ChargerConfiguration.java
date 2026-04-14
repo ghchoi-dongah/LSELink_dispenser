@@ -2,7 +2,6 @@ package com.dongah.dispenser.basefunction;
 
 import android.os.Environment;
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.dongah.dispenser.utils.FileManagement;
 import com.dongah.dispenser.websocket.ocpp.firmware.DiagnosticsStatus;
@@ -55,6 +54,11 @@ public class ChargerConfiguration {
     public int opMode = 0;
     public int opModeId;
 
+    /** 시작 모드
+     * 0: 터치 시작 모드
+     * 1: 자동 시작 모드
+     * */
+    public int startMode = 0;
 
     /** device serial port */
     public String controlCom = "/dev/ttyS4";
@@ -127,13 +131,11 @@ public class ChargerConfiguration {
                 setStopConfirm(obj.getBoolean("STOP_CONFIRM"));
                 setTargetSoc(obj.getInt("TARGET_SOC"));
                 setDr(obj.getInt("DR"));
+                setStartMode(obj.getInt("START_MODE"));
 //                setSigned(obj.getBoolean("SIGNED"));
             }
         } catch (Exception e) {
-//            e.printStackTrace();
-//            Log.d(" {}", e.getMessage());
-            Log.e("ChargerConfiguration", "onLoadConfiguration error : {}", e);
-            logger.error("configuration load fail: {}", e.getMessage());
+            logger.error("configuration load fail: {}", e.getMessage(), e);
         }
     }
 
@@ -166,10 +168,11 @@ public class ChargerConfiguration {
             obj.put("STOP_CONFIRM", isStopConfirm());
             obj.put("TARGET_SOC", getTargetSoc());
             obj.put("DR", getDr());
+            obj.put("START_MODE", getStartMode());
 //            obj.put("SIGNED", isSigned());
             fileManagement.stringToFileSave(rootPath, CONFIG_FILE_NAME, obj.toString(), false);
         } catch (Exception e) {
-            logger.error("configuration save fail: {}", e.getMessage());
+            logger.error("configuration save fail: {}", e.getMessage(), e);
         }
     }
 
@@ -251,6 +254,14 @@ public class ChargerConfiguration {
 
     public void setOpModeId(int opModeId) {
         this.opModeId = opModeId;
+    }
+
+    public int getStartMode() {
+        return startMode;
+    }
+
+    public void setStartMode(int startMode) {
+        this.startMode = startMode;
     }
 
     public String getControlCom() {

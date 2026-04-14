@@ -9,6 +9,7 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import android.os.Handler;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -65,6 +66,9 @@ public class InitFragment extends Fragment implements View.OnClickListener {
     Handler handler;
     Runnable runnable;
     RxData rxData;
+
+    Handler eventHandler;
+    Runnable eventRunnable;
 
     public InitFragment() {
         // Required empty public constructor
@@ -147,6 +151,25 @@ public class InitFragment extends Fragment implements View.OnClickListener {
             sharedModel = new ViewModelProvider(requireActivity()).get(SharedModel.class);
             requestStrings[0] = String.valueOf(0);
             sharedModel.setMutableLiveData(requestStrings);
+            initData();
+
+            // PnC
+            if (Objects.equals(chargerConfiguration.getStartMode(), 1)) {
+                eventHandler = new Handler(Looper.getMainLooper());
+                eventRunnable = new Runnable() {
+                    @Override
+                    public void run() {
+                        if (rxData.isCsPilot() && rxData.isCsReady() && chargingCurrentData.isConnectUse()
+                                && chargingCurrentData.isAutoStart()) {
+                            chargingCurrentData.setAutoStart(false);
+                            changeFragment();
+                        }
+                        eventHandler.postDelayed(this, 1000);
+                    }
+                };
+                eventHandler.postDelayed(eventRunnable, 1000);
+            }
+
         } catch (Exception e) {
             logger.error("InitFragment onViewCreated : {}", e.getMessage());
         }
@@ -154,19 +177,28 @@ public class InitFragment extends Fragment implements View.OnClickListener {
 
     @Override
     public void onClick(View v) {
-        if (!chargingCurrentData.isConnectUse()) return;
-        if (!Objects.equals(v.getId(), R.id.viewCircle) && !rxData.isCsPilot()) return;
+        if (!Objects.equals(chargerConfiguration.getStartMode(), 0)
+                || !chargingCurrentData.isConnectUse()
+                || (!Objects.equals(v.getId(), R.id.viewCircle) && !rxData.isCsPilot())) {
+            return;
+        }
         changeFragment();
     }
 
-    private void changeFragment() {
+    private void initData() {
         try {
             chargingCurrentData.onCurrentDataClear();   // clear
             chargingCurrentData.setConnectorId(mChannel + 1);
 
             activity.getChargingCurrentData(mChannel).setChargerPointType(ChargerPointType.COMBO);
             activity.getChargingCurrentData(mChannel).setConnectorId(mChannel + 1);
+        } catch (Exception e) {
+            logger.error("InitFragment initData : {}", e.getMessage());
+        }
+    }
 
+    private void changeFragment() {
+        try {
             if (Objects.equals(chargerConfiguration.getOpMode(), 0)) {
                 // test mode
                 double testPrice = Double.parseDouble(activity.getChargerConfiguration().getTestPrice());
@@ -234,6 +266,10 @@ public class InitFragment extends Fragment implements View.OnClickListener {
                 handler.removeCallbacks(runnable);
                 handler.removeCallbacksAndMessages(null);
                 handler.removeMessages(0);
+            }
+
+            if (eventHandler != null) {
+                eventHandler.removeCallbacks(eventRunnable);
             }
         } catch (Exception e) {
             logger.error("InitFragment onDetach error : {}", e.getMessage());
