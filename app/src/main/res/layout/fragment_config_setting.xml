@@ -70,7 +70,7 @@
         android:inputType="text"
         app:layout_constraintTop_toTopOf="@id/textViewChargeBoxSerialNumber"
         app:layout_constraintStart_toStartOf="@id/spinnerChargePointType"
-        tools:ignore="Autofill,LabelFor,TextFields" />
+        tools:ignore="Autofill,LabelFor,TextFields,SpeakableTextPresentCheck" />
 
     <TextView
         android:id="@+id/textViewChargerId"
@@ -92,7 +92,7 @@
         android:inputType="text"
         app:layout_constraintTop_toTopOf="@id/textViewChargerId"
         app:layout_constraintStart_toStartOf="@id/spinnerChargePointType"
-        tools:ignore="Autofill,LabelFor,TextFields" />
+        tools:ignore="Autofill,LabelFor,TextFields,SpeakableTextPresentCheck" />
 
     <TextView
         android:id="@+id/textViewServerUrl"
@@ -114,7 +114,7 @@
         android:inputType="text"
         app:layout_constraintTop_toTopOf="@id/textViewServerUrl"
         app:layout_constraintStart_toStartOf="@id/spinnerChargePointType"
-        tools:ignore="Autofill,LabelFor,TextFields" />
+        tools:ignore="Autofill,LabelFor,TextFields,SpeakableTextPresentCheck" />
 
     <TextView
         android:id="@+id/textViewServerPort"
@@ -136,7 +136,7 @@
         android:inputType="text"
         app:layout_constraintTop_toTopOf="@id/textViewServerPort"
         app:layout_constraintStart_toStartOf="@id/spinnerChargePointType"
-        tools:ignore="Autofill,LabelFor,TextFields" />
+        tools:ignore="Autofill,LabelFor,TextFields,SpeakableTextPresentCheck" />
 
     <TextView
         android:id="@+id/textViewControlPort"
@@ -158,7 +158,7 @@
         android:inputType="text"
         app:layout_constraintTop_toTopOf="@id/textViewControlPort"
         app:layout_constraintStart_toStartOf="@id/spinnerChargePointType"
-        tools:ignore="Autofill,LabelFor,TextFields" />
+        tools:ignore="Autofill,LabelFor,TextFields,SpeakableTextPresentCheck" />
 
     <TextView
         android:id="@+id/textViewRfPort"
@@ -180,7 +180,7 @@
         android:inputType="text"
         app:layout_constraintTop_toTopOf="@id/textViewRfPort"
         app:layout_constraintStart_toStartOf="@id/spinnerChargePointType"
-        tools:ignore="Autofill,LabelFor,TextFields" />
+        tools:ignore="Autofill,LabelFor,TextFields,SpeakableTextPresentCheck" />
 
     <TextView
         android:id="@+id/textViewCreditCardPort"
@@ -202,7 +202,7 @@
         android:inputType="text"
         app:layout_constraintTop_toTopOf="@id/textViewCreditCardPort"
         app:layout_constraintStart_toStartOf="@id/spinnerChargePointType"
-        tools:ignore="Autofill,LabelFor,TextFields" />
+        tools:ignore="Autofill,LabelFor,TextFields,SpeakableTextPresentCheck" />
 
     <TextView
         android:id="@+id/textViewTestPrice"
@@ -224,7 +224,7 @@
         android:inputType="text"
         app:layout_constraintTop_toTopOf="@id/textViewTestPrice"
         app:layout_constraintStart_toStartOf="@id/spinnerChargePointType"
-        tools:ignore="Autofill,LabelFor,TextFields" />
+        tools:ignore="Autofill,LabelFor,TextFields,SpeakableTextPresentCheck" />
 
     <TextView
         android:id="@+id/textViewSoc"
@@ -246,7 +246,7 @@
         android:inputType="text"
         app:layout_constraintTop_toTopOf="@id/textViewSoc"
         app:layout_constraintStart_toStartOf="@id/spinnerChargePointType"
-        tools:ignore="Autofill,LabelFor,TextFields" />
+        tools:ignore="Autofill,LabelFor,TextFields,SpeakableTextPresentCheck" />
 
     <TextView
         android:id="@+id/textViewConnectorPriority"
@@ -268,7 +268,7 @@
         android:inputType="text"
         app:layout_constraintTop_toTopOf="@id/textViewConnectorPriority"
         app:layout_constraintStart_toStartOf="@id/spinnerChargePointType"
-        tools:ignore="Autofill,LabelFor,TextFields" />
+        tools:ignore="Autofill,LabelFor,TextFields,SpeakableTextPresentCheck" />
 
     <TextView
         android:id="@+id/textViewChargePointSerialNumber"
@@ -291,7 +291,7 @@
         android:inputType="text"
         app:layout_constraintTop_toTopOf="@id/textViewChargePointSerialNumber"
         app:layout_constraintEnd_toEndOf="parent"
-        tools:ignore="Autofill,LabelFor,TextFields" />
+        tools:ignore="Autofill,LabelFor,TextFields,SpeakableTextPresentCheck" />
 
     <TextView
         android:id="@+id/textViewChargePointVendor"
@@ -314,7 +314,7 @@
         android:inputType="text"
         app:layout_constraintTop_toTopOf="@id/textViewChargePointVendor"
         app:layout_constraintStart_toStartOf="@id/editChargePointSerialNumber"
-        tools:ignore="Autofill,LabelFor,TextFields" />
+        tools:ignore="Autofill,LabelFor,TextFields,SpeakableTextPresentCheck" />
 
     <TextView
         android:id="@+id/textViewMid"
@@ -336,7 +336,7 @@
         android:inputType="text"
         app:layout_constraintTop_toTopOf="@id/textViewMid"
         app:layout_constraintStart_toStartOf="@id/editChargePointSerialNumber"
-        tools:ignore="Autofill,LabelFor,TextFields" />
+        tools:ignore="Autofill,LabelFor,TextFields,SpeakableTextPresentCheck" />
 
     <TextView
         android:id="@+id/textViewFirmwareVersion"
@@ -359,7 +359,7 @@
         android:inputType="text"
         app:layout_constraintTop_toTopOf="@id/textViewFirmwareVersion"
         app:layout_constraintStart_toStartOf="@id/editChargePointSerialNumber"
-        tools:ignore="Autofill,LabelFor,TextFields" />
+        tools:ignore="Autofill,LabelFor,TextFields,SpeakableTextPresentCheck" />
 
     <TextView
         android:id="@+id/textViewKeyboardControl"
@@ -402,7 +402,7 @@
         android:inputType="text"
         app:layout_constraintTop_toTopOf="@id/textViewIccid"
         app:layout_constraintStart_toStartOf="@id/editChargePointSerialNumber"
-        tools:ignore="Autofill,LabelFor,TextFields" />
+        tools:ignore="Autofill,LabelFor,TextFields,SpeakableTextPresentCheck" />
 
     <TextView
         android:id="@+id/textViewImsi"
@@ -425,7 +425,7 @@
         android:inputType="text"
         app:layout_constraintTop_toTopOf="@id/textViewImsi"
         app:layout_constraintStart_toStartOf="@id/editChargePointSerialNumber"
-        tools:ignore="Autofill,LabelFor,TextFields" />
+        tools:ignore="Autofill,LabelFor,TextFields,SpeakableTextPresentCheck" />
 
     <TextView
         android:id="@+id/textViewMeterSerialNumber"
@@ -448,7 +448,7 @@
         android:inputType="text"
         app:layout_constraintTop_toTopOf="@id/textViewMeterSerialNumber"
         app:layout_constraintStart_toStartOf="@id/editChargePointSerialNumber"
-        tools:ignore="Autofill,LabelFor,TextFields" />
+        tools:ignore="Autofill,LabelFor,TextFields,SpeakableTextPresentCheck" />
 
     <TextView
         android:id="@+id/textViewMeterType"
@@ -471,7 +471,7 @@
         android:inputType="text"
         app:layout_constraintTop_toTopOf="@id/textViewMeterType"
         app:layout_constraintStart_toStartOf="@id/editChargePointSerialNumber"
-        tools:ignore="Autofill,LabelFor,TextFields" />
+        tools:ignore="Autofill,LabelFor,TextFields,SpeakableTextPresentCheck" />
 
     <TextView
         android:id="@+id/textViewAuthMode"
@@ -532,7 +532,7 @@
         android:inputType="text"
         app:layout_constraintTop_toTopOf="@id/editConnectorPriority"
         app:layout_constraintStart_toStartOf="@id/editChargePointSerialNumber"
-        tools:ignore="Autofill,LabelFor,TextFields" />
+        tools:ignore="Autofill,LabelFor,TextFields,SpeakableTextPresentCheck" />
 
     <TextView
         android:id="@+id/textViewStartMode"
@@ -541,8 +541,8 @@
         android:layout_marginTop="12dp"
         android:text="@string/startMode"
         android:textSize="18sp"
-        app:layout_constraintTop_toBottomOf="@id/textDR"
-        app:layout_constraintEnd_toEndOf="@id/textDR"/>
+        app:layout_constraintTop_toBottomOf="@id/textViewConnectorPriority"
+        app:layout_constraintEnd_toEndOf="@id/textViewConnectorPriority"/>
 
     <Spinner
         android:id="@+id/spinnerStartMode"
@@ -553,9 +553,28 @@
         android:theme="@style/SpinnerTheme"
         android:background="@drawable/spinner_background"
         app:layout_constraintTop_toTopOf="@id/textViewStartMode"
-        app:layout_constraintStart_toStartOf="@id/editChargePointSerialNumber"/>
+        app:layout_constraintStart_toStartOf="@id/editConnectorPriority"/>
 
+    <TextView
+        android:id="@+id/textViewControlMonitor"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:text="@string/controlMonitor"
+        android:textSize="18sp"
+        app:layout_constraintTop_toBottomOf="@id/textDR"
+        app:layout_constraintEnd_toEndOf="@id/textDR"/>
 
+    <CheckBox
+        android:id="@+id/checkboxControlMonitor"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:checked="true"
+        android:scaleX="1.3"
+        android:scaleY="1.3"
+        app:layout_constraintTop_toTopOf="@id/textViewControlMonitor"
+        app:layout_constraintBottom_toBottomOf="@id/textViewControlMonitor"
+        app:layout_constraintStart_toStartOf="@id/editDR" />
 
     <Button
         android:id="@+id/btnExit"

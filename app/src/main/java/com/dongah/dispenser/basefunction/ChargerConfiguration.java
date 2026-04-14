@@ -85,6 +85,7 @@ public class ChargerConfiguration {
 
     public boolean StopConfirm;
     public boolean signed = true ;
+    public boolean controlMonitor = true;
     public FirmwareStatus firmwareStatus = FirmwareStatus.Idle;
     public SignedFirmwareStatus signedFirmwareStatus = SignedFirmwareStatus.Idle;
     public DiagnosticsStatus diagnosticsStatus = DiagnosticsStatus.Idle;
@@ -133,6 +134,7 @@ public class ChargerConfiguration {
                 setDr(obj.getInt("DR"));
                 setStartMode(obj.getInt("START_MODE"));
                 setSigned(obj.getBoolean("SIGNED"));
+                setControlMonitor(obj.getBoolean("CONTROL_MONITOR"));
             }
         } catch (Exception e) {
             logger.error("configuration load fail: {}", e.getMessage(), e);
@@ -170,6 +172,7 @@ public class ChargerConfiguration {
             obj.put("DR", getDr());
             obj.put("START_MODE", getStartMode());
             obj.put("SIGNED", isSigned());
+            obj.put("CONTROL_MONITOR", isControlMonitor());
             fileManagement.stringToFileSave(rootPath, CONFIG_FILE_NAME, obj.toString(), false);
         } catch (Exception e) {
             logger.error("configuration save fail: {}", e.getMessage(), e);
@@ -406,6 +409,14 @@ public class ChargerConfiguration {
 
     public void setSigned(boolean signed) {
         this.signed = signed;
+    }
+
+    public boolean isControlMonitor() {
+        return controlMonitor;
+    }
+
+    public void setControlMonitor(boolean controlMonitor) {
+        this.controlMonitor = controlMonitor;
     }
 
     public FirmwareStatus getFirmwareStatus() {

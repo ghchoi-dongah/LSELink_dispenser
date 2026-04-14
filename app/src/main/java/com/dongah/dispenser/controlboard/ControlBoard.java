@@ -60,14 +60,16 @@ public class ControlBoard implements Runnable {
     /**
      *  controlBoard Listener register
      **/
-    ControlBoardListener controlBoardListener;
+    private final java.util.List<ControlBoardListener> listeners = new java.util.ArrayList<>();
 
-    public void setDspControlListener(ControlBoardListener controlBoardListener) {
-        this.controlBoardListener = controlBoardListener;
+    public void addControlBoardListener(ControlBoardListener listener) {
+        if (!listeners.contains(listener)) {
+            listeners.add(listener);
+        }
     }
 
-    public void setControlBoardListenerStop() {
-        controlBoardListener = null;
+    public void removeControlBoardListener(ControlBoardListener listener) {
+        listeners.remove(listener);
     }
 
     /**
@@ -151,8 +153,9 @@ public class ControlBoard implements Runnable {
                     }
 //                    rxData[currentCh-1].Decode(values);
                     rxData[curCh].Decode(values);
-                    if (controlBoardListener != null)
-                        controlBoardListener.onControlBoardReceive(rxData);
+                    for (ControlBoardListener listener : listeners) {
+                        listener.onControlBoardReceive(rxData);
+                    }
                     Arrays.fill(realReceiveData, (byte) 0x00);
                 }
             } catch (Exception e) {
@@ -252,8 +255,9 @@ public class ControlBoard implements Runnable {
                     rxBuffer200 = txData[curCh].Encode();
                     chkTx = requestSend(sendCh[0], (byte) 0x10, curCh == 0 ? (short) 200 : (short) 210, (short) 10, rxBuffer200);
                     // tx data listener
-                    if (controlBoardListener != null)
-                        controlBoardListener.onControlBoardSend(txData);
+                    for (ControlBoardListener listener : listeners) {
+                        listener.onControlBoardSend(txData);
+                    }
                 }
                 Thread.sleep(150);
                 try {

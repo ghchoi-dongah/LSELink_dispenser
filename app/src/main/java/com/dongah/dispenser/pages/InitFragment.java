@@ -151,7 +151,6 @@ public class InitFragment extends Fragment implements View.OnClickListener {
             sharedModel = new ViewModelProvider(requireActivity()).get(SharedModel.class);
             requestStrings[0] = String.valueOf(0);
             sharedModel.setMutableLiveData(requestStrings);
-            initData();
 
             // PnC
             if (Objects.equals(chargerConfiguration.getStartMode(), 1)) {
@@ -199,6 +198,8 @@ public class InitFragment extends Fragment implements View.OnClickListener {
 
     private void changeFragment() {
         try {
+            initData();
+
             if (Objects.equals(chargerConfiguration.getOpMode(), 0)) {
                 // test mode
                 double testPrice = Double.parseDouble(activity.getChargerConfiguration().getTestPrice());

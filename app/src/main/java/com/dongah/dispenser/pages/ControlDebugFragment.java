@@ -115,7 +115,7 @@ public class ControlDebugFragment extends Fragment implements View.OnClickListen
         listTx.setAdapter(listViewTxAdapter);
 
         controlBoard = ((MainActivity) MainActivity.mContext).getControlBoard();
-        controlBoard.setDspControlListener(this);
+        controlBoard.addControlBoardListener(this);
 
         return view;
     }
@@ -154,7 +154,7 @@ public class ControlDebugFragment extends Fragment implements View.OnClickListen
     @Override
     public void onDetach() {
         super.onDetach();
-        controlBoard.setControlBoardListenerStop();
+        controlBoard.removeControlBoardListener(this);
     }
 
     @Override

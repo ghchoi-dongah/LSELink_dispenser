@@ -254,7 +254,7 @@ public class SocketReceiveMessage extends JSONCommunicator implements SocketInte
             // 공통 처리 (ID 삭제 등)
             newHashMapUuid.remove(message.getId());
         } catch (Exception e) {
-            logger.error(" onGetMessage error : {}", e.getMessage());
+            logger.error(" onGetMessage error : {}", e.getMessage(), e);
         }
     }
 

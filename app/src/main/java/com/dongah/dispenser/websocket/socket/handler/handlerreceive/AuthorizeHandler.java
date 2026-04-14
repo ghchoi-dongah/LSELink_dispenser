@@ -37,18 +37,18 @@ public class AuthorizeHandler implements OcppHandler {
         UiSeq uiSeq = activity.getClassUiProcess(connectorId-1).getUiSeq();
         ChargerConfiguration chargerConfiguration = activity.getChargerConfiguration();
 
-        JSONObject idTagInfo = payload.getJSONObject("idTagInfo");
-        AuthorizationStatus status = AuthorizationStatus.valueOf(idTagInfo.getString("status"));
-        String parentIdTag = idTagInfo.has("parentIdTag") ? idTagInfo.getString("parentIdTag") : "";
-        String expiryDate = idTagInfo.has("expiryDate") ? idTagInfo.getString("expiryDate") : "";
-
-        if (GlobalVariables.isDumpSending(connectorId)) {
-            logger.info("Dump Authorize Conf 수신 : {}", idTagInfo);
-            activity.getSocketReceiveMessage().getSocket().getDumpDataSend(connectorId).onReceiveAuthorizeConf(connectorId);
-            return;
-        }
-
         try {
+            JSONObject idTagInfo = payload.getJSONObject("idTagInfo");
+            AuthorizationStatus status = AuthorizationStatus.valueOf(idTagInfo.getString("status"));
+            String parentIdTag = idTagInfo.has("parentIdTag") ? idTagInfo.getString("parentIdTag") : "";
+            String expiryDate = idTagInfo.has("expiryDate") ? idTagInfo.getString("expiryDate") : "";
+
+            if (GlobalVariables.isDumpSending(connectorId)) {
+                logger.info("Dump Authorize Conf 수신 : {}", idTagInfo);
+                activity.getSocketReceiveMessage().getSocket().getDumpDataSend(connectorId).onReceiveAuthorizeConf(connectorId);
+                return;
+            }
+
             // 차량 번호
             chargingCurrentData.setParentIdTagStop(parentIdTag);
 
@@ -124,7 +124,7 @@ public class AuthorizeHandler implements OcppHandler {
                 }
             }
         } catch (Exception e) {
-            logger.error("AuthorizeHandler error : {}", e.getMessage());
+            logger.error("AuthorizeHandler error : {}", e.getMessage(), e);
         }
     }
 }

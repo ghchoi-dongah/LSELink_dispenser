@@ -19,6 +19,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
@@ -65,6 +66,7 @@ public class ConfigSettingFragment extends Fragment implements View.OnClickListe
     EditText editMeterSerialNumber, editMeterType;
     EditText editSoc, editDR;
     Button btnExit, btnSave, btnRebooting, btnKeyboardControl;
+    CheckBox checkboxControlMonitor;
 
 
     public ConfigSettingFragment() {
@@ -405,6 +407,8 @@ public class ConfigSettingFragment extends Fragment implements View.OnClickListe
             editSoc.setText(String.valueOf(chargerConfiguration.getTargetSoc()));
             editDR = v.findViewById(R.id.editDR);
             editDR.setText(String.valueOf(chargerConfiguration.getDr()));
+            checkboxControlMonitor = v.findViewById(R.id.checkboxControlMonitor);
+            checkboxControlMonitor.setChecked(chargerConfiguration.isControlMonitor());
         } catch (Exception e) {
             logger.error("ConfigSettingFragment InitializationComponents error : {}",  e.getMessage());
         }
@@ -449,6 +453,8 @@ public class ConfigSettingFragment extends Fragment implements View.OnClickListe
             chargerConfiguration.setMeterType(editMeterType.getText().toString());
             chargerConfiguration.setTargetSoc(Integer.parseInt(editSoc.getText().toString()));
             chargerConfiguration.setDr(Integer.parseInt(editDR.getText().toString()));
+
+            chargerConfiguration.setControlMonitor(checkboxControlMonitor.isChecked());
         } catch (Exception e) {
             logger.error("ConfigSettingFragment onConfigurationUpdate error : {}",  e.getMessage());
         }

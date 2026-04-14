@@ -453,7 +453,7 @@ public class ClassUiProcess implements RfCardReaderListener {
         setPowerMeterCheck(0);
         chargingAlarm = startCheck = true;;
         onMeterValueStop();
-        if (Objects.equals(controlBoard.getTxData(channel).getChargerPointMode(), 0)) {
+        if (controlBoard.getTxData(channel).getChargerPointMode() == 0) {
             controlBoard.getTxData(getCh()).setUiSequence((short) 1);
             controlBoard.getTxData(getCh()).setStart(false);
             controlBoard.getTxData(getCh()).setStop(false);
@@ -471,9 +471,6 @@ public class ClassUiProcess implements RfCardReaderListener {
             setUiSeq(UiSeq.SEQUENTIAL_CHARGING);
             fragmentChange.onFragmentChange(getCh(), UiSeq.SEQUENTIAL_CHARGING, "SEQUENTIAL_CHARGING", null);
         }
-
-        // TODO: 자동 충전
-        // case: isCsReady = true && isConnectUse = true && MAC auth mode && csPilot = true
     }
 
     // Rebooting

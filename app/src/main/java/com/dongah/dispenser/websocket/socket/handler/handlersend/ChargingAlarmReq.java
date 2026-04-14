@@ -7,7 +7,6 @@ import androidx.annotation.RequiresApi;
 import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.basefunction.ChargerConfiguration;
 import com.dongah.dispenser.basefunction.ChargingCurrentData;
-import com.dongah.dispenser.basefunction.UiSeq;
 import com.dongah.dispenser.utils.LogDataSave;
 import com.dongah.dispenser.websocket.ocpp.core.datatransfer.lselink.ChargingAlarmData;
 import com.dongah.dispenser.websocket.ocpp.core.datatransfer.lselink.ChargingAlarmRequest;
@@ -42,8 +41,6 @@ public class ChargingAlarmReq {
             if (activity == null) return;
 
             ChargerConfiguration chargerConfiguration = activity.getChargerConfiguration();
-            ChargingCurrentData chargingCurrentData = activity.getChargingCurrentData(getConnectorId()-1);
-
             ChargingAlarmData chargingAlarmData = createChargingAlarmData(msgType);
 
             ChargingAlarmRequest chargingAlarmRequest = new ChargingAlarmRequest();
@@ -72,7 +69,6 @@ public class ChargingAlarmReq {
 
         MainActivity activity = (MainActivity) MainActivity.mContext;
         ChargingCurrentData chargingCurrentData = activity.getChargingCurrentData(getConnectorId()-1);
-        UiSeq uiSeq = activity.getClassUiProcess(getConnectorId()-1).getUiSeq();
 
         ChargingAlarmData chargingAlarmData = new ChargingAlarmData();
         chargingAlarmData.setConnectorId(getConnectorId());

@@ -43,6 +43,7 @@ import com.dongah.dispenser.websocket.ocpp.core.Reason;
 import com.dongah.dispenser.websocket.socket.SocketReceiveMessage;
 import com.dongah.dispenser.websocket.socket.SocketState;
 import com.dongah.dispenser.websocket.socket.handler.handlersend.ProcessHandler;
+import com.dongah.dispenser.utils.MonitorHttpServer;
 import com.dongah.dispenser.websocket.tcpsocket.ClientSocket;
 
 import org.slf4j.Logger;
@@ -92,6 +93,7 @@ public class MainActivity extends AppCompatActivity {
     RfCardReaderReceive rfCardReaderReceive;
     ToastPositionMake toastPositionMake;
     ClientSocket clientSocket;
+    MonitorHttpServer monitorHttpServer;
 
 
     public UiSeq getFragmentSeq(int ch)  {
@@ -296,6 +298,12 @@ public class MainActivity extends AppCompatActivity {
                 ((MainActivity) MainActivity.mContext).getControlBoard().getTxData(i).setOutPowerLimit((short) chargerConfiguration.getDr());
             }
         }
+
+        // 10. Web Monitor Server
+        if (chargerConfiguration.isControlMonitor()) {
+            monitorHttpServer = new MonitorHttpServer(8080);
+            monitorHttpServer.start();
+        }
     }
 
     @Override
@@ -453,6 +461,9 @@ public class MainActivity extends AppCompatActivity {
         handler.removeCallbacks(runnable);
         for (int i = 0; i < GlobalVariables.maxChannel; i++) {
             classUiProcess[i].stopEventLoop();
+        }
+        if (monitorHttpServer != null) {
+            monitorHttpServer.stopServer();
         }
         super.onDestroy();
     }
