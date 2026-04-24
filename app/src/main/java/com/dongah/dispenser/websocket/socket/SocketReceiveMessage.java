@@ -21,6 +21,7 @@ import com.dongah.dispenser.websocket.socket.handler.handlerreceive.ChangeConfig
 import com.dongah.dispenser.websocket.socket.handler.handlerreceive.ChangeElecModeHandler;
 import com.dongah.dispenser.websocket.socket.handler.handlerreceive.ChangeModeHandler;
 import com.dongah.dispenser.websocket.socket.handler.handlerreceive.ChargingAlarmHandler;
+import com.dongah.dispenser.websocket.socket.handler.handlerreceive.ClearCacheHandler;
 import com.dongah.dispenser.websocket.socket.handler.handlerreceive.FirmwareStatusNotificationHandler;
 import com.dongah.dispenser.websocket.socket.handler.handlerreceive.FullRechgSocHandler;
 import com.dongah.dispenser.websocket.socket.handler.handlerreceive.GetLocalListVersionHandler;
@@ -153,6 +154,7 @@ public class SocketReceiveMessage extends JSONCommunicator implements SocketInte
         handlerMap.put("StatusNotification", new StatusNotificationHandler());
         handlerMap.put("ChangeAvailability", new ChangeAvailabilityHandler());
         handlerMap.put("Authorize", new AuthorizeHandler());
+        handlerMap.put("ClearCache", new ClearCacheHandler());
 
         handlerMap.put("StartTransaction", new StartTransactionHandler());
         handlerMap.put("StopTransaction", new StopTransactionHandler());
