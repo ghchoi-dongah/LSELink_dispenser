@@ -50,9 +50,7 @@ public class StopTransactionReq {
             ChargingCurrentData chargingCurrentData = activity.getChargingCurrentData(getConnectorId()-1);
             ZonedDateTime timestamp = zonedDateTimeConvert.doZonedDateTimeToDatetime(chargingCurrentData.getChargingEndTime());
 //            ZonedDateTime timestamp = zonedDateTimeConvert.doGetCurrentTime(chargingCurrentData.getChargingEndTime());
-
-            MeterValuesReq req = new MeterValuesReq(getConnectorId());
-            req.sendMeterValues(getConnectorId());
+            
             activity.getClassUiProcess(getConnectorId()-1).onMeterValueStop();
 
             StopTransactionRequest stopTransactionRequest = new StopTransactionRequest(

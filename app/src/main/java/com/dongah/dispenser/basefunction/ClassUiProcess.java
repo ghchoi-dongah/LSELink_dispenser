@@ -612,7 +612,6 @@ public class ClassUiProcess implements RfCardReaderListener {
         try {
             controlBoard.getTxData(getCh()).setStop(true);
             controlBoard.getTxData(getCh()).setUiSequence((short) 3);
-            onMeterValueStop();
             //사용자 user stop
             chargingCurrentData.setStopReason(chargingCurrentData.isUserStop() ? Reason.Local : chargingCurrentData.getStopReason());
             // 충전 사용량 정리
@@ -620,14 +619,23 @@ public class ClassUiProcess implements RfCardReaderListener {
             chargingCurrentData.setChargingEndTime(zonedDateTimeConvert.getStringCurrentTimeZone());
             chargingCurrentData.setChargePointStatus(ChargePointStatus.Finishing);
 
+            // stop MeterValues
+            meterValuesReq.sendMeterValues(chargingCurrentData.getConnectorId());
+            onMeterValueStop();
+
             if (Objects.equals(chargerConfiguration.getOpMode(), 1)) {
                 // StopTransaction
                 StopTransactionReq stopTransactionReq = new StopTransactionReq(chargingCurrentData.getConnectorId());
                 stopTransactionReq.sendStopTransactionReq();
             }
 
-            setUiSeq(UiSeq.FINISH);
-            fragmentChange.onFragmentChange(getCh(), UiSeq.FINISH, "FINISH", null);
+            if (!GlobalVariables.ChargerOperation[getCh()+1]) {
+                setUiSeq(UiSeq.INIT);
+                fragmentChange.onFragmentChange(getCh(), UiSeq.INIT, "INIT", null);
+            } else {
+                setUiSeq(UiSeq.FINISH);
+                fragmentChange.onFragmentChange(getCh(), UiSeq.FINISH, "FINISH", null);
+            }
 
         } catch (Exception e) {
             logger.error("ClassUiProcess - FINISH_WAIT error : {} ", e.getMessage());
@@ -636,15 +644,13 @@ public class ClassUiProcess implements RfCardReaderListener {
 
     // fault
     @RequiresApi(api = Build.VERSION_CODES.O)
-    private void handleFault(RxData rxData) {
+    private void handleFault(RxData rxData) throws Exception {
         UiSeq currentViewSeq = ((MainActivity) MainActivity.mContext).getFragmentSeq(getCh());
         if (currentViewSeq.getValue() < 18) {
             if (!(getCurrentFragment() instanceof FaultFragment)) {
                 // server mode 및 charging
                 if (Objects.equals(chargerConfiguration.getOpMode(), 1) &&
                         Objects.equals(getoSeq(), UiSeq.CHARGING)) {
-                    // meter values stop
-                    onMeterValueStop();
                     chargingCurrentData.setStopReason(rxData.isCsEmergency() ? Reason.EmergencyStop : Reason.Other);
                     controlBoard.getTxData(getCh()).setStop(true);
                     controlBoard.getTxData(getCh()).setStart(false);
@@ -652,6 +658,10 @@ public class ClassUiProcess implements RfCardReaderListener {
                     chargingCurrentData.setPowerMeterStop(rxData.getPowerMeter()*10);
                     chargingCurrentData.setChargingEndTime(zonedDateTimeConvert.getStringCurrentTimeZone());
                     chargingCurrentData.setChargePointStatus(ChargePointStatus.Finishing);
+
+                    // meter values stop
+                    meterValuesReq.sendMeterValues(chargingCurrentData.getConnectorId());
+                    onMeterValueStop();
 
                     // socket receive message get instance
                     socketReceiveMessage = ((MainActivity) MainActivity.mContext).getSocketReceiveMessage();
