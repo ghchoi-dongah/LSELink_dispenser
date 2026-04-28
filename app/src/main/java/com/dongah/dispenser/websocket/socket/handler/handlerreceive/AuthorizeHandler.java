@@ -19,14 +19,23 @@ import com.dongah.dispenser.websocket.socket.handler.handlersend.DtAuthorizeReq;
 import com.dongah.dispenser.websocket.socket.handler.handlersend.StatusNotificationReq;
 import com.dongah.dispenser.websocket.socket.handler.handlersend.VehicleInfoReq;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Objects;
 
 public class AuthorizeHandler implements OcppHandler {
     private static final Logger logger = LoggerFactory.getLogger(AuthorizeHandler.class);
+    private final String FILE_NAME = "localList.dongah";
+
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
@@ -53,6 +62,11 @@ public class AuthorizeHandler implements OcppHandler {
             chargingCurrentData.setParentIdTagStop(parentIdTag);
 
             if (AuthorizationStatus.Accepted.equals(status)) {
+                // AuthorizationCacheEnabled == true ? localList.dongah 저장
+                if (GlobalVariables.isAuthorizationCacheEnabled()) {
+                    saveIdTagToFile(chargingCurrentData.getIdTag(), idTagInfo);
+                }
+
                 if (UiSeq.CHARGING.equals(uiSeq)) {
                     boolean stopConfirm = activity.getChargerConfiguration().isStopConfirm();
                 } else {
@@ -125,6 +139,114 @@ public class AuthorizeHandler implements OcppHandler {
             }
         } catch (Exception e) {
             logger.error("AuthorizeHandler error : {}", e.getMessage(), e);
+        }
+    }
+
+    private void saveIdTagToFile(String idTag, JSONObject idTagInfo) {
+        FileWriter fw = null;
+
+        try {
+            File file = new File(
+                    GlobalVariables.getRootPath()
+                            + File.separator
+                            + FILE_NAME
+            );
+
+            // 부모 폴더 없으면 생성
+            File parent = file.getParentFile();
+            if (parent != null && !parent.exists()) {
+                parent.mkdirs();
+            }
+
+            // 1. 파일 존재 여부
+            JSONArray listArray;
+
+            if (file.exists() && file.length() > 0) {
+                String jsonStr = readFileToString(file);
+
+                if (jsonStr == null || jsonStr.trim().isEmpty()) {
+                    listArray = new JSONArray();
+                } else {
+                    listArray = new JSONArray(jsonStr);
+                }
+            } else {
+                listArray = new JSONArray();
+            }
+
+            // 2. 기존 idTag 검색
+            boolean found = false;
+
+            for (int i = 0; i < listArray.length(); i++) {
+                JSONObject item = listArray.getJSONObject(i);
+                String savedIdTag = item.optString("idTag");
+
+                if (savedIdTag.equals(idTag)) {
+                    // 있으면 수정
+                    item.put("idTagInfo", idTagInfo);
+                    found = true;
+                    break;
+                }
+            }
+
+            // 3. 없으면 추가
+            if (!found) {
+                JSONObject newItem = new JSONObject();
+                newItem.put("idTag", idTag);
+                newItem.put("idTagInfo", idTagInfo);
+                listArray.put(newItem);
+            }
+
+            // 4. 파일 저장
+            fw = new FileWriter(file, false);
+            fw.write(listArray.toString(4));
+            fw.flush();
+
+        } catch (Exception e) {
+            logger.error("saveIdTagToFile error : ", e);
+        } finally {
+            if (fw != null) {
+                try {
+                    fw.close();
+                } catch (Exception e) {
+                    logger.error("FileWriter close error : ", e);
+                }
+            }
+        }
+    }
+
+    private String readFileToString(File file) throws IOException {
+        FileInputStream fis = null;
+        ByteArrayOutputStream bos = null;
+
+        try {
+            fis = new FileInputStream(file);
+            bos = new ByteArrayOutputStream();
+
+            byte[] buffer = new byte[1024];
+            int length;
+
+            while ((length = fis.read(buffer)) != -1) {
+                bos.write(buffer, 0, length);
+            }
+
+            return bos.toString("UTF-8");
+
+        } finally {
+            if (fis != null) {
+                try {
+                    fis.close();
+                } catch (IOException e) {
+                    logger.error("FileInputStream close error : ", e);
+                }
+            }
+
+            if (bos != null) {
+                try {
+                    bos.close();
+                } catch (IOException e) {
+                    logger.error("ByteArrayOutputStream close error : ", e);
+                }
+            }
         }
     }
 }
