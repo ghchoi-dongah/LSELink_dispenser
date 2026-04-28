@@ -102,12 +102,18 @@ public class StatusNotificationReq {
             ControlBoard controlBoard = activity.getControlBoard();
             RxData rxData = controlBoard.getRxData(connectorId-1);
             ChargingCurrentData chargingCurrentData = activity.getChargingCurrentData(connectorId-1);
+
+            if (!GlobalVariables.ChargerOperation[connectorId]
+                    && Objects.equals(chargingCurrentData.getChargePointStatus(), ChargePointStatus.Finishing)) {
+                chargingCurrentData.setChargePointStatus(ChargePointStatus.Unavailable);
+            }
+
             String status = chargingCurrentData.getChargePointStatus().name();
             ChargePointErrorCode errorCode = (controlBoard.isDisconnected() ? ChargePointErrorCode.EVCommunicationError :
                     rxData.isCsEmergency() ? ChargePointErrorCode.OtherError : ChargePointErrorCode.NoError);
             statusNotificationRequest.setErrorCode(errorCode);
             statusNotificationRequest.setStatus(rxData.isCsFault() ? ChargePointStatus.Faulted :
-                    !GlobalVariables.ChargerOperation[connectorId-1]  ? ChargePointStatus.Unavailable :
+                    !GlobalVariables.ChargerOperation[connectorId]  ? ChargePointStatus.Unavailable :
                             ChargePointStatus.valueOf(status));
 
             activity.getSocketReceiveMessage().onSend(

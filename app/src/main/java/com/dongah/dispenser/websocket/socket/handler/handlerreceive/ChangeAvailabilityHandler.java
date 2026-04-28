@@ -2,6 +2,8 @@ package com.dongah.dispenser.websocket.socket.handler.handlerreceive;
 
 import android.os.Build;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
 
 import androidx.annotation.RequiresApi;
 
@@ -31,50 +33,82 @@ public class ChangeAvailabilityHandler implements OcppHandler {
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public void handle(JSONObject payload, int connectorId, String messageId) throws Exception {
-//        int connectorId = jsonObject.has("connectorId") ? jsonObject.getInt("connectorId") : -1;
-        MainActivity activity = (MainActivity) MainActivity.mContext;
-        ChargingCurrentData chargingCurrentData = activity.getChargingCurrentData(connectorId-1);
-        AvailabilityType type = AvailabilityType.valueOf(payload.getString("type"));
+        try {
+            MainActivity activity = (MainActivity) MainActivity.mContext;
+            AvailabilityType type = AvailabilityType.valueOf(payload.getString("type"));
 
-        // Operative → 충전기 사용 가능
-        boolean checkType = type == AvailabilityType.Operative;
+            // Operative → 충전기 사용 가능
+            boolean checkType = type == AvailabilityType.Operative;
 
-        // 충전 중 상태 확인(true: 충전 중)
-        boolean isCharging = Objects.equals(
-                activity.getClassUiProcess(connectorId).getUiSeq(),
-                UiSeq.CHARGING
-        );
+            ChargePointStatus status = (type.equals(AvailabilityType.Operative) || type.equals(AvailabilityType.Managecomplete))
+                    ? ChargePointStatus.Available : type.equals(AvailabilityType.Inoperative)
+                    ? ChargePointStatus.Unavailable : ChargePointStatus.Maintenance;
 
-        AvailabilityStatus result =
-                ((type == AvailabilityType.Inoperative) || (type == AvailabilityType.Maintenance) && isCharging)
-                        ? AvailabilityStatus.Scheduled
-                        : AvailabilityStatus.Accepted;
 
-        // change availability response
-        ChangeAvailabilityConfirmation changeAvailabilityConfirmation = new ChangeAvailabilityConfirmation(result);
-        activity.getSocketReceiveMessage().onResultSend(
-                100,
-                changeAvailabilityConfirmation.getActionName(),
-                messageId,
-                changeAvailabilityConfirmation);
+            // ChargerOperate
+            // connectorId == 0 → 전체 업데이트
+            if (connectorId == 0) {
 
-        ChargePointStatus status = type.equals(AvailabilityType.Operative) ?
-                ChargePointStatus.Available : ChargePointStatus.Maintenance;
-        chargingCurrentData.setChargePointStatus(status);
+                boolean isCharging = Objects.equals(activity.getClassUiProcess(0).getUiSeq(), UiSeq.CHARGING);
+                isCharging = isCharging || Objects.equals(activity.getClassUiProcess(1).getUiSeq(), UiSeq.CHARGING);
 
-        // StatusNotification send
-        StatusNotificationReq statusNotificationReq = new StatusNotificationReq(connectorId);
-        statusNotificationReq.sendStatusNotification(connectorId, chargingCurrentData.getChargePointStatus());
+                AvailabilityStatus result =
+                        ((type == AvailabilityType.Inoperative) || (type == AvailabilityType.Maintenance) && isCharging)
+                                ? AvailabilityStatus.Scheduled
+                                : AvailabilityStatus.Accepted;
 
-        // ChargerOperate
-        // connectorId == 0 → 전체 업데이트
-        if (connectorId == 0) {
-            Arrays.fill(GlobalVariables.ChargerOperation, checkType);
-        } else {
-            GlobalVariables.ChargerOperation[connectorId] = checkType;
+                // change availability response
+                ChangeAvailabilityConfirmation changeAvailabilityConfirmation = new ChangeAvailabilityConfirmation(result);
+                activity.getSocketReceiveMessage().onResultSend(
+                        connectorId,
+                        changeAvailabilityConfirmation.getActionName(),
+                        messageId,
+                        changeAvailabilityConfirmation);
+
+                Arrays.fill(GlobalVariables.ChargerOperation, checkType);
+
+                for (int i = 0; i < GlobalVariables.maxChannel; i++) {
+                    ChargingCurrentData chargingCurrentData = activity.getChargingCurrentData(i);
+                    chargingCurrentData.setChargePointStatus(status);
+
+                    // StatusNotification send
+                    StatusNotificationReq statusNotificationReq = new StatusNotificationReq(i+1);
+                    statusNotificationReq.sendStatusNotification(i+1, chargingCurrentData.getChargePointStatus());
+                }
+
+            } else {
+                boolean isCharging = Objects.equals(
+                        activity.getClassUiProcess(connectorId-1).getUiSeq(),
+                        UiSeq.CHARGING
+                );
+
+                AvailabilityStatus result =
+                        ((type == AvailabilityType.Inoperative) || (type == AvailabilityType.Maintenance)) && isCharging
+                                ? AvailabilityStatus.Scheduled
+                                : AvailabilityStatus.Accepted;
+
+                // change availability response
+                ChangeAvailabilityConfirmation changeAvailabilityConfirmation = new ChangeAvailabilityConfirmation(result);
+                activity.getSocketReceiveMessage().onResultSend(
+                        connectorId,
+                        changeAvailabilityConfirmation.getActionName(),
+                        messageId,
+                        changeAvailabilityConfirmation);
+
+                GlobalVariables.ChargerOperation[connectorId] = checkType;
+
+                ChargingCurrentData chargingCurrentData = activity.getChargingCurrentData(connectorId-1);
+                chargingCurrentData.setChargePointStatus(status);
+
+                // StatusNotification send
+                StatusNotificationReq statusNotificationReq = new StatusNotificationReq(connectorId);
+                statusNotificationReq.sendStatusNotification(connectorId, chargingCurrentData.getChargePointStatus());
+            }
+
+            onChargerOperateSave(checkType);
+        } catch (Exception e) {
+            logger.error("ChangeAvailabilityHandler error : {}", e.getMessage(), e);
         }
-
-        onChargerOperateSave(checkType);
     }
 
 
