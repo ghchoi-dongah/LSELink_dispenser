@@ -44,6 +44,8 @@ public class ConfigurationKeyRead {
                         GlobalVariables.setReserveConnectorZeroSupported(contDetail.getBoolean("value"));
                     } else if (Objects.equals("LocalPreAuthorize", contDetail.getString("key"))) {
                         GlobalVariables.setLocalPreAuthorize(contDetail.getBoolean("value"));
+                    } else if (Objects.equals("AuthorizationCacheEnabled", contDetail.getString("key"))) {
+                        GlobalVariables.setAuthorizationCacheEnabled(Boolean.parseBoolean(contDetail.getString("value")));
                     } else if (Objects.equals("AllowOfflineTxForUnknownId", contDetail.getString("key"))) {
                         GlobalVariables.setAllowOfflineTxForUnknownId(contDetail.getBoolean("value"));
                     } else if (Objects.equals("StopTransactionOnInvalidId", contDetail.getString("key"))) {

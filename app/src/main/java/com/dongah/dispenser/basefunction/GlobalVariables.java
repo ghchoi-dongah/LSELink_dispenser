@@ -38,6 +38,7 @@ public class GlobalVariables {
     public static boolean ReserveConnectorZeroSupported = true;
     public static boolean LocalPreAuthorize = false;
     public static boolean AllowOfflineTxForUnknownId = false;
+    public static boolean AuthorizationCacheEnabled = false;
     public static boolean StopTransactionOnInvalidId = false;
     public static boolean StopTransactionOnEVSideDisconnect = true;
     public static boolean UnlockConnectorOnEVSideDisconnect = true;
@@ -162,6 +163,14 @@ public class GlobalVariables {
 
     public static void setLocalPreAuthorize(boolean localPreAuthorize) {
         LocalPreAuthorize = localPreAuthorize;
+    }
+
+    public static boolean isAuthorizationCacheEnabled() {
+        return AuthorizationCacheEnabled;
+    }
+
+    public static void setAuthorizationCacheEnabled(boolean authorizationCacheEnabled) {
+        AuthorizationCacheEnabled = authorizationCacheEnabled;
     }
 
     public static boolean isAllowOfflineTxForUnknownId() {
