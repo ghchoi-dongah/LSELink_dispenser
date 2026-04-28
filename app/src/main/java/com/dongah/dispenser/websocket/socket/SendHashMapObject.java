@@ -3,6 +3,7 @@ package com.dongah.dispenser.websocket.socket;
 public class SendHashMapObject {
     private int connectorId;
     private String actionName;
+    private boolean dataTransfer;
 
     public SendHashMapObject() {
     }
@@ -26,5 +27,13 @@ public class SendHashMapObject {
 
     public void setActionName(String actionName) {
         this.actionName = actionName;
+    }
+
+    public boolean isDataTransfer() {
+        return dataTransfer;
+    }
+
+    public void setDataTransfer(boolean dataTransfer) {
+        this.dataTransfer = dataTransfer;
     }
 }

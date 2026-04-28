@@ -192,9 +192,14 @@ public class SocketReceiveMessage extends JSONCommunicator implements SocketInte
     public void onGetMessage(WebSocket webSocket, String text) throws JSONException {
         try {
             message = parse(text);
+            if (message == null || message.getResultType() == null) {
+                logger.warn("Failed to parse message (message or resultType is null): {}", text);
+                return;
+            }
             String actionName = "";
             int connectorIdForLog = 0;
             int resultType = message.getResultType();
+            logger.info("onGetMessage received: resultType={}, id={}, text={}", resultType, message.getId(), text);
 
             /*
              * 1. Call(Type=2) 인 경우 → message.action 사용
@@ -207,6 +212,17 @@ public class SocketReceiveMessage extends JSONCommunicator implements SocketInte
                 if (payload.has("connectorId")) {
                     this.connectorId = payload.getInt("connectorId");
                     connectorIdForLog = this.connectorId;
+                } else if ("DataTransfer".equals(actionName) && payload.has("data")) {
+                    // DataTransfer의 경우 connectorId가 data JSON 문자열 내부에 있음
+                    try {
+                        JSONObject dataObj = new JSONObject(payload.getString("data"));
+                        if (dataObj.has("connectorId")) {
+                            this.connectorId = dataObj.getInt("connectorId");
+                            connectorIdForLog = this.connectorId;
+                        }
+                    } catch (JSONException e) {
+                        logger.warn("DataTransfer data parse error: {}", e.getMessage());
+                    }
                 }
             } else if (resultType == 3) {
                 SendHashMapObject obj = (SendHashMapObject) newHashMapUuid.get(message.getId());
@@ -214,19 +230,38 @@ public class SocketReceiveMessage extends JSONCommunicator implements SocketInte
                     actionName = obj.getActionName();
                     this.connectorId = obj.getConnectorId();
                     connectorIdForLog = obj.getConnectorId();
+
+                    // "Authorize" → "DTAuthorize" → DTAuthorizeHandler로 라우팅
+                    if (obj.isDataTransfer() && actionName.equals("Authorize")) {
+                        actionName = "DT" + actionName;
+                    }
                 } else {
                     logger.warn("No stored request for uuid={}", message.getId());
                     return;
                 }
+            } else {
+                // Type=4 (CallError) 또는 알 수 없는 타입은 무시
+                // 상대방이 요청을 처리하지 못했을 때 보내는 오류 응답 프레임
+                logger.warn("Unknown resultType={}, ignoring message: {}", resultType, text);
+                return;
             }
 
-            // resultType = 2 : 0 폴더에 추가
-            // resultType = 3 :
-            JSONObject payload = new JSONObject(message.getPayload().toString());
-            OcppHandler handler = null;
+            // actionName이 비어 있으면 처리 불가
+            if (actionName == null || actionName.isEmpty()) {
+                logger.warn("actionName is empty, ignoring message: {}", text);
+                return;
+            }
 
             // log data save
             logDataSave.makeLogDate(connectorIdForLog, actionName, text);
+
+            // payload null 체크
+            if (message.getPayload() == null) {
+                logger.warn("Payload is null for action={}, uuid={}", actionName, message.getId());
+                return;
+            }
+            JSONObject payload = new JSONObject(message.getPayload().toString());
+            OcppHandler handler = null;
 
             /**
              * DataTransfer 분기 처리
@@ -239,8 +274,8 @@ public class SocketReceiveMessage extends JSONCommunicator implements SocketInte
                     return;
                 }
 
-                // DataTransfer 전용 handlerMap 사용
-                handler = dataTransferHandlerMap.get(messageId);
+                // handlerMap에서 messageId로 핸들러 조회
+                handler = handlerMap.get(messageId);
                 if (handler == null) {
                     logger.warn("No handler for messageId={}", messageId);
                     return;
@@ -260,7 +295,9 @@ public class SocketReceiveMessage extends JSONCommunicator implements SocketInte
             }
 
             // 공통 처리 (ID 삭제 등)
-            newHashMapUuid.remove(message.getId());
+            if (message.getId() != null) {
+                newHashMapUuid.remove(message.getId());
+            }
         } catch (Exception e) {
             logger.error(" onGetMessage error : {}", e.getMessage(), e);
         }
@@ -379,11 +416,13 @@ public class SocketReceiveMessage extends JSONCommunicator implements SocketInte
                         JSONObject jsonObject = new JSONObject(payload.toString());
                         actionNameCompare = jsonObject.getString("messageId");
                         sendHashMapObject.setActionName(jsonObject.getString("messageId"));
+                        sendHashMapObject.setDataTransfer(true);
                         newHashMapUuid.put(id, sendHashMapObject);
                         logDataSave.makeLogDate(connectorId, jsonObject.getString("messageId"), call.toString());
                     } else {
                         actionNameCompare = actionName;
                         sendHashMapObject.setActionName(actionName);
+                        sendHashMapObject.setDataTransfer(false);
                         newHashMapUuid.put(id, sendHashMapObject);
                         logDataSave.makeLogDate(connectorId, actionName, call.toString());
                     }
