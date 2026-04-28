@@ -92,6 +92,63 @@
         app:layout_constraintTop_toBottomOf="@id/btnInoperativeAll" />
 
     <Button
+        android:id="@+id/btnTestChangeModeDM"
+        android:layout_width="250dp"
+        android:layout_height="80dp"
+        android:layout_marginStart="50dp"
+        android:layout_marginTop="90dp"
+        android:background="@drawable/shape_btn_white_stroke_blue_rounded"
+        android:text="DT(changemode)\n- DM ALL"
+        android:textStyle="bold"
+        android:textSize="20sp"
+        android:textColor="@color/black_500"
+        app:backgroundTint="@null"
+        app:layout_constraintLeft_toRightOf="@id/btnResetHard"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/btnTestChangeModeIM"
+        android:layout_width="250dp"
+        android:layout_height="80dp"
+        android:layout_marginTop="20dp"
+        android:background="@drawable/shape_btn_white_stroke_blue_rounded"
+        android:text="DT(changemode)\n- IM ALL"
+        android:textStyle="bold"
+        android:textSize="20sp"
+        android:textColor="@color/black_500"
+        app:backgroundTint="@null"
+        app:layout_constraintLeft_toLeftOf="@id/btnTestChangeModeDM"
+        app:layout_constraintTop_toBottomOf="@id/btnTestChangeModeDM"/>
+
+    <Button
+        android:id="@+id/btnTestChangeElecMode"
+        android:layout_width="250dp"
+        android:layout_height="80dp"
+        android:layout_marginTop="20dp"
+        android:background="@drawable/shape_btn_white_stroke_blue_rounded"
+        android:text="DT(changeelecmode)\n- CH0"
+        android:textStyle="bold"
+        android:textSize="20sp"
+        android:textColor="@color/black_500"
+        app:backgroundTint="@null"
+        app:layout_constraintLeft_toLeftOf="@id/btnTestChangeModeIM"
+        app:layout_constraintTop_toBottomOf="@id/btnTestChangeModeIM" />
+
+    <Button
+        android:id="@+id/btnRechgrsocschedule"
+        android:layout_width="250dp"
+        android:layout_height="80dp"
+        android:layout_marginTop="20dp"
+        android:background="@drawable/shape_btn_white_stroke_blue_rounded"
+        android:text="DT(rechgrsocschedule)\n- CH0"
+        android:textStyle="bold"
+        android:textSize="17sp"
+        android:textColor="@color/black_500"
+        app:backgroundTint="@null"
+        app:layout_constraintLeft_toLeftOf="@id/btnTestChangeModeIM"
+        app:layout_constraintTop_toBottomOf="@id/btnTestChangeElecMode" />
+
+    <Button
         android:id="@+id/btnExit"
         android:layout_width="150dp"
         android:layout_height="80dp"
