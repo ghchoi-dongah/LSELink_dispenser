@@ -22,6 +22,7 @@ import com.dongah.dispenser.websocket.socket.handler.handlerreceive.ChangeElecMo
 import com.dongah.dispenser.websocket.socket.handler.handlerreceive.ChangeModeHandler;
 import com.dongah.dispenser.websocket.socket.handler.handlerreceive.ChargingAlarmHandler;
 import com.dongah.dispenser.websocket.socket.handler.handlerreceive.ClearCacheHandler;
+import com.dongah.dispenser.websocket.socket.handler.handlerreceive.DTAuthorizeHandler;
 import com.dongah.dispenser.websocket.socket.handler.handlerreceive.FirmwareStatusNotificationHandler;
 import com.dongah.dispenser.websocket.socket.handler.handlerreceive.FullRechgSocHandler;
 import com.dongah.dispenser.websocket.socket.handler.handlerreceive.GetLocalListVersionHandler;
@@ -33,11 +34,13 @@ import com.dongah.dispenser.websocket.socket.handler.handlerreceive.RemoteStopTr
 import com.dongah.dispenser.websocket.socket.handler.handlerreceive.ResetHandler;
 import com.dongah.dispenser.websocket.socket.handler.handlerreceive.SendLocalListHandler;
 import com.dongah.dispenser.websocket.socket.handler.handlerreceive.StartTransactionHandler;
+import com.dongah.dispenser.websocket.socket.handler.handlerreceive.StatusNotiHandler;
 import com.dongah.dispenser.websocket.socket.handler.handlerreceive.StatusNotificationHandler;
 import com.dongah.dispenser.websocket.socket.handler.handlerreceive.StopTransactionHandler;
 import com.dongah.dispenser.websocket.socket.handler.handlerreceive.TriggerMessageHandler;
 import com.dongah.dispenser.websocket.socket.handler.handlerreceive.UnitPriceHandler;
 import com.dongah.dispenser.websocket.socket.handler.handlerreceive.UpdateFirmwareHandler;
+import com.dongah.dispenser.websocket.socket.handler.handlerreceive.UserSetSocHandler;
 import com.dongah.dispenser.websocket.socket.handler.handlerreceive.VehicleInfoHandler;
 
 import org.json.JSONArray;
@@ -153,9 +156,9 @@ public class SocketReceiveMessage extends JSONCommunicator implements SocketInte
         handlerMap.put("ChangeConfiguration", new ChangeConfigurationHandler());
         handlerMap.put("StatusNotification", new StatusNotificationHandler());
         handlerMap.put("ChangeAvailability", new ChangeAvailabilityHandler());
-        handlerMap.put("Authorize", new AuthorizeHandler());
         handlerMap.put("ClearCache", new ClearCacheHandler());
 
+        handlerMap.put("Authorize", new AuthorizeHandler());
         handlerMap.put("StartTransaction", new StartTransactionHandler());
         handlerMap.put("StopTransaction", new StopTransactionHandler());
         handlerMap.put("RemoteStartTransaction", new RemoteStartTransactionHandler());
@@ -167,13 +170,16 @@ public class SocketReceiveMessage extends JSONCommunicator implements SocketInte
 
         // DataTransfer messageId별 핸들러
         handlerMap.put("unitprice.req", new UnitPriceHandler());
-        handlerMap.put("vehicleInfo", new VehicleInfoHandler());
+        handlerMap.put("statusnoti", new StatusNotiHandler());
         handlerMap.put("chargingAlarm", new ChargingAlarmHandler());
-        handlerMap.put("fullrechgsoc.req", new FullRechgSocHandler());
+        handlerMap.put("DTAuthorize", new DTAuthorizeHandler());    // Authorize 중복명 → DTAuthorize
+        handlerMap.put("vehicleInfo", new VehicleInfoHandler());
         handlerMap.put("changeelecmode.req", new ChangeElecModeHandler());
+        handlerMap.put("fullrechgsoc.req", new FullRechgSocHandler());
+        handlerMap.put("userSetSoc", new UserSetSocHandler());
+        handlerMap.put("MeterValues", new MeterValuesHandler());
         handlerMap.put("changemode.req", new ChangeModeHandler());
         handlerMap.put("rechgrsocschedule.req", new RechgrsocscheduleHandler());
-        handlerMap.put("MeterValues", new MeterValuesHandler());
     }
 
     @Override
