@@ -36,7 +36,7 @@ public class ChangeElecModeThread extends Thread {
     @Override
     public void run() {
         logger.info("ChangeElecModeThread start");
-        processChangeElecMode();
+        processChangeElecMode(0);
         while (!stopped && !isInterrupted()) {
             try {
                 Thread.sleep(1000);
@@ -49,7 +49,7 @@ public class ChangeElecModeThread extends Thread {
 
                 // 정각일 때 충전 모드 변경
                 if (minute == 0 && second == 0) {
-                    processChangeElecMode();
+                    processChangeElecMode(0);
                 }
             } catch (Exception e) {
                 logger.info("ChangeElecModeThread error : {}", e.getMessage());
@@ -60,7 +60,7 @@ public class ChangeElecModeThread extends Thread {
 
     // 시간대별 충전제한
     @RequiresApi(api = Build.VERSION_CODES.O)
-    public static void processChangeElecMode() {
+    public static void processChangeElecMode(int connectorId) {
         MainActivity activity = (MainActivity) MainActivity.mContext;
         ChargerConfiguration chargerConfiguration = activity.getChargerConfiguration();
 
@@ -68,15 +68,24 @@ public class ChangeElecModeThread extends Thread {
             // 1. changeElecMode 파일 유무 확인
             File file = new File(GlobalVariables.getRootPath() + File.separator + "changeElecMode");
 
+            int startIndex, endIndex;
+            if (connectorId == 0) {
+                startIndex = 1;
+                endIndex = GlobalVariables.maxChannel;
+            } else {
+                startIndex = connectorId;
+                endIndex = connectorId;
+            }
+
             if (!file.exists()) {
                 // 2. 파일이 없으면 config 기본값 설정
-                for (int i = 0; i < GlobalVariables.maxChannel; i++) {
+                for (int i = startIndex; i <= endIndex; i++) {
                     processChangeMode(i);
                 }
             } else {
                 // 3. 파일이 있는 경우(채널별 충전제한 설정)
-                for (int i = 0; i < GlobalVariables.maxChannel; i++) {
-                    String content = readFile(file, i+1);
+                for (int i = startIndex; i <= endIndex; i++) {
+                    String content = readFile(file, i);
 
                     if (content == null) {
                         processChangeMode(i);
@@ -86,7 +95,7 @@ public class ChangeElecModeThread extends Thread {
                 }
             }
         } catch (Exception e) {
-            logger.error("processChangeElecMode error : {}", e.getMessage());
+            logger.error("processChangeElecMode error : {}", e.getMessage(), e);
         }
     }
     private static String readFile(File file, int connectorId) throws Exception {
@@ -135,11 +144,13 @@ public class ChangeElecModeThread extends Thread {
             if (value == null || value.isEmpty()) {
                 processChangeMode(connectorId);
             } else {
-                activity.getControlBoard().getTxData(connectorId).setOutPowerLimit((short) Integer.parseInt(value));
+                activity.getControlBoard().getTxData(connectorId-1).setOutPowerLimit((short) Integer.parseInt(value));
             }
 
+            logger.info("setChangeElecMode result >> {} : {}", hourKey, value);
+
         } catch (Exception e) {
-            logger.error("setChangeElecMode error : {}", e.getMessage());
+            logger.error("setChangeElecMode error : {}", e.getMessage(), e);
         }
     }
 
@@ -152,17 +163,17 @@ public class ChangeElecModeThread extends Thread {
             File file = new File(GlobalVariables.getRootPath() + File.separator + "changeMode");
 
             if (!file.exists()) {
-                activity.getControlBoard().getTxData(connectorId).setOutPowerLimit((short) chargerConfiguration.getDr());
+                activity.getControlBoard().getTxData(connectorId-1).setOutPowerLimit((short) chargerConfiguration.getDr());
             } else {
-                String content = readFile(file, connectorId+1);
+                String content = readFile(file, connectorId);
                 if (content == null) {
-                    activity.getControlBoard().getTxData(connectorId).setOutPowerLimit((short) chargerConfiguration.getDr());
+                    activity.getControlBoard().getTxData(connectorId-1).setOutPowerLimit((short) chargerConfiguration.getDr());
                 } else {
                     setChangeMode(connectorId, content);
                 }
             }
         } catch (Exception e) {
-            logger.error("processChangeMode error : {}", e.getMessage());
+            logger.error("processChangeMode error : {}", e.getMessage(), e);
         }
     }
 
@@ -175,10 +186,10 @@ public class ChangeElecModeThread extends Thread {
             JSONObject rootJson = new JSONObject(content);
 
             String value = rootJson.optString("rechgElec", String.valueOf(chargerConfiguration.getDr()));
-            activity.getControlBoard().getTxData(connectorId).setOutPowerLimit((short) Integer.parseInt(value));
+            activity.getControlBoard().getTxData(connectorId-1).setOutPowerLimit((short) Integer.parseInt(value));
 
         } catch (Exception e) {
-            logger.error("setChangeMode error : {}", e.getMessage());
+            logger.error("setChangeMode error : {}", e.getMessage(), e);
         }
     }
 }

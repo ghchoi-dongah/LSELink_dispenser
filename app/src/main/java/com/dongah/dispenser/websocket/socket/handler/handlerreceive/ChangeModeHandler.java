@@ -37,7 +37,7 @@ public class ChangeModeHandler implements OcppHandler {
         // 응답
         sendResponse(connectorId, messageId);
         // 커넥터 모드 변경
-        ChangeModeThread.processChangeMode();
+        ChangeModeThread.processChangeMode(connectorId);
     }
 
     private void saveChangeModeToFile(String newData) {

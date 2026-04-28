@@ -36,7 +36,7 @@ public class ChangeElecModeHandler implements OcppHandler {
         // 응답
         sendResponse(connectorId, messageId);
         // 출력 제한
-        ChangeElecModeThread.processChangeElecMode();
+        ChangeElecModeThread.processChangeElecMode(connectorId);
     }
 
     private void saveChangeElecModeToFile(String newData) {

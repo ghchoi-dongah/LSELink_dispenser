@@ -37,7 +37,7 @@ public class RechgrsocscheduleHandler implements OcppHandler {
             // response
             sendResponse(connectorId, messageId);
         } catch (Exception e) {
-            logger.error("RechgrsocscheduleHandler error : {}", e.getMessage());
+            logger.error("RechgrsocscheduleHandler error : {}", e.getMessage(), e);
         }
     }
 
@@ -69,7 +69,7 @@ public class RechgrsocscheduleHandler implements OcppHandler {
                     rootJson.toString(),
                     false);
         } catch (Exception e) {
-            logger.error("saveRechgrsocscheduleToFile error : {}", e.getMessage());
+            logger.error("saveRechgrsocscheduleToFile error : {}", e.getMessage(), e);
         }
     }
 
@@ -98,7 +98,7 @@ public class RechgrsocscheduleHandler implements OcppHandler {
                     messageId,
                     rechgrsocscheduleConfirm);
         } catch (Exception e) {
-            logger.error("sendResponse error : {}", e.getMessage());
+            logger.error("sendResponse error : {}", e.getMessage(), e);
         }
     }
 }
