@@ -562,7 +562,7 @@ public class ClassUiProcess implements RfCardReaderListener {
             controlBoard.getTxData(getCh()).setUiSequence((short) 2);
             // target soc
             boolean isSocReached = (chargingCurrentData.getSoc() != 0
-                    && chargingCurrentData.getSoc() >= chargerConfiguration.getTargetSoc());
+                    && chargingCurrentData.getSoc() >= chargingCurrentData.getLimitSoc());
 
             // 충전율 90%
             if (Objects.equals(chargingCurrentData.getSoc(), 90) && chargingAlarm) {
@@ -620,7 +620,9 @@ public class ClassUiProcess implements RfCardReaderListener {
             chargingCurrentData.setChargePointStatus(ChargePointStatus.Finishing);
 
             // stop MeterValues
-            meterValuesReq.sendMeterValues(chargingCurrentData.getConnectorId());
+            if (meterValuesReq != null) {
+                meterValuesReq.sendMeterValues(chargingCurrentData.getConnectorId());
+            }
             onMeterValueStop();
 
             if (Objects.equals(chargerConfiguration.getOpMode(), 1)) {

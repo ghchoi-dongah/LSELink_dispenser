@@ -15,7 +15,13 @@ public class GlobalVariables {
     public static String VERSION = "1.0.0";
     public static String FW_VERSION = "1.0.1";
 
+    // file names
     public static final String UNIT_FILE_NAME = "unitPrice.dongah";
+    public static final String FILE_CHANGE_MODE = "changeMode";
+    public static final String FILE_CHANGE_ELEC_MODE = "changeElecMode";
+    public static final String FILE_FULL_RECHG_SOC = "fullRechgSoc";
+    public static final String FILE_RECHGR_SOC_SCHEDULE = "rechgrsocschedule";
+
 
     /**
      * Max plug count

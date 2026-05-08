@@ -294,31 +294,47 @@ public class FragmentChange {
 
     public void onFrameLayoutChange(boolean hidden) {
         //main activity layout fullScreen change
-        try {
-            FrameLayout frameLayout0 = ((MainActivity) MainActivity.mContext).findViewById(R.id.ch0);
-            FrameLayout frameLayout1 = ((MainActivity) MainActivity.mContext).findViewById(R.id.ch1);
-            FrameLayout fullScreen = ((MainActivity) MainActivity.mContext).findViewById(R.id.frameFull);
-            FrameLayout frameHeader = ((MainActivity) MainActivity.mContext).findViewById(R.id.frameHeader);
+        MainActivity activity = (MainActivity) MainActivity.mContext;
 
-            /**
-             * true: full screen
-             * false: ch0, ch1
-             * */
-            if (hidden) {
-                fullScreen.setVisibility(View.VISIBLE);
-                frameLayout0.setVisibility(View.INVISIBLE);
-                frameLayout1.setVisibility(View.INVISIBLE);
-                frameHeader.setVisibility(View.INVISIBLE);
-            } else {
-                onFrameLayoutRemove();
-                fullScreen.setVisibility(View.INVISIBLE);
-                frameLayout0.setVisibility(View.VISIBLE);
-                frameLayout1.setVisibility(View.VISIBLE);
-                frameHeader.setVisibility(View.VISIBLE);
-            }
-        } catch (Exception e) {
-            logger.error("onFrameLayoutChange error : {}", e.getMessage());
+        if (activity == null || activity.isFinishing() || activity.isDestroyed()) {
+            logger.error("onFrameLayoutChange skipped: activity is null or destroyed");
+            return;
         }
+
+
+        activity.runOnUiThread(() -> {
+            try {
+                FrameLayout frameLayout0 = activity.findViewById(R.id.ch0);
+                FrameLayout frameLayout1 = activity.findViewById(R.id.ch1);
+                FrameLayout fullScreen = activity.findViewById(R.id.frameFull);
+                FrameLayout frameHeader = activity.findViewById(R.id.frameHeader);
+
+                if (frameLayout0 == null || frameLayout1 == null || fullScreen == null || frameHeader == null) {
+                    logger.error(
+                            "onFrameLayoutChange view null: ch0={}, ch1={}, frameFull={}, frameHeader={}",
+                            frameLayout0, frameLayout1, fullScreen, frameHeader
+                    );
+                    return;
+                }
+
+                if (hidden) {
+                    fullScreen.setVisibility(View.VISIBLE);
+                    frameLayout0.setVisibility(View.INVISIBLE);
+                    frameLayout1.setVisibility(View.INVISIBLE);
+                    frameHeader.setVisibility(View.INVISIBLE);
+                } else {
+                    onFrameLayoutRemove();
+
+                    fullScreen.setVisibility(View.INVISIBLE);
+                    frameLayout0.setVisibility(View.VISIBLE);
+                    frameLayout1.setVisibility(View.VISIBLE);
+                    frameHeader.setVisibility(View.VISIBLE);
+                }
+
+            } catch (Exception e) {
+                logger.error("onFrameLayoutChange error", e);
+            }
+        });
     }
 
     public void onFragmentHeaderChange(int channel, String sendText) {

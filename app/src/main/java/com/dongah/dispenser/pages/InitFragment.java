@@ -24,7 +24,9 @@ import com.dongah.dispenser.basefunction.ChargerConfiguration;
 import com.dongah.dispenser.basefunction.ChargerPointType;
 import com.dongah.dispenser.basefunction.ChargingCurrentData;
 import com.dongah.dispenser.basefunction.UiSeq;
+import com.dongah.dispenser.controlboard.ControlBoard;
 import com.dongah.dispenser.controlboard.RxData;
+import com.dongah.dispenser.controlboard.TxData;
 import com.dongah.dispenser.utils.SharedModel;
 import com.dongah.dispenser.websocket.socket.SocketState;
 
@@ -54,12 +56,13 @@ public class InitFragment extends Fragment implements View.OnClickListener {
 
     Animation animBlink;
     View viewCircle;
-    TextView textViewInitMessage, textViewConnector;
+    TextView textViewInitMessage, textViewConnector, textViewInfo;
     ImageView imageViewBus, imageViewFault;
 
     MainActivity activity;
     ChargerConfiguration chargerConfiguration;
     ChargingCurrentData chargingCurrentData;
+    TxData txData;
     SharedModel sharedModel;
     String[] requestStrings = new String[1];
 
@@ -112,6 +115,7 @@ public class InitFragment extends Fragment implements View.OnClickListener {
         activity = ((MainActivity) MainActivity.mContext);
         chargerConfiguration = activity.getChargerConfiguration();
         chargingCurrentData = activity.getChargingCurrentData(mChannel);
+        txData = activity.getControlBoard().getTxData(mChannel);
         textViewInitMessage = view.findViewById(R.id.textViewInitMessage);
         textViewInitMessage.startAnimation(animBlink);
         textViewConnector = view.findViewById(R.id.textViewConnector);
@@ -119,6 +123,7 @@ public class InitFragment extends Fragment implements View.OnClickListener {
         viewCircle = view.findViewById(R.id.viewCircle);
         viewCircle.setOnClickListener(this);
         imageViewFault = view.findViewById(R.id.imageViewFault);
+        textViewInfo = view.findViewById(R.id.textViewInfo);
         rxData = activity.getControlBoard().getRxData(mChannel);
 
         try {
@@ -138,7 +143,7 @@ public class InitFragment extends Fragment implements View.OnClickListener {
                 textViewConnector.setText("2 커넥터");
             }
         } catch (Exception e) {
-            logger.error("InitFragment onCreateView error : {}", e.getMessage());
+            logger.error("InitFragment onCreateView error : {}", e.getMessage(), e);
         }
 
         return view;
@@ -151,6 +156,14 @@ public class InitFragment extends Fragment implements View.OnClickListener {
             sharedModel = new ViewModelProvider(requireActivity()).get(SharedModel.class);
             requestStrings[0] = String.valueOf(0);
             sharedModel.setMutableLiveData(requestStrings);
+
+            if (chargerConfiguration.isInitInfo()) {
+                textViewInfo.setVisibility(View.VISIBLE);
+                textViewInfo.setText(getString(R.string.intiInfo, chargingCurrentData.getLimitSoc(),
+                        txData.getOutPowerLimit()));
+            } else {
+                textViewInfo.setVisibility(View.INVISIBLE);
+            }
 
             // PnC
             if (Objects.equals(chargerConfiguration.getStartMode(), 1)) {
@@ -170,7 +183,7 @@ public class InitFragment extends Fragment implements View.OnClickListener {
             }
 
         } catch (Exception e) {
-            logger.error("InitFragment onViewCreated : {}", e.getMessage());
+            logger.error("InitFragment onViewCreated : {}", e.getMessage(), e);
         }
     }
 

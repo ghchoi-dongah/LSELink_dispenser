@@ -25,6 +25,7 @@ import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.R;
 import com.dongah.dispenser.basefunction.ChargerConfiguration;
 import com.dongah.dispenser.basefunction.ChargingCurrentData;
+import com.dongah.dispenser.controlboard.TxData;
 import com.dongah.dispenser.utils.SharedModel;
 import com.dongah.dispenser.websocket.ocpp.utilities.ZonedDateTimeConvert;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
@@ -65,8 +66,10 @@ public class ChargingFragment extends Fragment implements View.OnClickListener {
     SharedModel sharedModel;
     String[] requestStrings = new String[1];
     Handler uiUpdateHandler;
+    MainActivity activity;
     ChargerConfiguration chargerConfiguration;
     ChargingCurrentData chargingCurrentData;
+    TxData txData;
 
     Date startTime = null, useTime = null;
     DecimalFormat powerFormatter = new DecimalFormat("#,###,##0.00");
@@ -109,8 +112,10 @@ public class ChargingFragment extends Fragment implements View.OnClickListener {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_charging, container, false);
-        chargerConfiguration = ((MainActivity) MainActivity.mContext).getChargerConfiguration();
-        chargingCurrentData = ((MainActivity) MainActivity.mContext).getChargingCurrentData(mChannel);
+        activity = ((MainActivity) MainActivity.mContext);
+        chargerConfiguration = activity.getChargerConfiguration();
+        chargingCurrentData = activity.getChargingCurrentData(mChannel);
+        txData = activity.getControlBoard().getTxData(mChannel);
         btnChargingStop = view.findViewById(R.id.btnChargingStop);
         btnChargingStop.setOnClickListener(this);
         textViewSocValue = view.findViewById(R.id.textViewSocValue);
@@ -136,13 +141,15 @@ public class ChargingFragment extends Fragment implements View.OnClickListener {
             sharedModel = new ViewModelProvider(requireActivity()).get(SharedModel.class);
             requestStrings[0] = String.valueOf(mChannel);
             sharedModel.setMutableLiveData(requestStrings);
-            textViewLimitSocValue.setText(chargerConfiguration.getTargetSoc() + "%");
-            textViewLimitKwValue.setText(chargerConfiguration.getDr() + "kW");
+//            textViewLimitSocValue.setText(chargerConfiguration.getTargetSoc() + "%");
+//            textViewLimitKwValue.setText(chargerConfiguration.getDr() + "kW");
             progressCircular.isIndeterminate();
             mediaPlayer();      // media player
 
             try {
                 textViewSocValue.setText(chargingCurrentData.getSoc() + "%");
+                textViewLimitKwValue.setText(txData.getOutPowerLimit() + "kW");
+                textViewLimitSocValue.setText(chargingCurrentData.getLimitSoc() + "%");
                 progressCircular.setProgress(chargingCurrentData.getSoc(), true);
                 startTime = zonedDateTimeConvert.doStringDateToDate(chargingCurrentData.getChargingStartTime());
 

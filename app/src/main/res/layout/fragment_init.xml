@@ -62,4 +62,17 @@
         app:layout_constraintStart_toStartOf="@id/textViewConnector"
         app:layout_constraintEnd_toEndOf="@id/textViewConnector" />
 
+    <TextView
+        android:id="@+id/textViewInfo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:text="@string/intiInfo"
+        android:textSize="16sp"
+        android:textColor="@color/black"
+        android:visibility="visible"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+
 </androidx.constraintlayout.widget.ConstraintLayout>

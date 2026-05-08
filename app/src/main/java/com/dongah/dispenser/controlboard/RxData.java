@@ -17,7 +17,7 @@ public class RxData {
     public boolean csStart = false;         // 4bit
     public boolean csStop = false;          // 5bit
     public boolean csFault = false;         // 6bit
-    public boolean csReady = false;         // 7bit, true: 충전 가능 상태 false: 다른 채널 충전 중(예약)
+    public boolean csReady = true;         // 7bit, true: 충전 가능 상태 false: 다른 채널 충전 중(예약)
     public boolean csRY1Status = false;     // 8bit
     public boolean csRY2Status = false;     // 9bit
     public boolean csRY3Status = false;     // 10bit
@@ -299,7 +299,7 @@ public class RxData {
             reserved5 = data[44];
             reserved6 = data[45];
         } catch (Exception e) {
-            logger.error("rx data decode error : {}", e.getMessage());
+            logger.error("rx data decode error : {}", e.getMessage(), e);
         }
     }
 

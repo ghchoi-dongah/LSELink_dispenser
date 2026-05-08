@@ -50,6 +50,8 @@ public class RemoteTestFragment extends Fragment implements View.OnClickListener
 
     Button btnResetHard, btnResetSoft, btnInoperative, btnOperative, btnInoperativeAll, btnOperativeAll;
     Button btnTestChangeModeDM, btnTestChangeModeIM, btnTestChangeElecMode, btnRechgrsocschedule;
+    Button btnTestChangeElecMode2, btnRechgrsocschedule2, btnTestChangeModeDMCh0, btnTestChangeModeIMCh0;
+    Button btnTestWebsocketUrl;
     Button btnExit;
 
     MainActivity activity;
@@ -110,6 +112,7 @@ public class RemoteTestFragment extends Fragment implements View.OnClickListener
         btnInoperativeAll.setOnClickListener(this);
         btnOperativeAll = view.findViewById(R.id.btnOperativeAll);
         btnOperativeAll.setOnClickListener(this);
+
         btnTestChangeModeDM = view.findViewById(R.id.btnTestChangeModeDM);
         btnTestChangeModeDM.setOnClickListener(this);
         btnTestChangeModeIM = view.findViewById(R.id.btnTestChangeModeIM);
@@ -118,6 +121,18 @@ public class RemoteTestFragment extends Fragment implements View.OnClickListener
         btnTestChangeElecMode.setOnClickListener(this);
         btnRechgrsocschedule = view.findViewById(R.id.btnRechgrsocschedule);
         btnRechgrsocschedule.setOnClickListener(this);
+        btnTestChangeElecMode2 = view.findViewById(R.id.btnTestChangeElecMode2);
+        btnTestChangeElecMode2.setOnClickListener(this);
+        btnRechgrsocschedule2 = view.findViewById(R.id.btnRechgrsocschedule2);
+        btnRechgrsocschedule2.setOnClickListener(this);
+
+        btnTestChangeModeDMCh0 = view.findViewById(R.id.btnTestChangeModeDMCh0);
+        btnTestChangeModeDMCh0.setOnClickListener(this);
+        btnTestChangeModeIMCh0 = view.findViewById(R.id.btnTestChangeModeIMCh0);
+        btnTestChangeModeIMCh0.setOnClickListener(this);
+        btnTestWebsocketUrl = view.findViewById(R.id.btnTestWebsocketUrl);
+        btnTestWebsocketUrl.setOnClickListener(this);
+
         return view;
     }
 
@@ -142,11 +157,26 @@ public class RemoteTestFragment extends Fragment implements View.OnClickListener
             onTestChangeAvailability(0, type);
         } else if (Objects.equals(getId, R.id.btnTestChangeModeDM) || Objects.equals(getId, R.id.btnTestChangeModeIM)) {
             String type = Objects.equals(getId, R.id.btnTestChangeModeDM) ? "DM" : "IM";
-            onTestChangeMode(type);
+            onTestChangeModeCommon(type, 0, 95, 50, "changemode0.req");
+//            onTestChangeMode(type);
         } else if (Objects.equals(getId, R.id.btnTestChangeElecMode)) {
-            onTestChangeElecMode();
+            onTestChangeElecModeCommon(1, "40", "changeelecmode1.req");
+//            onTestChangeElecMode();
         } else if (Objects.equals(getId, R.id.btnRechgrsocschedule)) {
-            onTestRechgrsocschedule();
+            onTestRechgrsocscheduleCommon(1, "80", "rechgrsocschedule1.req");
+//            onTestRechgrsocschedule();
+        } else if (Objects.equals(getId, R.id.btnTestChangeElecMode2)) {
+            onTestChangeElecModeCommon(2, "80", "changeelecmode2.req");
+//            onTestChangeElecMode2();
+        } else if (Objects.equals(getId, R.id.btnRechgrsocschedule2)) {
+            onTestRechgrsocscheduleCommon(2, "90", "rechgrsocschedule2.req");
+//            onTestRechgrsocschedule2();
+        } else if (Objects.equals(getId, R.id.btnTestChangeModeDMCh0) || Objects.equals(getId, R.id.btnTestChangeModeIMCh0)) {
+            String type = Objects.equals(getId, R.id.btnTestChangeModeDMCh0) ? "DM" : "IM";
+            onTestChangeModeCommon(type, 1, 85, 55, "changemode1.req");
+//            onTestChangeMode2(type);
+        } else if (Objects.equals(getId, R.id.btnTestWebsocketUrl)) {
+            onTestWebSocketUrl();
         }
     }
 
@@ -199,7 +229,7 @@ public class RemoteTestFragment extends Fragment implements View.OnClickListener
     private void onTestChangeMode(String type) {
         try {
             String uuid = UUID.randomUUID().toString();
-            String dataJson = "{\"connectorId\":0,\"rechgAmt\":95,\"rechgElec\":0,"
+            String dataJson = "{\"connectorId\":0,\"rechgAmt\":95,\"rechgElec\":50,"
                     + "\"HH00\":\"" + type + "\",\"HH01\":\"" + type + "\",\"HH02\":\"" + type + "\",\"HH03\":\"" + type + "\","
                     + "\"HH04\":\"" + type + "\",\"HH05\":\"" + type + "\",\"HH06\":\"" + type + "\",\"HH07\":\"" + type + "\","
                     + "\"HH08\":\"" + type + "\",\"HH09\":\"" + type + "\",\"HH10\":\"" + type + "\",\"HH11\":\"" + type + "\","
@@ -216,6 +246,66 @@ public class RemoteTestFragment extends Fragment implements View.OnClickListener
             logger.info("[TEST] changemode.req 처리 완료");
         } catch (Exception e) {
             logger.error("[TEST] changemode.req 테스트 실패: {}", e.getMessage(), e);
+        }
+    }
+
+    private void onTestChangeMode2(String type) {
+        try {
+            String uuid = UUID.randomUUID().toString();
+            String dataJson = "{\"connectorId\":1,\"rechgAmt\":85,\"rechgElec\":55,"
+                    + "\"HH00\":\"" + type + "\",\"HH01\":\"" + type + "\",\"HH02\":\"" + type + "\",\"HH03\":\"" + type + "\","
+                    + "\"HH04\":\"" + type + "\",\"HH05\":\"" + type + "\",\"HH06\":\"" + type + "\",\"HH07\":\"" + type + "\","
+                    + "\"HH08\":\"" + type + "\",\"HH09\":\"" + type + "\",\"HH10\":\"" + type + "\",\"HH11\":\"" + type + "\","
+                    + "\"HH12\":\"" + type + "\",\"HH13\":\"" + type + "\",\"HH14\":\"" + type + "\",\"HH15\":\"" + type + "\","
+                    + "\"HH16\":\"" + type + "\",\"HH17\":\"" + type + "\",\"HH18\":\"" + type + "\",\"HH19\":\"" + type + "\","
+                    + "\"HH20\":\"" + type + "\",\"HH21\":\"" + type + "\",\"HH22\":\"" + type + "\",\"HH23\":\"" + type + "\"}";
+
+            String testMessage = "[2,\"" + uuid + "\",\"DataTransfer\","
+                    + "{\"vendorId\":\"DONGAH\",\"messageId\":\"changemode.req\","
+                    + "\"data\":\"" + dataJson.replace("\"", "\\\"") + "\"}]";
+
+            logger.info("[TEST] changemode2.req 전문 주입: {}", testMessage);
+            activity.getSocketReceiveMessage().onGetMessage(null, testMessage);
+            logger.info("[TEST] changemode2.req 처리 완료");
+        } catch (Exception e) {
+            logger.error("[TEST] changemode2.req 테스트 실패: {}", e.getMessage(), e);
+        }
+    }
+
+    private void onTestChangeModeCommon(String type, int connectorId, int rechgAmt, int rechgElec, String logName) {
+        try {
+            String uuid = UUID.randomUUID().toString();
+
+            StringBuilder dataJsonBuilder = new StringBuilder();
+            dataJsonBuilder.append("{")
+                    .append("\"connectorId\":").append(connectorId).append(",")
+                    .append("\"rechgAmt\":").append(rechgAmt).append(",")
+                    .append("\"rechgElec\":").append(rechgElec);
+
+            for (int hour = 0; hour < 24; hour++) {
+                dataJsonBuilder.append(",")
+                        .append("\"HH")
+                        .append(String.format("%02d", hour))
+                        .append("\":\"")
+                        .append(type)
+                        .append("\"");
+            }
+
+            dataJsonBuilder.append("}");
+
+            String dataJson = dataJsonBuilder.toString();
+
+            String testMessage = "[2,\"" + uuid + "\",\"DataTransfer\","
+                    + "{\"vendorId\":\"DONGAH\",\"messageId\":\"changemode.req\","
+                    + "\"data\":\"" + dataJson.replace("\"", "\\\"") + "\"}]";
+
+            logger.info("[TEST] {} 전문 주입: {}", logName, testMessage);
+
+            activity.getSocketReceiveMessage().onGetMessage(null, testMessage);
+
+            logger.info("[TEST] {} 처리 완료", logName);
+        } catch (Exception e) {
+            logger.error("[TEST] {} 테스트 실패: {}", logName, e.getMessage(), e);
         }
     }
 
@@ -247,6 +337,64 @@ public class RemoteTestFragment extends Fragment implements View.OnClickListener
         }
     }
 
+    private void onTestChangeElecMode2() {
+        try {
+            String uuid = UUID.randomUUID().toString();
+            String dataJson = "{\"connectorId\":2"
+                    + ",\"HH00\":\"80\",\"HH01\":\"80\",\"HH02\":\"80\",\"HH03\":\"80\""
+                    + ",\"HH04\":\"80\",\"HH05\":\"80\",\"HH06\":\"80\",\"HH07\":\"80\""
+                    + ",\"HH08\":\"80\",\"HH09\":\"80\",\"HH10\":\"80\",\"HH11\":\"80\""
+                    + ",\"HH12\":\"80\",\"HH13\":\"80\",\"HH14\":\"80\",\"HH15\":\"80\""
+                    + ",\"HH16\":\"80\",\"HH17\":\"80\",\"HH18\":\"80\",\"HH19\":\"80\""
+                    + ",\"HH20\":\"80\",\"HH21\":\"80\",\"HH22\":\"80\",\"HH23\":\"80\"}";
+
+            String testMessage = "[2,\"" + uuid + "\",\"DataTransfer\","
+                    + "{\"vendorId\":\"DONGAH\",\"messageId\":\"changeelecmode.req\","
+                    + "\"data\":\"" + dataJson.replace("\"", "\\\"") + "\"}]";
+
+            logger.info("[TEST] changeelecmode2.req 전문 주입: {}", testMessage);
+            activity.getSocketReceiveMessage().onGetMessage(null, testMessage);
+            logger.info("[TEST] changeelecmode2.req 처리 완료");
+        } catch (Exception e) {
+            logger.error("[TEST] changeelecmode2.req 테스트 실패: {}", e.getMessage(), e);
+        }
+    }
+
+    private void onTestChangeElecModeCommon(int connectorId, String elecValue, String logName) {
+        try {
+            String uuid = UUID.randomUUID().toString();
+
+            StringBuilder dataJsonBuilder = new StringBuilder();
+            dataJsonBuilder.append("{")
+                    .append("\"connectorId\":").append(connectorId);
+
+            for (int hour = 0; hour < 24; hour++) {
+                dataJsonBuilder.append(",")
+                        .append("\"HH")
+                        .append(String.format("%02d", hour))
+                        .append("\":\"")
+                        .append(elecValue)
+                        .append("\"");
+            }
+
+            dataJsonBuilder.append("}");
+
+            String dataJson = dataJsonBuilder.toString();
+
+            String testMessage = "[2,\"" + uuid + "\",\"DataTransfer\","
+                    + "{\"vendorId\":\"DONGAH\",\"messageId\":\"changeelecmode.req\","
+                    + "\"data\":\"" + dataJson.replace("\"", "\\\"") + "\"}]";
+
+            logger.info("[TEST] {} 전문 주입: {}", logName, testMessage);
+
+            activity.getSocketReceiveMessage().onGetMessage(null, testMessage);
+
+            logger.info("[TEST] {} 처리 완료", logName);
+        } catch (Exception e) {
+            logger.error("[TEST] {} 테스트 실패: {}", logName, e.getMessage(), e);
+        }
+    }
+
     private void onTestRechgrsocschedule() {
         try {
             String uuid = UUID.randomUUID().toString();
@@ -266,11 +414,102 @@ public class RemoteTestFragment extends Fragment implements View.OnClickListener
                     + "\"messageId\":\"rechgrsocschedule.req\","
                     + "\"data\":\"" + dataJson.replace("\"", "\\\"") + "\"}]";
 
-            logger.info("[TEST] rechgrsocschedule.req 전문 주입: {}", testMessage);
+            logger.info("[TEST] rechgrsocschedule2.req 전문 주입: {}", testMessage);
             activity.getSocketReceiveMessage().onGetMessage(null, testMessage);
-            logger.info("[TEST] rechgrsocschedule.req 처리 완료");
+            logger.info("[TEST] rechgrsocschedule2.req 처리 완료");
         } catch (Exception e) {
-            logger.error("[TEST] rechgrsocschedule.req 테스트 실패: {}", e.getMessage(), e);
+            logger.error("[TEST] rechgrsocschedule2.req 테스트 실패: {}", e.getMessage(), e);
         }
     }
+
+    private void onTestRechgrsocschedule2() {
+        try {
+            String uuid = UUID.randomUUID().toString();
+            String dataJson = "{\"connectorId\":2"
+                    + ",\"DH00\":\"90\",\"DH01\":\"90\",\"DH02\":\"90\",\"DH03\":\"90\",\"DH04\":\"90\",\"DH05\":\"90\""
+                    + ",\"DH06\":\"90\",\"DH07\":\"90\",\"DH08\":\"90\",\"DH09\":\"90\",\"DH10\":\"90\",\"DH11\":\"90\""
+                    + ",\"DH12\":\"90\",\"DH13\":\"90\",\"DH14\":\"90\",\"DH15\":\"90\",\"DH16\":\"90\",\"DH17\":\"90\""
+                    + ",\"DH18\":\"90\",\"DH19\":\"90\",\"DH20\":\"90\",\"DH21\":\"90\",\"DH22\":\"90\",\"DH23\":\"90\""
+                    + ",\"WH00\":\"90\",\"WH01\":\"90\",\"WH02\":\"90\",\"WH03\":\"90\",\"WH04\":\"90\",\"WH05\":\"90\""
+                    + ",\"WH06\":\"90\",\"WH07\":\"90\",\"WH08\":\"90\",\"WH09\":\"90\",\"WH10\":\"90\",\"WH11\":\"90\""
+                    + ",\"WH12\":\"90\",\"WH13\":\"90\",\"WH14\":\"90\",\"WH15\":\"90\",\"WH16\":\"90\",\"WH17\":\"90\""
+                    + ",\"WH18\":\"90\",\"WH19\":\"90\",\"WH20\":\"90\",\"WH21\":\"90\",\"WH22\":\"90\",\"WH23\":\"90\""
+                    + "}";
+
+            String testMessage = "[2,\"" + uuid + "\",\"DataTransfer\","
+                    + "{\"vendorId\":\"DONGAH\","
+                    + "\"messageId\":\"rechgrsocschedule.req\","
+                    + "\"data\":\"" + dataJson.replace("\"", "\\\"") + "\"}]";
+
+            logger.info("[TEST] rechgrsocschedule2.req 전문 주입: {}", testMessage);
+            activity.getSocketReceiveMessage().onGetMessage(null, testMessage);
+            logger.info("[TEST] rechgrsocschedule2.req 처리 완료");
+        } catch (Exception e) {
+            logger.error("[TEST] rechgrsocschedule2.req 테스트 실패: {}", e.getMessage(), e);
+        }
+    }
+
+    private void onTestRechgrsocscheduleCommon(int connectorId, String socValue, String logName) {
+        try {
+            String uuid = UUID.randomUUID().toString();
+
+            StringBuilder dataJsonBuilder = new StringBuilder();
+            dataJsonBuilder.append("{")
+                    .append("\"connectorId\":").append(connectorId);
+
+            for (int hour = 0; hour < 24; hour++) {
+                dataJsonBuilder.append(",")
+                        .append("\"DH")
+                        .append(String.format("%02d", hour))
+                        .append("\":\"")
+                        .append(socValue)
+                        .append("\"");
+            }
+
+            for (int hour = 0; hour < 24; hour++) {
+                dataJsonBuilder.append(",")
+                        .append("\"WH")
+                        .append(String.format("%02d", hour))
+                        .append("\":\"")
+                        .append(socValue)
+                        .append("\"");
+            }
+
+            dataJsonBuilder.append("}");
+
+            String dataJson = dataJsonBuilder.toString();
+
+            String testMessage = "[2,\"" + uuid + "\",\"DataTransfer\","
+                    + "{\"vendorId\":\"DONGAH\","
+                    + "\"messageId\":\"rechgrsocschedule.req\","
+                    + "\"data\":\"" + dataJson.replace("\"", "\\\"") + "\"}]";
+
+            logger.info("[TEST] {} 전문 주입: {}", logName, testMessage);
+
+            activity.getSocketReceiveMessage().onGetMessage(null, testMessage);
+
+            logger.info("[TEST] {} 처리 완료", logName);
+        } catch (Exception e) {
+            logger.error("[TEST] {} 테스트 실패: {}", logName, e.getMessage(), e);
+        }
+    }
+
+    private void onTestWebSocketUrl() {
+        try {
+            String uuid = UUID.randomUUID().toString();
+
+            String testMessage = "[2,\"" + uuid + "\",\"ChangeConfiguration\","
+                    + "{\"key\":\"webSocketURL\","
+                    + "\"value\":\"ws://dongahtest.p-e.kr:5000/v2/DAE000202\"}]";
+
+            logger.info("[TEST] ChangeConfiguration webSocketURL 전문 주입: {}", testMessage);
+
+            activity.getSocketReceiveMessage().onGetMessage(null, testMessage);
+
+            logger.info("[TEST] ChangeConfiguration webSocketURL 처리 완료");
+        } catch (Exception e) {
+            logger.error("[TEST] ChangeConfiguration webSocketURL 테스트 실패", e);
+        }
+    }
+
 }

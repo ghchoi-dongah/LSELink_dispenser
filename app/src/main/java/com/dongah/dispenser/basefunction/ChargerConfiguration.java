@@ -1,5 +1,6 @@
 package com.dongah.dispenser.basefunction;
 
+import android.annotation.SuppressLint;
 import android.os.Environment;
 import android.text.TextUtils;
 
@@ -36,7 +37,7 @@ public class ChargerConfiguration {
      * 충전소ID : 000000
      * 충전기ID : 26
      * */
-    public String serverConnectingString = "ws://dev-connect.lselink.com/ocpp";
+    public String serverConnectingString = "ws://dev-connect.lselink.com/ocpp/";
     public int serverPort = 4000;
 
     /** 회원 인증 모드
@@ -61,9 +62,9 @@ public class ChargerConfiguration {
     public int startMode = 0;
 
     /** device serial port */
-    public String controlCom = "/dev/ttyS4";
-    public String rfCom = "/dev/ttyS2";
-    public String creditCom = "/dev/ttyS3";
+    public String controlCom = "/dev/ttyS7";
+    public String rfCom = "/dev/ttyS3";
+    public String creditCom = "/dev/ttyS4";
 
     /** charging point configuration setting */
     public int chargerPointType = 0;                    // 커플러 타입
@@ -86,6 +87,7 @@ public class ChargerConfiguration {
     public boolean StopConfirm;
     public boolean signed = true ;
     public boolean controlMonitor = true;
+    public boolean initInfo = true;
     public FirmwareStatus firmwareStatus = FirmwareStatus.Idle;
     public SignedFirmwareStatus signedFirmwareStatus = SignedFirmwareStatus.Idle;
     public DiagnosticsStatus diagnosticsStatus = DiagnosticsStatus.Idle;
@@ -96,11 +98,15 @@ public class ChargerConfiguration {
         fileManagement = new FileManagement();
     }
 
+    @SuppressLint("SetWorldReadable")
     public void onLoadConfiguration() {
         try {
             File targetFile = new File(GlobalVariables.ROOT_PATH + File.separator + CONFIG_FILE_NAME);
             String configurationString;
             if (!targetFile.exists()) onSaveConfiguration();
+
+//            targetFile.setReadable(true, false);
+//            targetFile.setWritable(true, false);
 
             // get file context json string
             configurationString = fileManagement.getStringFromFile(GlobalVariables.ROOT_PATH  + File.separator + CONFIG_FILE_NAME);
@@ -135,6 +141,7 @@ public class ChargerConfiguration {
                 setStartMode(obj.getInt("START_MODE"));
                 setSigned(obj.getBoolean("SIGNED"));
                 setControlMonitor(obj.getBoolean("CONTROL_MONITOR"));
+                setInitInfo(obj.getBoolean("INIT_INFO"));
             }
         } catch (Exception e) {
             logger.error("configuration load fail: {}", e.getMessage(), e);
@@ -173,6 +180,7 @@ public class ChargerConfiguration {
             obj.put("START_MODE", getStartMode());
             obj.put("SIGNED", isSigned());
             obj.put("CONTROL_MONITOR", isControlMonitor());
+            obj.put("INIT_INFO", isInitInfo());
             fileManagement.stringToFileSave(rootPath, CONFIG_FILE_NAME, obj.toString(), false);
         } catch (Exception e) {
             logger.error("configuration save fail: {}", e.getMessage(), e);
@@ -417,6 +425,14 @@ public class ChargerConfiguration {
 
     public void setControlMonitor(boolean controlMonitor) {
         this.controlMonitor = controlMonitor;
+    }
+
+    public boolean isInitInfo() {
+        return initInfo;
+    }
+
+    public void setInitInfo(boolean initInfo) {
+        this.initInfo = initInfo;
     }
 
     public FirmwareStatus getFirmwareStatus() {

@@ -19,9 +19,11 @@ import android.widget.TextView;
 
 import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.R;
+import com.dongah.dispenser.basefunction.ChargerConfiguration;
 import com.dongah.dispenser.basefunction.ChargingCurrentData;
 import com.dongah.dispenser.basefunction.UiSeq;
 import com.dongah.dispenser.controlboard.RxData;
+import com.dongah.dispenser.controlboard.TxData;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,9 +52,12 @@ public class ChargingSequentialFragment extends Fragment {
     Animation animBlink;
     View viewCircle;
     ImageView imageViewBus;
-    TextView textViewConnector, textViewInitMessage, textViewInitMessageSub;
+    TextView textViewConnector, textViewInitMessage, textViewInitMessageSub, textViewInfo;
+    MainActivity activity;
     ChargingCurrentData chargingCurrentData;
+    ChargerConfiguration chargerConfiguration;
     RxData rxData;
+    TxData txData;
     Runnable runnable;
     Handler handler;
 
@@ -93,8 +98,11 @@ public class ChargingSequentialFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_charging_sequential, container, false);
-        chargingCurrentData = ((MainActivity) MainActivity.mContext).getChargingCurrentData(mChannel);
-        rxData = ((MainActivity) MainActivity.mContext).getControlBoard().getRxData(mChannel);
+        activity = (MainActivity) MainActivity.mContext;
+        chargingCurrentData = activity.getChargingCurrentData(mChannel);
+        chargerConfiguration = activity.getChargerConfiguration();
+        rxData = activity.getControlBoard().getRxData(mChannel);
+        txData = activity.getControlBoard().getTxData(mChannel);
         animBlink = AnimationUtils.loadAnimation(getActivity(), R.anim.blink_animation);
         textViewConnector = view.findViewById(R.id.textViewConnector);
         textViewInitMessage = view.findViewById(R.id.textViewInitMessage);
@@ -102,6 +110,7 @@ public class ChargingSequentialFragment extends Fragment {
         textViewInitMessageSub = view.findViewById(R.id.textViewInitMessageSub);
         imageViewBus = view.findViewById(R.id.imageViewBus);
         viewCircle = view.findViewById(R.id.viewCircle);
+        textViewInfo = view.findViewById(R.id.textViewInfo);
 
         try {
             // ch0, ch1 구분 => 이미지 위치 조절
@@ -122,6 +131,14 @@ public class ChargingSequentialFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         try {
+            if (chargerConfiguration.isInitInfo()) {
+                textViewInfo.setVisibility(View.VISIBLE);
+                textViewInfo.setText(getString(R.string.intiInfo, chargingCurrentData.getLimitSoc(),
+                        txData.getOutPowerLimit()));
+            } else {
+                textViewInfo.setVisibility(View.INVISIBLE);
+            }
+
             handler = new Handler(Looper.getMainLooper());
             runnable = new Runnable() {
                 @SuppressLint("SetTextI18n")

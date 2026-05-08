@@ -99,10 +99,6 @@ public class UpdateFirmwareHandler implements OcppHandler  {
 
                                 // 3. 상태 전송
                                 sendFirmwareStatus(FirmwareStatus.Downloaded);
-
-//                                new Handler(Looper.getMainLooper()).postDelayed(() -> {
-//                                }, 3000);
-
                             } catch (Exception e) {
                                 logger.error("Unzip failed : {}", e.getMessage());
                                 sendFirmwareStatus(FirmwareStatus.DownloadFailed);

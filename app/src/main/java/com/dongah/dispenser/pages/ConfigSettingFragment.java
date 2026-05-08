@@ -66,7 +66,7 @@ public class ConfigSettingFragment extends Fragment implements View.OnClickListe
     EditText editMeterSerialNumber, editMeterType;
     EditText editSoc, editDR;
     Button btnExit, btnSave, btnRebooting, btnKeyboardControl;
-    CheckBox checkboxControlMonitor;
+    CheckBox checkboxControlMonitor, checkboxInitInfo;
 
 
     public ConfigSettingFragment() {
@@ -320,11 +320,21 @@ public class ConfigSettingFragment extends Fragment implements View.OnClickListe
                         public void onClick(DialogInterface dialogInterface, int i) {
                             onSaveConfiguration();
 
-                            if (Objects.equals(chargerConfiguration.getOpMode(), 0)) {
-                                // 전류 제한 설정
-                                for (int j = 0; j < GlobalVariables.maxChannel; j++) {
-                                    ((MainActivity) MainActivity.mContext).getControlBoard().getTxData(j).setOutPowerLimit((short) Integer.parseInt(editDR.getText().toString()));
+                            try {
+                                if (Objects.equals(chargerConfiguration.getOpMode(), 0)) {
+                                    for (int j = 0; j < GlobalVariables.maxChannel; j++) {
+                                        // 전류 제한 설정
+                                        ((MainActivity) MainActivity.mContext).getControlBoard().getTxData(j).setOutPowerLimit((short) Integer.parseInt(editDR.getText().toString()));
+
+                                        // SoC 제한 설정
+                                        String socText = editSoc.getText().toString().trim();
+                                        if (!socText.isEmpty()) {
+                                            ((MainActivity) MainActivity.mContext).getChargingCurrentData(j).setLimitSoc(Integer.parseInt(socText));
+                                        }
+                                    }
                                 }
+                            } catch (Exception e) {
+                                logger.error("AlertDialog save error : {}", e.getMessage(), e);
                             }
 
                             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
@@ -409,6 +419,8 @@ public class ConfigSettingFragment extends Fragment implements View.OnClickListe
             editDR.setText(String.valueOf(chargerConfiguration.getDr()));
             checkboxControlMonitor = v.findViewById(R.id.checkboxControlMonitor);
             checkboxControlMonitor.setChecked(chargerConfiguration.isControlMonitor());
+            checkboxInitInfo = v.findViewById(R.id.checkboxInitInfo);
+            checkboxInitInfo.setChecked(chargerConfiguration.isInitInfo());
         } catch (Exception e) {
             logger.error("ConfigSettingFragment InitializationComponents error : {}",  e.getMessage());
         }
@@ -455,6 +467,7 @@ public class ConfigSettingFragment extends Fragment implements View.OnClickListe
             chargerConfiguration.setDr(Integer.parseInt(editDR.getText().toString()));
 
             chargerConfiguration.setControlMonitor(checkboxControlMonitor.isChecked());
+            chargerConfiguration.setInitInfo(checkboxInitInfo.isChecked());
         } catch (Exception e) {
             logger.error("ConfigSettingFragment onConfigurationUpdate error : {}",  e.getMessage());
         }

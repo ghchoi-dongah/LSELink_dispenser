@@ -1,15 +1,23 @@
 package com.dongah.dispenser;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.PowerManager;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -42,8 +50,11 @@ import com.dongah.dispenser.utils.ToastPositionMake;
 import com.dongah.dispenser.websocket.ocpp.core.Reason;
 import com.dongah.dispenser.websocket.socket.SocketReceiveMessage;
 import com.dongah.dispenser.websocket.socket.SocketState;
+import com.dongah.dispenser.websocket.socket.handler.handlersend.ChangeElecModeThread;
+import com.dongah.dispenser.websocket.socket.handler.handlersend.ChangeModeThread;
 import com.dongah.dispenser.websocket.socket.handler.handlersend.ProcessHandler;
 import com.dongah.dispenser.utils.MonitorHttpServer;
+import com.dongah.dispenser.websocket.socket.handler.handlersend.RechgrsocscheduleThread;
 import com.dongah.dispenser.websocket.tcpsocket.ClientSocket;
 
 import org.slf4j.Logger;
@@ -223,12 +234,14 @@ public class MainActivity extends AppCompatActivity {
          *  개발 ocpp 서버 url :
          *  ws://dev-connect.lselink.com/ocpp/{충전소ID}{충전기ID}
          *  ws://dev-connect.lselink.com/ocpp/00000026
+         *  websocketUrl : ws://dev-connect.lselink.com/ocpp/
          *  충전소ID : 000000
          *  충전기ID : 26
          */
         chargerConfiguration.setSigned(false);
 
-        String baseUrl =  chargerConfiguration.getServerConnectingString() + "/" + chargerConfiguration.getChargeBoxSerialNumber() + chargerConfiguration.getChargerId();
+//        String baseUrl = "ws://dongahtest.p-e.kr:5000/v2/DAE000202";
+        String baseUrl =  chargerConfiguration.getServerConnectingString() + chargerConfiguration.getChargeBoxSerialNumber() + chargerConfiguration.getChargerId();
         socketReceiveMessage = new SocketReceiveMessage(baseUrl);
 
         // 6. classUiProcess
@@ -292,10 +305,11 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // 9. 전류 제한 설정
+        // 9. 전류, SoC 제한 설정
         if (Objects.equals(chargerConfiguration.getOpMode(), 0)) {
             for (int i = 0; i <GlobalVariables.maxChannel; i++) {
                 ((MainActivity) MainActivity.mContext).getControlBoard().getTxData(i).setOutPowerLimit((short) chargerConfiguration.getDr());
+                ((MainActivity) MainActivity.mContext).getChargingCurrentData(i).setLimitSoc(chargerConfiguration.getTargetSoc());
             }
         }
 

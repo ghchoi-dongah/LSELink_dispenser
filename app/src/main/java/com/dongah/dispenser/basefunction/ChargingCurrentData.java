@@ -163,6 +163,9 @@ public class ChargingCurrentData {
      * */
     public boolean autoStart = true;
 
+    public int limitSoc = 0;
+    public int limitDr = 0;
+
     public ChargingCurrentData() {
         sampleValueData = new SampleValueData();
     }
@@ -882,5 +885,21 @@ public class ChargingCurrentData {
 
     public void setAutoStart(boolean autoStart) {
         this.autoStart = autoStart;
+    }
+
+    public int getLimitSoc() {
+        return limitSoc;
+    }
+
+    public void setLimitSoc(int limitSoc) {
+        this.limitSoc = limitSoc;
+    }
+
+    public int getLimitDr() {
+        return limitDr;
+    }
+
+    public void setLimitDr(int limitDr) {
+        this.limitDr = limitDr;
     }
 }

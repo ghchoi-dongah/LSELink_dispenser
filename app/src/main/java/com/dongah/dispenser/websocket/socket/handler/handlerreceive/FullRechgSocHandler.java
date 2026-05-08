@@ -2,17 +2,17 @@ package com.dongah.dispenser.websocket.socket.handler.handlerreceive;
 
 import android.annotation.SuppressLint;
 import android.os.Build;
-import android.util.Log;
 
 import androidx.annotation.RequiresApi;
 
 import com.dongah.dispenser.MainActivity;
-import com.dongah.dispenser.basefunction.ChargerConfiguration;
+import com.dongah.dispenser.basefunction.ChargingCurrentData;
 import com.dongah.dispenser.basefunction.GlobalVariables;
 import com.dongah.dispenser.utils.FileManagement;
 import com.dongah.dispenser.websocket.ocpp.core.DataTransferStatus;
 import com.dongah.dispenser.websocket.ocpp.utilities.ZonedDateTimeConvert;
 import com.dongah.dispenser.websocket.socket.OcppHandler;
+import com.dongah.dispenser.websocket.socket.handler.handlersend.ChangeModeThread;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -33,22 +33,75 @@ public class FullRechgSocHandler implements OcppHandler {
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public void handle(JSONObject payload, int connectorId, String messageId) throws Exception {
-        DataTransferStatus status = DataTransferStatus.valueOf(payload.getString("status"));
-        String dataStr = payload.getString("data");
+        try {
+            DataTransferStatus status = DataTransferStatus.valueOf(payload.getString("status"));
+            String dataStr = payload.getString("data");
 
-        if (status.equals(DataTransferStatus.Accepted)) {
-            // 저장
-            FileManagement fileManagement = new FileManagement();
-            fileManagement.stringToFileSave(GlobalVariables.getRootPath(), "fullRechgSoc", dataStr, false);
+            if (status.equals(DataTransferStatus.Accepted)) {
 
-            // SoC 설정
-            File file = new File(GlobalVariables.getRootPath() + File.separator + "fullRechgSoc");
-            String content = readFile(file);
-            setFullRechgSoc(content);
+                // 저장
+                FileManagement fileManagement = new FileManagement();
+                fileManagement.stringToFileSave(GlobalVariables.getRootPath(), GlobalVariables.FILE_FULL_RECHG_SOC, dataStr, false);
+
+                // SoC 설정
+                setFullRechgSoc(connectorId);
+            }
+        } catch (Exception e) {
+            logger.error("FullRechgSocHandler error : {}", e.getMessage(), e);
         }
     }
 
-    private String readFile(File file) throws Exception {
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    public static void setFullRechgSoc(int connectorId) {
+
+        try {
+            MainActivity activity = (MainActivity) MainActivity.mContext;
+            ChargingCurrentData chargingCurrentData = activity.getChargingCurrentData(connectorId-1);
+
+            File file = new File(GlobalVariables.getRootPath() + File.separator + GlobalVariables.FILE_FULL_RECHG_SOC);
+            String content = readFile(file);
+            logger.info("setFullRechgSoc connectorId[{}] content : {}", connectorId, content);
+
+            JSONArray jsonArray = new JSONArray(content);
+            ZonedDateTimeConvert convert = new ZonedDateTimeConvert();
+            ZonedDateTime now = convert.doGetCurrentTime();
+            if (now == null) return;
+
+            String today = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            int hour = now.getHour();
+            @SuppressLint("DefaultLocale") String hourKey = String.format("HH%02d", hour);
+
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject obj = jsonArray.getJSONObject(i);
+
+                if (today.equals(obj.optString("day", ""))) {
+
+                    // 키가 없을 때 JSONException 방지
+                    String value = obj.optString(hourKey, null);
+                    logger.info("setFullRechgSoc connectorId[{}] soc : {}", connectorId, value);
+
+                    if (value == null || value.isEmpty()) {
+                        // 키가 없으면 DT(changemode) rechgAmt 조회
+                        logger.info("setFullRechgSoc connectorId[{}] value is null. changeMode start", connectorId);
+                        ChangeModeThread.setRechgAmt(connectorId);
+                    } else {
+                        // 키가 존재
+                        chargingCurrentData.setLimitSoc(Integer.parseInt(value));
+                        logger.info("setFullRechgSoc connectorId[{}] LimitSoc : {}",
+                                connectorId, chargingCurrentData.getLimitSoc());
+                    }
+
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            logger.error("setFullRechgSoc error : {}", e.getMessage(), e);
+        }
+    }
+
+
+    private static String readFile(File file) throws Exception {
         StringBuilder stringBuilder = new StringBuilder();
 
         try (FileInputStream fis = new FileInputStream(file);
@@ -61,39 +114,5 @@ public class FullRechgSocHandler implements OcppHandler {
             }
         }
         return stringBuilder.toString();
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.O)
-    private void setFullRechgSoc(String content) {
-        MainActivity activity = (MainActivity) MainActivity.mContext;
-        ChargerConfiguration chargerConfiguration = activity.getChargerConfiguration();
-
-        try {
-            JSONArray jsonArray = new JSONArray(content);
-            ZonedDateTimeConvert convert = new ZonedDateTimeConvert();
-            ZonedDateTime now = convert.doGetCurrentTime();
-
-            if (now == null) {
-                return;
-            }
-
-            String today = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-            int hour = now.getHour();
-            @SuppressLint("DefaultLocale") String hourKey = String.format("HH%02d", hour);
-
-            for (int i = 0; i < jsonArray.length(); i++) {
-                JSONObject obj = jsonArray.getJSONObject(i);
-
-                if (today.equals(obj.optString("day", ""))) {
-
-                    // 키가 없을 때 JSONException 방지 (없으면 config soc 사용)
-                    String value = obj.optString(hourKey, String.valueOf(chargerConfiguration.getTargetSoc()));
-                    chargerConfiguration.setTargetSoc(Integer.parseInt(value));
-                    break;
-                }
-            }
-        } catch (Exception e) {
-            logger.error("setFullRechgSoc error : {}", e.getMessage());
-        }
     }
 }

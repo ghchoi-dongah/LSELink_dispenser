@@ -1,12 +1,14 @@
 package com.dongah.dispenser.websocket.socket.handler.handlersend;
 
 import android.os.Build;
+import android.os.Environment;
 
 import androidx.annotation.RequiresApi;
 
 import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.basefunction.ChargerConfiguration;
 import com.dongah.dispenser.basefunction.GlobalVariables;
+import com.dongah.dispenser.utils.FileManagement;
 import com.dongah.dispenser.websocket.ocpp.common.OccurenceConstraintException;
 import com.dongah.dispenser.websocket.ocpp.core.BootNotificationRequest;
 import com.dongah.dispenser.websocket.ocpp.firmware.FirmwareStatus;
@@ -25,6 +27,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.time.ZonedDateTime;
+import java.util.Arrays;
 
 public class BootNotificationThread extends Thread {
     private static final Logger logger = LoggerFactory.getLogger(BootNotificationThread.class);
@@ -131,7 +134,6 @@ public class BootNotificationThread extends Thread {
 
 
                 if (status == SignedFirmwareStatus.Installed) {
-//                    ZonedDateTime timestamp = new ZonedDateTimeConvert().doZonedDateTimeToDatetime();
                     ZonedDateTime timestamp = new ZonedDateTimeConvert().doGetCurrentTime();
                     SecurityEventNotificationRequest req =
                             new SecurityEventNotificationRequest("FirmwareUpdated", timestamp);
@@ -145,11 +147,15 @@ public class BootNotificationThread extends Thread {
                 chargerConfiguration.setSignedFirmwareStatus(status);
             } else if ("Firmware".equals(resultStatus[0])) {
 
-                FirmwareStatus status = FirmwareStatus.valueOf(resultStatus[1]);
-                FirmwareStatusNotificationRequest req =
-                        new FirmwareStatusNotificationRequest(status);
-                socketReceiveMessage.onSend(100, req.getActionName(), req);
-                chargerConfiguration.setFirmwareStatus(status);
+//                FirmwareStatus status = FirmwareStatus.valueOf(resultStatus[1]);
+//                FirmwareStatusNotificationRequest req =
+//                        new FirmwareStatusNotificationRequest(status);
+//                socketReceiveMessage.onSend(100, req.getActionName(), req);
+//                chargerConfiguration.setFirmwareStatus(status);
+
+                Arrays.fill(GlobalVariables.ChargerOperation, true);
+                onChargerOperateSave();
+                chargerConfiguration.setFirmwareStatus(FirmwareStatus.Idle);
             }
 
 
@@ -171,4 +177,21 @@ public class BootNotificationThread extends Thread {
         return "0";
     }
 
+    private void onChargerOperateSave() {
+        try {
+            boolean check;
+            String rootPath = Environment.getExternalStorageDirectory().toString() + File.separator + "Download";
+            File file = new File(rootPath + File.separator + "ChargerOperate");
+            if (file.exists()) check = file.delete();
+
+            FileManagement fileManagement = new FileManagement();
+            for (int i = 0; i < GlobalVariables.maxPlugCount; i++) {
+                String statusContent = String.valueOf(GlobalVariables.ChargerOperation[i]);
+                fileManagement.stringToFileSave(rootPath, "ChargerOperate", statusContent, true);
+            }
+
+        } catch (Exception e) {
+            logger.error("onChargerOperateSave error : {}", e.getMessage());
+        }
+    }
 }

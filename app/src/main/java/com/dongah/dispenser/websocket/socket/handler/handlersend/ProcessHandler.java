@@ -20,6 +20,8 @@ public class ProcessHandler extends Handler {
     StatusNotificationThread statusNotificationThread;
     ChangeModeThread changeModeThread;
     ChangeElecModeThread changeElecModeThread;
+    RechgrsocscheduleThread rechgrsocscheduleThread;
+
 
     @Override
     public void handleMessage(@NonNull Message msg) {
@@ -35,6 +37,7 @@ public class ProcessHandler extends Handler {
      */
     @RequiresApi(api = Build.VERSION_CODES.O)
     public void onHeartBeatStart(int delay) {
+        onHeartBeatStop();
         if (heartbeatThread == null || heartbeatThread.getState() != Thread.State.RUNNABLE) {
             heartbeatThread = new HeartbeatThread(delay);
             heartbeatThread.start();
@@ -123,6 +126,23 @@ public class ProcessHandler extends Handler {
             changeElecModeThread.interrupt();
             changeElecModeThread.stopThread();
             changeElecModeThread = null;
+        }
+    }
+
+    /**
+     * DT(rechgrsocschedule) Thread
+     * */
+    public void onRechgrsocscheduleStart() {
+        onRechgrsocscheduleStop();
+        rechgrsocscheduleThread = new RechgrsocscheduleThread();
+        rechgrsocscheduleThread.start();
+    }
+
+    public void onRechgrsocscheduleStop() {
+        if (rechgrsocscheduleThread != null) {
+            rechgrsocscheduleThread.interrupt();
+            rechgrsocscheduleThread.stopThread();
+            rechgrsocscheduleThread = null;
         }
     }
 }

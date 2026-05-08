@@ -31,6 +31,7 @@ public class ChangeModeThread extends Thread {
 
     private volatile boolean stopped = false;
 
+
     public void stopThread() {
         stopped = true;
         interrupt();
@@ -74,7 +75,7 @@ public class ChangeModeThread extends Thread {
 
         try {
             // 1. changeMode 파일 유무 확인
-            File file = new File(GlobalVariables.getRootPath() + File.separator + "changeMode");
+            File file = new File(GlobalVariables.getRootPath() + File.separator + GlobalVariables.FILE_CHANGE_MODE);
 
             int startIndex, endIndex;
             if (connectorId == 0) {
@@ -88,13 +89,14 @@ public class ChangeModeThread extends Thread {
             if (!file.exists()) {
                 // 2. 파일이 없으면 DM(양구) 처리
                 for (int i = startIndex; i <= endIndex; i++) {
-                    activity.getChargingCurrentData(i).setChangeMode("DM");
+                    activity.getChargingCurrentData(i-1).setChangeMode("DM");
                 }
             } else {
                 // 3. 파일이 있는 경우(커넥터 별 모드 갱신)
                 // connectorId 없으면, connectorId 0 상태값 설정
                 // DM(양구), NM(1구), WM(충전대기), IM(충전불가)
                 for (int i = startIndex; i <= endIndex; i++) {
+                    Log.d("ChangeModeThread", "connectorId[" + i + "] changeMode start");
                     String content = readFile(file, i);
                     Log.d("ChangeModeThread", "content" + i + ": " + content);
 
@@ -122,6 +124,8 @@ public class ChangeModeThread extends Thread {
                     if (Objects.equals(activity.getClassUiProcess(i-1).getUiSeq(), UiSeq.INIT)) {
                         activity.getClassUiProcess(i-1).onHome();
                     }
+
+                    Log.d("ChangeModeThread", "connectorId[" + i + "] changeMode end");
                 }
             }
         } catch (Exception e) {
@@ -129,34 +133,80 @@ public class ChangeModeThread extends Thread {
         }
     }
 
-    private static String readFile(File file, int connectorId) throws Exception {
-        StringBuilder stringBuilder = new StringBuilder();
+    // 충전량 변경
+    public static void setRechgElec(int connectorId) {
+        try {
+            MainActivity activity = (MainActivity) MainActivity.mContext;
+            ChargerConfiguration chargerConfiguration = activity.getChargerConfiguration();
 
-        try (FileInputStream fis = new FileInputStream(file);
-             InputStreamReader isr = new InputStreamReader(fis, StandardCharsets.UTF_8);
-             BufferedReader bufferedReader = new BufferedReader(isr)) {
+            File file = new File(GlobalVariables.getRootPath() + File.separator + GlobalVariables.FILE_CHANGE_MODE);
 
-            String line;
-            while ((line = bufferedReader.readLine()) != null) {
-                stringBuilder.append(line);
+            if (!file.exists()) {
+                activity.getControlBoard().getTxData(connectorId-1).setOutPowerLimit((short) chargerConfiguration.getDr());
+                logger.info("setRechgElec file does not exist. connectorId[{}] outPowerLimit : {}",
+                        connectorId,  activity.getControlBoard().getTxData(connectorId-1).getOutPowerLimit());
+            } else {
+                String content = readFile(file, connectorId);
+                logger.info("setRechgElec connectorId[{}] content : {}", connectorId, content);
+
+                if (content == null || content.trim().isEmpty()) {
+                    activity.getControlBoard().getTxData(connectorId-1).setOutPowerLimit((short) chargerConfiguration.getDr());
+                    logger.info("setRechgElec changeMode file content is null. connectorId[{}] outPowerLimit : {}",
+                            connectorId, activity.getControlBoard().getTxData(connectorId-1).getOutPowerLimit());
+                } else {
+                    JSONObject rootJson = new JSONObject(content);
+                    String value = rootJson.optString( "rechgElec", String.valueOf(chargerConfiguration.getDr()));
+                    activity.getControlBoard().getTxData(connectorId-1).setOutPowerLimit((short) Integer.parseInt(value));
+                    logger.info("setRechgElec connectorId[{}] outPowerLimit : {}",
+                            connectorId, activity.getControlBoard().getTxData(connectorId-1).getOutPowerLimit());
+                }
             }
+
+            if (Objects.equals(activity.getClassUiProcess(connectorId-1).getUiSeq(), UiSeq.INIT)) {
+                activity.getClassUiProcess(connectorId-1).onHome();
+            }
+        } catch (Exception e) {
+            logger.error("setRechgElec error : {}", e.getMessage(), e);
         }
-
-        // 파일 전체 JSON 파싱
-        JSONObject rootJson = new JSONObject(stringBuilder.toString());
-
-        String key = String.valueOf(connectorId);
-
-        // 해당 connectorId 존재 여부 확인
-        if (!rootJson.has(key)) {
-            return null;
-        }
-
-        JSONObject connectorJson = rootJson.getJSONObject(key);
-
-        // 해당 connector 데이터만 문자열로 반환
-        return connectorJson.toString();
     }
+
+    // SoC 변경
+    public static void setRechgAmt(int connectorId) {
+        try {
+            MainActivity activity = (MainActivity) MainActivity.mContext;
+            ChargerConfiguration chargerConfiguration = activity.getChargerConfiguration();
+            ChargingCurrentData chargingCurrentData = activity.getChargingCurrentData(connectorId-1);
+
+            File file = new File(GlobalVariables.getRootPath() + File.separator + GlobalVariables.FILE_CHANGE_MODE);
+
+            if (!file.exists()) {
+                chargingCurrentData.setLimitSoc(chargerConfiguration.getTargetSoc());
+                logger.info("setRechgAmt file does not exist. connectorId[{}] soc : {}", connectorId, chargingCurrentData.getLimitSoc());
+            } else {
+                String content = readFile(file, connectorId);
+                logger.info("setRechgAmt connectorId[{}] content : {}", connectorId, content);
+
+                if (content == null || content.trim().isEmpty()) {
+                    chargingCurrentData.setLimitSoc(chargerConfiguration.getTargetSoc());
+                    logger.warn("setRechgAmt file content is null");
+                } else {
+                    JSONObject rootJson = new JSONObject(content);
+                    String value = rootJson.optString("rechgAmt", String.valueOf(chargerConfiguration.getTargetSoc()));
+                    chargingCurrentData.setLimitSoc(Integer.parseInt(value) == 0 ?
+                            chargerConfiguration.getTargetSoc() : Integer.parseInt(value));
+
+                    logger.info("setRechgAmt connectorId[{}] soc: {}", connectorId, chargingCurrentData.getLimitSoc());
+                }
+            }
+
+            if (Objects.equals(activity.getClassUiProcess(connectorId-1).getUiSeq(), UiSeq.INIT)) {
+                activity.getClassUiProcess(connectorId-1).onHome();
+            }
+        } catch (Exception e) {
+            logger.error("setRechgAmt error : {}", e.getMessage(), e);
+        }
+    }
+
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     private static void setChangeMode(int connectorId, String content) {
@@ -209,5 +259,34 @@ public class ChangeModeThread extends Thread {
        } catch (Exception e) {
            logger.error("setConnectUse error : {}", e.getMessage(), e);
        }
+    }
+
+    private static String readFile(File file, int connectorId) throws Exception {
+        StringBuilder stringBuilder = new StringBuilder();
+
+        try (FileInputStream fis = new FileInputStream(file);
+             InputStreamReader isr = new InputStreamReader(fis, StandardCharsets.UTF_8);
+             BufferedReader bufferedReader = new BufferedReader(isr)) {
+
+            String line;
+            while ((line = bufferedReader.readLine()) != null) {
+                stringBuilder.append(line);
+            }
+        }
+
+        // 파일 전체 JSON 파싱
+        JSONObject rootJson = new JSONObject(stringBuilder.toString());
+
+        String key = String.valueOf(connectorId);
+
+        // 해당 connectorId 존재 여부 확인
+        if (!rootJson.has(key)) {
+            return null;
+        }
+
+        JSONObject connectorJson = rootJson.getJSONObject(key);
+
+        // 해당 connector 데이터만 문자열로 반환
+        return connectorJson.toString();
     }
 }

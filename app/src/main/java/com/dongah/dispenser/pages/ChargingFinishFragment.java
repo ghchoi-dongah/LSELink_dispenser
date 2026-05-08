@@ -48,7 +48,7 @@ public class ChargingFinishFragment extends Fragment implements View.OnClickList
     private int mChannel;
 
     Button btnCheck;
-    TextView textViewSocValue, textViewChargingAmtValue, textViewChargingTimeValue;
+    TextView textViewSocValue, textViewChargingAmtValue, textViewChargingTimeValue, textViewCarNum;
     CircularProgressIndicator progressCircular;
 
     MediaPlayer mediaPlayer;
@@ -102,6 +102,7 @@ public class ChargingFinishFragment extends Fragment implements View.OnClickList
         textViewChargingAmtValue = view.findViewById(R.id.textViewChargingAmtValue);
         textViewChargingTimeValue = view.findViewById(R.id.textViewChargingTimeValue);
         progressCircular = view.findViewById(R.id.progressCircular);
+        textViewCarNum = view.findViewById(R.id.textViewCarNum);
         return view;
     }
 
@@ -134,10 +135,16 @@ public class ChargingFinishFragment extends Fragment implements View.OnClickList
                     progressCircular.setProgress(chargingCurrentData.getSoc(), true);
                     textViewChargingAmtValue.setText(powerFormatter.format(chargingCurrentData.getPowerMeterUse() * 0.01) + "kWh");
                     textViewChargingTimeValue.setText(chargingCurrentData.getChargingUseTime());
+
+                    if (Objects.equals(chargerConfiguration.getOpMode(), 1)) {
+                        textViewCarNum.setText(getString(R.string.carNum) + chargingCurrentData.getParentIdTag());
+                    } else {
+                        textViewCarNum.setText(getString(R.string.carNum) + "테스트 모드");
+                    }
                 }
             });
         } catch (Exception e) {
-            logger.error("ChargingFinishFragment onViewCreated error : {}", e.getMessage());
+            logger.error("ChargingFinishFragment onViewCreated error : {}", e.getMessage(), e);
         }
     }
 

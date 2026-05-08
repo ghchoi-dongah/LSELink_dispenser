@@ -49,15 +49,26 @@ public class FirmwareStatusNotificationHandler implements OcppHandler  {
             FileManagement fileManagement = new FileManagement();
             check = fileManagement.fileCreate(fileName, "Firmware-Installed");
 
+            // installed 전송 후 재부팅 시도
+            chargerConfiguration.setFirmwareStatus(FirmwareStatus.Installed);
+            FirmwareStatusNotificationRequest firmwareStatusNotificationRequest =
+                    new FirmwareStatusNotificationRequest(chargerConfiguration.getFirmwareStatus());
+            activity.getSocketReceiveMessage().onSend(
+                    100,
+                    firmwareStatusNotificationRequest.getActionName(),
+                    firmwareStatusNotificationRequest);
+        } else if (Objects.equals(chargerConfiguration.getFirmwareStatus(), FirmwareStatus.Installed)) {
+
+            // rebooting
             for (int i = 0; i < GlobalVariables.maxChannel; i++) {
                 activity.getChargingCurrentData(i).setStopReason(Reason.HardReset);
                 activity.getChargingCurrentData(i).setReBoot(true);
             }
-        } else if (Objects.equals(chargerConfiguration.getFirmwareStatus(), FirmwareStatus.Installed)) {
+
             // update firmware 다운 전에 GlobalVariables.ChargerOperation[] = true ==> Unavailable
-            Arrays.fill(GlobalVariables.ChargerOperation, true);
-            onChargerOperateSave();
-            chargerConfiguration.setFirmwareStatus(FirmwareStatus.Idle);
+//            Arrays.fill(GlobalVariables.ChargerOperation, true);
+//            onChargerOperateSave();
+//            chargerConfiguration.setFirmwareStatus(FirmwareStatus.Idle);
         } else if (Objects.equals(chargerConfiguration.getFirmwareStatus(), FirmwareStatus.DownloadFailed) ||
                 Objects.equals(chargerConfiguration.getFirmwareStatus(), FirmwareStatus.InstallationFailed)) {
             // update firmware 다운 전에 GlobalVariables.ChargerOperation[] = false ==> Unavailable

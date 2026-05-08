@@ -10,6 +10,7 @@ import com.dongah.dispenser.utils.FileManagement;
 import com.dongah.dispenser.websocket.ocpp.core.DataTransferStatus;
 import com.dongah.dispenser.websocket.ocpp.core.datatransfer.lselink.RechgrsocscheduleConfirm;
 import com.dongah.dispenser.websocket.socket.OcppHandler;
+import com.dongah.dispenser.websocket.socket.handler.handlersend.RechgrsocscheduleThread;
 
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -36,6 +37,9 @@ public class RechgrsocscheduleHandler implements OcppHandler {
 
             // response
             sendResponse(connectorId, messageId);
+
+            // soc 설정
+            RechgrsocscheduleThread.processRechgrsoc(connectorId);
         } catch (Exception e) {
             logger.error("RechgrsocscheduleHandler error : {}", e.getMessage(), e);
         }
@@ -61,7 +65,26 @@ public class RechgrsocscheduleHandler implements OcppHandler {
 
             JSONObject newJson = new JSONObject(newData);
             int connectorId = newJson.getInt("connectorId");
-            rootJson.put(String.valueOf(connectorId), newJson);
+
+            // connectorId == 0 이면 전체 적용
+            if (connectorId == 0) {
+                // 0번 자체도 저장
+                JSONObject connector0Json = new JSONObject(newJson.toString());
+                connector0Json.put("connectorId", 0);
+                rootJson.put("0", connector0Json);
+
+                // 실제 커넥터 1 ~ maxChannel까지 저장
+                for (int i = 1; i <= GlobalVariables.maxChannel; i++) {
+                    JSONObject copiedJson = new JSONObject(newJson.toString());
+
+                    // 저장되는 내부 connectorId를 실제 커넥터 번호로 변경
+                    copiedJson.put("connectorId", i);
+
+                    rootJson.put(String.valueOf(i), copiedJson);
+                }
+            } else {
+                rootJson.put(String.valueOf(connectorId), newJson);
+            }
 
             fileManagement.stringToFileSave(
                     GlobalVariables.getRootPath(),

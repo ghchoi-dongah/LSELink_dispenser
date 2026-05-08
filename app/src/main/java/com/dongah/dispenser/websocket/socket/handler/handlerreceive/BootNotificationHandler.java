@@ -38,12 +38,16 @@ public class BootNotificationHandler implements OcppHandler {
             UnitPriceThread unitPriceThread = new UnitPriceThread(3600);
             unitPriceThread.start();
 
-            // DataTransfer ChangeMode
-            activity.getProcessHandler().onChangeModeStart();
 
             if (!Objects.equals(activity.getChargerConfiguration().getOpMode(), 0)) {
+                // DataTransfer ChangeMode
+                activity.getProcessHandler().onChangeModeStart();
+
                 // DataTransfer ChangeElecMode
                 activity.getProcessHandler().onChangeElecModeStart();
+
+                // DataTransfer Rechgrsocschedule
+                activity.getProcessHandler().onRechgrsocscheduleStart();
             }
 
             // dump data send

@@ -576,6 +576,27 @@
         app:layout_constraintBottom_toBottomOf="@id/textViewControlMonitor"
         app:layout_constraintStart_toStartOf="@id/editDR" />
 
+    <TextView
+        android:id="@+id/textViewInitInfo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="10dp"
+        android:text="@string/initInfoYn"
+        android:textSize="18sp"
+        app:layout_constraintTop_toTopOf="@id/textViewControlMonitor"
+        app:layout_constraintEnd_toStartOf="@id/checkboxInitInfo"/>
+
+    <CheckBox
+        android:id="@+id/checkboxInitInfo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:checked="true"
+        android:scaleX="1.3"
+        android:scaleY="1.3"
+        app:layout_constraintTop_toTopOf="@id/textViewInitInfo"
+        app:layout_constraintBottom_toBottomOf="@id/textViewInitInfo"
+        app:layout_constraintEnd_toEndOf="@id/editDR" />
+
     <Button
         android:id="@+id/btnExit"
         android:layout_width="240dp"
