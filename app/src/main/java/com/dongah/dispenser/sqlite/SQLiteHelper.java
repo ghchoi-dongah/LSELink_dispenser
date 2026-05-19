@@ -11,11 +11,17 @@ import com.dongah.dispenser.sqlite.dto.CpChargingHist;
 import com.dongah.dispenser.sqlite.dto.CpChgElecmode;
 import com.dongah.dispenser.sqlite.dto.CpNonTransmit;
 import com.dongah.dispenser.sqlite.dto.CpOcppConfigKeys;
+import com.dongah.dispenser.sqlite.dto.CpRechgSoc;
 import com.dongah.dispenser.sqlite.dto.CpSettings;
 import com.dongah.dispenser.sqlite.dto.CpUnitPrice;
 import com.dongah.dispenser.sqlite.dto.DbEntity;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class SQLiteHelper extends SQLiteOpenHelper {
+    private static final Logger logger = LoggerFactory.getLogger(SQLiteHelper.class);
+
     private static final String DATABASE_NAME = "dongah.db";
     private static final  int DATABASE_VERSION = 1;
 
@@ -41,13 +47,31 @@ public class SQLiteHelper extends SQLiteOpenHelper {
          * TEXT: 문자열
          * BLOB: 바이너리
          * */
-        sqLiteDatabase.execSQL(CpSettings.CREATE_SQL);
-        sqLiteDatabase.execSQL(CpOcppConfigKeys.CREATE_SQL);
-        sqLiteDatabase.execSQL(CpUnitPrice.CREATE_SQL);
         sqLiteDatabase.execSQL(CpChgElecmode.CREATE_SQL);
         sqLiteDatabase.execSQL(CpChangeMode.CREATE_SQL);
-        sqLiteDatabase.execSQL(CpNonTransmit.CREATE_SQL);
-        sqLiteDatabase.execSQL(CpChargingHist.CREATE_SQL);
+        sqLiteDatabase.execSQL(CpRechgSoc.CREATE_SQL);
+
+//        sqLiteDatabase.execSQL(CpSettings.CREATE_SQL);
+//        sqLiteDatabase.execSQL(CpOcppConfigKeys.CREATE_SQL);
+//        sqLiteDatabase.execSQL(CpUnitPrice.CREATE_SQL);
+//        sqLiteDatabase.execSQL(CpNonTransmit.CREATE_SQL);
+//        sqLiteDatabase.execSQL(CpChargingHist.CREATE_SQL);
+    }
+
+    public void onCreateTable(SQLiteDatabase sqLiteDatabase, String tableName) {
+        switch (tableName) {
+            case "CP_CHG_ELECMODE":
+                sqLiteDatabase.execSQL(CpChgElecmode.CREATE_SQL);
+                break;
+            case "CP_CHANGE_MODE":
+                sqLiteDatabase.execSQL(CpChangeMode.CREATE_SQL);
+                break;
+            case "CP_RECHG_SOC":
+                sqLiteDatabase.execSQL(CpRechgSoc.CREATE_SQL);
+                break;
+            default:
+                throw new IllegalArgumentException("Unknown table: " + tableName);
+        }
     }
 
     @Override
@@ -72,6 +96,7 @@ public class SQLiteHelper extends SQLiteOpenHelper {
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + new CpChangeMode().getTableName());
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + new CpNonTransmit().getTableName());
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + new CpChargingHist().getTableName());
+        sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + new CpRechgSoc().getTableName());
     }
 
     // delete table
@@ -125,5 +150,38 @@ public class SQLiteHelper extends SQLiteOpenHelper {
                 null,
                 null
         );
+    }
+
+    /**
+     * SQLite에 특정 테이블이 존재하는지 확인한다.
+     *
+     * @param helper SQLiteHelper 인스턴스
+     * @param tableName 확인할 테이블명
+     * @return 테이블이 존재하면 true, 없으면 false
+     */
+    public boolean isTableExists(SQLiteHelper helper, String tableName) {
+        Cursor cursor = null;
+
+        try {
+            /*
+             * sqlite_master는 SQLite 내부 메타 테이블.
+             * type='table'이고 name이 tableName인 데이터가 있으면 해당 테이블이 존재함.
+             */
+            cursor = helper.getReadableDatabase().rawQuery(
+                    "SELECT name FROM sqlite_master WHERE type='table' AND name=?",
+                    new String[]{tableName}
+            );
+
+            return cursor != null && cursor.moveToFirst();
+
+        } catch (Exception e) {
+            logger.error("isTableExists error. tableName : {}, error : {}", tableName, e.getMessage(), e);
+            return false;
+
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
     }
 }
