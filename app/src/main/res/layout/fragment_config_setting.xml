@@ -260,7 +260,7 @@
 
     <EditText
         android:id="@+id/editConnectorPriority"
-        android:layout_width="260dp"
+        android:layout_width="160dp"
         android:layout_height="wrap_content"
         android:background="@drawable/selector_edit_text_required"
         android:textSize="18sp"
@@ -269,6 +269,16 @@
         app:layout_constraintTop_toTopOf="@id/textViewConnectorPriority"
         app:layout_constraintStart_toStartOf="@id/spinnerChargePointType"
         tools:ignore="Autofill,LabelFor,TextFields,SpeakableTextPresentCheck" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="5dp"
+        android:text="[1 또는 2 입력]"
+        android:textSize="15sp"
+        android:textColor="@color/gin_grey"
+        app:layout_constraintTop_toTopOf="@id/editConnectorPriority"
+        app:layout_constraintStart_toEndOf="@id/editConnectorPriority" />
 
     <TextView
         android:id="@+id/textViewChargePointSerialNumber"
