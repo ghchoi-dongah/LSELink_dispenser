@@ -4,8 +4,6 @@ package com.dongah.dispenser.websocket.socket.handler.handlersend;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.SystemClock;
-import android.util.Log;
 
 import androidx.annotation.RequiresApi;
 
@@ -18,8 +16,6 @@ import com.dongah.dispenser.websocket.ocpp.core.ChargePointErrorCode;
 import com.dongah.dispenser.websocket.ocpp.core.ChargePointStatus;
 import com.dongah.dispenser.websocket.ocpp.core.StatusNotificationRequest;
 import com.dongah.dispenser.websocket.ocpp.utilities.ZonedDateTimeConvert;
-import com.dongah.dispenser.websocket.socket.Socket;
-import com.dongah.dispenser.websocket.socket.SocketState;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

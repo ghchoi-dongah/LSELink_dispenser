@@ -1,14 +1,21 @@
 package com.dongah.dispenser.websocket.socket.handler.handlerreceive;
 
+import android.annotation.SuppressLint;
+import android.content.ContentValues;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Build;
 
 import androidx.annotation.RequiresApi;
 
 import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.basefunction.GlobalVariables;
+import com.dongah.dispenser.sqlite.SQLiteHelper;
+import com.dongah.dispenser.sqlite.dto.CpRechgSoc;
 import com.dongah.dispenser.utils.FileManagement;
 import com.dongah.dispenser.websocket.ocpp.core.DataTransferStatus;
 import com.dongah.dispenser.websocket.ocpp.core.datatransfer.lselink.RechgrsocscheduleConfirm;
+import com.dongah.dispenser.websocket.ocpp.utilities.ZonedDateTimeConvert;
 import com.dongah.dispenser.websocket.socket.OcppHandler;
 import com.dongah.dispenser.websocket.socket.handler.handlersend.RechgrsocscheduleThread;
 
@@ -27,21 +34,126 @@ public class RechgrsocscheduleHandler implements OcppHandler {
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public void handle(JSONObject payload, int connectorId, String messageId) throws Exception {
-        String vendorId = payload.getString("vendorId");
-        String msgId = payload.getString("messageId");
-        String dataStr = payload.getString("data");
-
         try {
+            String vendorId = payload.getString("vendorId");
+            String msgId = payload.getString("messageId");
+            String dataStr = payload.getString("data");
+
+            // DB update
+            if (connectorId == 0) {
+                for (int i = 1; i <= GlobalVariables.maxChannel; i++) {
+                    updateRechgSoc(dataStr, i);
+                }
+            } else {
+                updateRechgSoc(dataStr, connectorId);
+            }
+
             // file save
             saveRechgrsocscheduleToFile(dataStr);
-
             // response
             sendResponse(connectorId, messageId);
-
             // soc 설정
-            RechgrsocscheduleThread.processRechgrsoc(connectorId);
+            RechgrsocscheduleThread.processRechgSoc(connectorId);
         } catch (Exception e) {
             logger.error("RechgrsocscheduleHandler error : {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * data JSON을 파싱하여 CP_RECHG_SOC 테이블을 업데이트한다.
+     * - connectorId == 0 : CONNECTOR_ID 1, 2 모두 업데이트
+     * - connectorId == 1 또는 2 : 해당 CONNECTOR_ID만 업데이트
+     */
+    @SuppressLint("DefaultLocale")
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private void updateRechgSoc(String dataStr, int connectorId) {
+        try {
+            MainActivity activity = (MainActivity) MainActivity.mContext;
+            SQLiteHelper helper = SQLiteHelper.getInstance(activity);
+            SQLiteDatabase sqLiteDatabase = helper.getWritableDatabase();
+            String tableName = new CpRechgSoc().getTableName();
+
+            JSONObject dataJson = new JSONObject(dataStr);
+
+            // 테이블 없으면 테이블 생성 후 업데이트 진행
+            if (!helper.isTableExists(helper, tableName)) {
+                logger.warn("updateRechgSoc table not exists : {}", tableName);
+                helper.onCreateTable(sqLiteDatabase, tableName);
+                insertRechgSoc(helper, connectorId, dataJson);
+                return;
+            }
+
+            // connector_id 존재 유무 확인
+            Cursor cursor = helper.select(tableName,"CONNECTOR_ID=?", new String[]{String.valueOf(connectorId)});
+            // Cursor null 여부 확인, 조회 결과 존재 여부 확인
+            if (cursor == null || !cursor.moveToFirst()) {
+                logger.warn("updateRechgSoc {} cursor is null or no data. connectorId : {}", tableName, connectorId);
+                insertRechgSoc(helper, connectorId, dataJson);
+                return;
+            }
+
+            // DH00 ~ DH23, WH00 ~ WH23 값 추출
+            ContentValues values = new ContentValues();
+            for (int i = 0; i < 24; i++) {
+                String keyD = String.format("DH%02d", i);
+                String keyW = String.format("WH%02d", i);
+
+                if (dataJson.has(keyD)) {
+                    values.put(keyD, dataJson.getString(keyD));
+                } else if (dataJson.has(keyW)) {
+                    values.put(keyW, dataJson.getString(keyW));
+                }
+            }
+
+            // MOD_DT 업데이트
+            ZonedDateTimeConvert convert = new ZonedDateTimeConvert();
+            values.put("MOD_DT", convert.doGetKstDatetimeAsString());
+
+            // DB 업데이트
+            if (connectorId == 0) {
+                // connectorId가 0이면 CONNECTOR_ID 1, 2 모두 업데이트
+                for (int id = 1; id <= GlobalVariables.maxChannel; id++) {
+                    int updated = helper.update(tableName, values, "CONNECTOR_ID=?", new String[]{String.valueOf(id)});
+                    logger.info("updateRechgSoc connectorId[{}] updated rows : {}", id, updated);
+                }
+            } else {
+                // connectorId가 1 또는 2이면 해당 CONNECTOR_ID만 업데이트
+                int updated = helper.update(tableName, values, "CONNECTOR_ID=?", new String[]{String.valueOf(connectorId)});
+                logger.info("updateRechgSoc single connectorId[{}] updated rows : {}", connectorId, updated);
+            }
+
+            cursor.close();
+        } catch (Exception e) {
+            logger.error("updateRechgSoc error : {}", e.getMessage(), e);
+        }
+    }
+
+    // CP_RECHG_SOC insert
+    @SuppressLint("DefaultLocale")
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private void insertRechgSoc(SQLiteHelper sqLiteHelper, int connectorId, JSONObject dataJson) {
+        try {
+            CpRechgSoc cpRechgSoc = new CpRechgSoc();
+            cpRechgSoc.connectorId = connectorId;
+
+            for (int time = 0; time < 24; time++) {
+                String dKey = String.format("DH%02d", time);
+                String wKey = String.format("WH%02d", time);
+                if (dataJson.has(dKey)) {
+                    cpRechgSoc.dhXX[time] = dataJson.getInt(dKey);
+                }
+                if (dataJson.has(wKey)) {
+                    cpRechgSoc.whXX[time] = dataJson.getInt(wKey);
+                }
+            }
+
+            ZonedDateTimeConvert zonedDateTimeConvert = new ZonedDateTimeConvert();
+            cpRechgSoc.regDt = zonedDateTimeConvert.doGetKstDatetimeAsString();
+            cpRechgSoc.modDt = zonedDateTimeConvert.doGetKstDatetimeAsString();
+
+            sqLiteHelper.insert(cpRechgSoc);
+        } catch (Exception e) {
+            logger.error("insertRechgSoc error : {}", e.getMessage(), e);
         }
     }
 

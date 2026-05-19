@@ -1,6 +1,8 @@
 package com.dongah.dispenser.websocket.socket.handler.handlersend;
 
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import androidx.annotation.RequiresApi;
@@ -8,6 +10,7 @@ import androidx.annotation.RequiresApi;
 import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.basefunction.ChargingCurrentData;
 import com.dongah.dispenser.utils.LogDataSave;
+import com.dongah.dispenser.websocket.ocpp.common.OccurenceConstraintException;
 import com.dongah.dispenser.websocket.ocpp.core.ChargePointStatus;
 import com.dongah.dispenser.websocket.ocpp.core.Location;
 import com.dongah.dispenser.websocket.ocpp.core.MeterValue;
@@ -49,7 +52,6 @@ public class StopTransactionReq {
             MainActivity activity = (MainActivity) MainActivity.mContext;
             ChargingCurrentData chargingCurrentData = activity.getChargingCurrentData(getConnectorId()-1);
             ZonedDateTime timestamp = zonedDateTimeConvert.doZonedDateTimeToDatetime(chargingCurrentData.getChargingEndTime());
-//            ZonedDateTime timestamp = zonedDateTimeConvert.doGetCurrentTime(chargingCurrentData.getChargingEndTime());
             
             activity.getClassUiProcess(getConnectorId()-1).onMeterValueStop();
 
@@ -89,17 +91,23 @@ public class StopTransactionReq {
 
             ZonedDateTime now = zonedDateTimeConvert.doGetCurrentTime();
 
-            MeterValue meterValue = new MeterValue(now, sampledArray);
+            MeterValue meterValue = new MeterValue(timestamp, sampledArray);
             stopTransactionRequest.setTransactionData(new MeterValue[] {meterValue});
 
 
             SocketState socketState = activity.getSocketReceiveMessage().getSocket().getState();
             if (socketState.equals(SocketState.OPEN)) {
                 //send
-                activity.getSocketReceiveMessage().onSend(
-                        getConnectorId(),
-                        stopTransactionRequest.getActionName(),
-                        stopTransactionRequest);
+                new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                    try {
+                        activity.getSocketReceiveMessage().onSend(
+                                getConnectorId(),
+                                stopTransactionRequest.getActionName(),
+                                stopTransactionRequest);
+                    } catch (OccurenceConstraintException e) {
+                        logger.error("StopTransactionRequest send error ", e);
+                    }
+                }, 3000);
             } else {
                 String uuid = UUID.randomUUID().toString();
                 saveFullStartTransaction(getConnectorId(), uuid, stopTransactionRequest);

@@ -12,7 +12,6 @@ import com.dongah.dispenser.utils.FileManagement;
 import com.dongah.dispenser.websocket.ocpp.core.DataTransferStatus;
 import com.dongah.dispenser.websocket.ocpp.utilities.ZonedDateTimeConvert;
 import com.dongah.dispenser.websocket.socket.OcppHandler;
-import com.dongah.dispenser.websocket.socket.handler.handlersend.ChangeModeThread;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -38,8 +37,7 @@ public class FullRechgSocHandler implements OcppHandler {
             String dataStr = payload.getString("data");
 
             if (status.equals(DataTransferStatus.Accepted)) {
-
-                // 저장
+                // file save
                 FileManagement fileManagement = new FileManagement();
                 fileManagement.stringToFileSave(GlobalVariables.getRootPath(), GlobalVariables.FILE_FULL_RECHG_SOC, dataStr, false);
 
@@ -61,7 +59,6 @@ public class FullRechgSocHandler implements OcppHandler {
 
             File file = new File(GlobalVariables.getRootPath() + File.separator + GlobalVariables.FILE_FULL_RECHG_SOC);
             String content = readFile(file);
-            logger.info("setFullRechgSoc connectorId[{}] content : {}", connectorId, content);
 
             JSONArray jsonArray = new JSONArray(content);
             ZonedDateTimeConvert convert = new ZonedDateTimeConvert();
@@ -76,22 +73,12 @@ public class FullRechgSocHandler implements OcppHandler {
                 JSONObject obj = jsonArray.getJSONObject(i);
 
                 if (today.equals(obj.optString("day", ""))) {
-
-                    // 키가 없을 때 JSONException 방지
                     String value = obj.optString(hourKey, null);
-                    logger.info("setFullRechgSoc connectorId[{}] soc : {}", connectorId, value);
-
-                    if (value == null || value.isEmpty()) {
-                        // 키가 없으면 DT(changemode) rechgAmt 조회
-                        logger.info("setFullRechgSoc connectorId[{}] value is null. changeMode start", connectorId);
-                        ChangeModeThread.setRechgAmt(connectorId);
-                    } else {
-                        // 키가 존재
-                        chargingCurrentData.setLimitSoc(Integer.parseInt(value));
-                        logger.info("setFullRechgSoc connectorId[{}] LimitSoc : {}",
-                                connectorId, chargingCurrentData.getLimitSoc());
+                    if (!value.isEmpty()) {
+                        chargingCurrentData.setFullrechgsoc(Integer.parseInt(value));
+                        logger.info("setFullRechgSoc connectorId[{}] hourKey:{}, value: {}, fullrechgsoc : {}",
+                                connectorId, hourKey, value, chargingCurrentData.getFullrechgsoc());
                     }
-
                     break;
                 }
             }

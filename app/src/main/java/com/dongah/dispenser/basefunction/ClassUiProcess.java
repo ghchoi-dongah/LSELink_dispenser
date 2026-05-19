@@ -560,9 +560,11 @@ public class ClassUiProcess implements RfCardReaderListener {
             // 충전 사용량 계산
             onUsePowerMeter(getCh(), rxData);
             controlBoard.getTxData(getCh()).setUiSequence((short) 2);
+
             // target soc
+            int targetSoc = Math.min(chargingCurrentData.getLimitSoc(), chargingCurrentData.getFullrechgsoc());
             boolean isSocReached = (chargingCurrentData.getSoc() != 0
-                    && chargingCurrentData.getSoc() >= chargingCurrentData.getLimitSoc());
+                    && chargingCurrentData.getSoc() >= targetSoc);
 
             // 충전율 90%
             if (Objects.equals(chargingCurrentData.getSoc(), 90) && chargingAlarm) {
@@ -625,6 +627,8 @@ public class ClassUiProcess implements RfCardReaderListener {
             }
             onMeterValueStop();
 
+            Thread.sleep(3000);
+
             if (Objects.equals(chargerConfiguration.getOpMode(), 1)) {
                 // StopTransaction
                 StopTransactionReq stopTransactionReq = new StopTransactionReq(chargingCurrentData.getConnectorId());
@@ -664,6 +668,7 @@ public class ClassUiProcess implements RfCardReaderListener {
                     // meter values stop
                     meterValuesReq.sendMeterValues(chargingCurrentData.getConnectorId());
                     onMeterValueStop();
+                    Thread.sleep(3000);
 
                     // socket receive message get instance
                     socketReceiveMessage = ((MainActivity) MainActivity.mContext).getSocketReceiveMessage();

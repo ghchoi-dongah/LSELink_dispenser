@@ -1,25 +1,25 @@
 package com.dongah.dispenser.websocket.socket.handler.handlersend;
 
 import android.annotation.SuppressLint;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Build;
 
 import androidx.annotation.RequiresApi;
 
 import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.basefunction.ChargerConfiguration;
+import com.dongah.dispenser.basefunction.ClassUiProcess;
 import com.dongah.dispenser.basefunction.GlobalVariables;
 import com.dongah.dispenser.basefunction.UiSeq;
+import com.dongah.dispenser.controlboard.TxData;
+import com.dongah.dispenser.sqlite.SQLiteHelper;
+import com.dongah.dispenser.sqlite.dto.CpChgElecmode;
 import com.dongah.dispenser.websocket.ocpp.utilities.ZonedDateTimeConvert;
 
-import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
 import java.util.Objects;
 
@@ -37,7 +37,8 @@ public class ChangeElecModeThread extends Thread {
     @Override
     public void run() {
         logger.info("ChangeElecModeThread start");
-        processChangeElecMode(0);
+
+        processRechgElec(0);
         while (!stopped && !isInterrupted()) {
             try {
                 Thread.sleep(1000);
@@ -50,8 +51,13 @@ public class ChangeElecModeThread extends Thread {
 
                 // 정각일 때 충전 모드 변경
                 if (minute == 0 && second == 0) {
-                    processChangeElecMode(0);
+                    processRechgElec(0);
                 }
+            }  catch (InterruptedException e) {
+                // interrupt()로 인해 발생한 예외이므로 종료를 위해 루프를 빠져나가도록 유도
+                logger.info("ChangeElecModeThread is interrupted. Stopping...");
+                Thread.currentThread().interrupt(); // Interrupt 플래그를 다시 세팅
+                break;
             } catch (Exception e) {
                 logger.error("ChangeElecModeThread error : {}", e.getMessage(), e);
             }
@@ -59,17 +65,25 @@ public class ChangeElecModeThread extends Thread {
         logger.info("ChangeElecModeThread terminated");
     }
 
-    // 시간대별 충전량 제한
     @RequiresApi(api = Build.VERSION_CODES.O)
-    public static void processChangeElecMode(int connectorId) {
+    public static void processRechgElec(int connectorId) {
         MainActivity activity = (MainActivity) MainActivity.mContext;
         ChargerConfiguration chargerConfiguration = activity.getChargerConfiguration();
+        SQLiteHelper helper = null;
+        SQLiteDatabase sqLiteDatabase;
 
         try {
-            // 1. changeElecMode 파일 유무 확인
-            File file = new File(GlobalVariables.getRootPath() + File.separator + GlobalVariables.FILE_CHANGE_ELEC_MODE);
+            helper = SQLiteHelper.getInstance(activity);
+            sqLiteDatabase = helper.getWritableDatabase();
+            CpChgElecmode dto = new CpChgElecmode();
+            String tableName = dto.getTableName();
 
             int startIndex, endIndex;
+
+            /*
+             * connectorId == 0 이면 전체 커넥터 조회
+             * connectorId != 0 이면 해당 커넥터만 조회
+             */
             if (connectorId == 0) {
                 startIndex = 1;
                 endIndex = GlobalVariables.maxChannel;
@@ -78,127 +92,98 @@ public class ChangeElecModeThread extends Thread {
                 endIndex = connectorId;
             }
 
-            if (!file.exists()) {
-                logger.info("processChangeElecMode file doesn't exist.");
-                // 2. 파일이 없으면 DT(changemode) - changeMode 파일 확인
+            /*
+             * 1. CP_CHG_ELECMODE 테이블 존재 여부 확인
+             *    테이블이 없으면 CP_CHANGE_MODE 테이블 확인
+             */
+            if (!helper.isTableExists(helper, tableName)) {
+                logger.warn("processRechgElec table not exists : {}", tableName);
                 for (int i = startIndex; i <= endIndex; i++) {
-                    logger.info("processChangeElecMode changemode setRechgElec start.");
-                    ChangeModeThread.setRechgElec(i);
+                    ChangeModeThread.setChgModeElec(i);
                 }
-            } else {
-                // 3. 파일이 있는 경우(채널별 충전제한 설정)
-                for (int i = startIndex; i <= endIndex; i++) {
-                    String content = readFile(file, i);
-                    logger.info("processChangeElecMode connectorId[{}] content : {}", i, content);
-
-                    if (content == null) {
-                        logger.info("processChangeElecMode file content is null.");
-                        ChangeModeThread.setRechgElec(i);
-                    } else {
-                        setChangeElecMode(i, content);
-                    }
-                }
+                return;
             }
-        } catch (Exception e) {
-            logger.error("processChangeElecMode error : {}", e.getMessage(), e);
-        }
-    }
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
-    private static void setChangeElecMode(int connectorId, String content) {
-        MainActivity activity = (MainActivity) MainActivity.mContext;
-
-        try {
-            JSONObject rootJson = new JSONObject(content);
+            /*
+             * 현재 시간 확인
+             * 시간별 컬럼명 HH00 ~ HH23 생성
+             */
             ZonedDateTime now = new ZonedDateTimeConvert().doGetCurrentTime();
             if (now == null) return;
 
             int hour = now.getHour();
             @SuppressLint("DefaultLocale") String hourKey = String.format("HH%02d", hour);
 
-            String value = rootJson.optString(hourKey, null);
-            if (value == null || value.isEmpty()) {
-                logger.info("setChangeElecMode value is null. changeMode start");
-                ChangeModeThread.setRechgElec(connectorId);
-//                processChangeMode(connectorId);
-            } else {
-                activity.getControlBoard().getTxData(connectorId-1).setOutPowerLimit((short) Integer.parseInt(value));
-                logger.info("setChangeElecMode connectorId[{}] outPowerLimit >> {} : {}",
-                        connectorId, hourKey, activity.getControlBoard().getTxData(connectorId-1).getOutPowerLimit());
+            for (int i = startIndex; i <= endIndex; i++) {
+                Cursor cursor = null;
+                try {
+                    cursor = helper.select(tableName,"CONNECTOR_ID=?", new String[]{String.valueOf(i)});
+                    // Cursor null 여부 확인, 조회 결과 존재 여부 확인
+                    if (cursor == null || !cursor.moveToFirst()) {
+                        logger.warn("processRechgElec {} cursor is null or no data. connectorId : {}", tableName, i);
+                        ChangeModeThread.setChgModeElec(i);
+                        continue;
+                    }
 
-                if (Objects.equals(activity.getClassUiProcess(connectorId-1).getUiSeq(), UiSeq.INIT)) {
-                    activity.getClassUiProcess(connectorId-1).onHome();
+                    int value = cursor.getInt(cursor.getColumnIndexOrThrow(hourKey));
+                    System.out.println("processRechgElec " + hourKey + " : " + value);
+
+                    // 시간대 전력 설정
+                    TxData txData = activity.getControlBoard().getTxData(i-1);
+                    if (value == 0) {
+                        txData.setOutPowerLimit((short) chargerConfiguration.getDr());
+                    } else {
+                        txData.setOutPowerLimit((short) value);
+                    }
+
+                    logger.info("processRechgElec connectorId[{}] outPowerLimit : {}", i, txData.getOutPowerLimit());
+
+                    if (Objects.equals(activity.getClassUiProcess(i-1).getUiSeq(), UiSeq.INIT)) {
+                        activity.getClassUiProcess(i-1).onHome();
+                    }
+
+                    cursor.close();
+                } catch (Exception e) {
+                    logger.error("processRechgElec select error : {}", e.getMessage(), e);
                 }
             }
-
-//            logger.info("setChangeElecMode connectorId[{}] outPowerLimit >> {} : {}", connectorId, hourKey, value);
-
         } catch (Exception e) {
-            logger.error("setChangeElecMode error : {}", e.getMessage(), e);
+            logger.error("processRechgElec error : {}", e.getMessage(), e);
         }
     }
 
+    // insert : config 전력
     @RequiresApi(api = Build.VERSION_CODES.O)
-    private static void processChangeMode(int connectorId) {
-        MainActivity activity = (MainActivity) MainActivity.mContext;
-        ChargerConfiguration chargerConfiguration = activity.getChargerConfiguration();
-
+    public static void insertChgElecMode(SQLiteHelper sqLiteHelper, int connectorId) {
         try {
-            File file = new File(GlobalVariables.getRootPath() + File.separator + GlobalVariables.FILE_CHANGE_MODE);
+            MainActivity activity = (MainActivity) MainActivity.mContext;
+            ChargerConfiguration chargerConfiguration = activity.getChargerConfiguration();
+            ClassUiProcess classUiProcess = activity.getClassUiProcess(connectorId-1);
 
-            if (!file.exists()) {
-                activity.getControlBoard().getTxData(connectorId-1).setOutPowerLimit((short) chargerConfiguration.getDr());
-            } else {
-                ChangeModeThread.setRechgElec(connectorId);
-//                    setChangeMode(connectorId, content);
+            // config dr setting
+            CpChgElecmode cpChgElecmode = new CpChgElecmode();
+            cpChgElecmode.connectorId = connectorId;
+
+            for (int time = 0; time < 24; time++) {
+                cpChgElecmode.hhXX[time] = chargerConfiguration.getDr();
+            }
+
+            ZonedDateTimeConvert zonedDateTimeConvert = new ZonedDateTimeConvert();
+            cpChgElecmode.regDt = zonedDateTimeConvert.doGetKstDatetimeAsString();
+            cpChgElecmode.modDt = zonedDateTimeConvert.doGetKstDatetimeAsString();
+
+            // insert
+            sqLiteHelper.insert(cpChgElecmode);
+
+            TxData txData = activity.getControlBoard().getTxData(connectorId-1);
+            txData.setOutPowerLimit((short) chargerConfiguration.getDr());
+            logger.info("insertChgElecMode connectorId[{}] outPowerLimit : {}", connectorId, txData.getOutPowerLimit());
+
+            if (Objects.equals(classUiProcess.getUiSeq(), UiSeq.INIT)) {
+                classUiProcess.onHome();
             }
         } catch (Exception e) {
-            logger.error("processChangeMode error : {}", e.getMessage(), e);
+            logger.error("insertChgElecMode error : {}", e.getMessage(), e);
         }
-    }
-
-//    @RequiresApi(api = Build.VERSION_CODES.O)
-//    private static void setChangeMode(int connectorId, String content) {
-//        MainActivity activity = (MainActivity) MainActivity.mContext;
-//        ChargerConfiguration chargerConfiguration = activity.getChargerConfiguration();
-//
-//        try {
-//            JSONObject rootJson = new JSONObject(content);
-//
-//            String value = rootJson.optString("rechgElec", String.valueOf(chargerConfiguration.getDr()));
-//            activity.getControlBoard().getTxData(connectorId-1).setOutPowerLimit((short) Integer.parseInt(value));
-//
-//        } catch (Exception e) {
-//            logger.error("setChangeMode error : {}", e.getMessage(), e);
-//        }
-//    }
-
-    private static String readFile(File file, int connectorId) throws Exception {
-        StringBuilder stringBuilder = new StringBuilder();
-
-        try (FileInputStream fis = new FileInputStream(file);
-             InputStreamReader isr = new InputStreamReader(fis, StandardCharsets.UTF_8);
-             BufferedReader bufferedReader = new BufferedReader(isr)) {
-
-            String line;
-            while ((line = bufferedReader.readLine()) != null) {
-                stringBuilder.append(line);
-            }
-        }
-
-        // 파일 전체 JSON 파싱
-        JSONObject rootJson = new JSONObject(stringBuilder.toString());
-
-        String key = String.valueOf(connectorId);
-
-        // 해당 connectorId 존재 여부 확인
-        if (!rootJson.has(key)) {
-            return null;
-        }
-
-        JSONObject connectorJson = rootJson.getJSONObject(key);
-
-        // 해당 connector 데이터만 문자열로 반환
-        return connectorJson.toString();
     }
 }

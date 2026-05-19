@@ -11,24 +11,24 @@ android {
     }
 
     // clear
-//    signingConfigs {
-//        platformkeystore {
-//            keyAlias "platform"
-//            keyPassword "android"
-//            storeFile file("D:\\AndroidDongah\\PlatformKeyClear\\keystore\\platform.jks")
-//            storePassword "android"
-//        }
-//    }
-
-    // senke
     signingConfigs {
-        getByName("debug") {
-            keyAlias = "system-lztek"
-            keyPassword = "123456"
-            storeFile = file("D:\\AndroidDongah\\JSK_senke\\platform.jks")
-            storePassword = "123456"
+        platformkeystore {
+            keyAlias "platform"
+            keyPassword "android"
+            storeFile file("D:\\AndroidDongah\\PlatformKeyClear\\keystore\\platform.jks")
+            storePassword "android"
         }
     }
+
+    // senke
+//    signingConfigs {
+//        getByName("debug") {
+//            keyAlias = "system-lztek"
+//            keyPassword = "123456"
+//            storeFile = file("D:\\AndroidDongah\\JSK_senke\\platform.jks")
+//            storePassword = "123456"
+//        }
+//    }
 
     // hola
 //    signingConfigs {

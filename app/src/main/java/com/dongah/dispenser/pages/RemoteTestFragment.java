@@ -156,24 +156,24 @@ public class RemoteTestFragment extends Fragment implements View.OnClickListener
             String type = Objects.equals(getId, R.id.btnInoperativeAll) ? "Inoperative" : "Operative";
             onTestChangeAvailability(0, type);
         } else if (Objects.equals(getId, R.id.btnTestChangeModeDM) || Objects.equals(getId, R.id.btnTestChangeModeIM)) {
-            String type = Objects.equals(getId, R.id.btnTestChangeModeDM) ? "DM" : "IM";
-            onTestChangeModeCommon(type, 0, 95, 50, "changemode0.req");
+            String type = Objects.equals(getId, R.id.btnTestChangeModeDM) ? "DM" : "NM";
+            onTestChangeModeCommon(type, 0, 95, 60, "changemode0.req");
 //            onTestChangeMode(type);
         } else if (Objects.equals(getId, R.id.btnTestChangeElecMode)) {
-            onTestChangeElecModeCommon(1, "40", "changeelecmode1.req");
+            onTestChangeElecModeCommon(1, "40", "70", "changeelecmode1.req");
 //            onTestChangeElecMode();
         } else if (Objects.equals(getId, R.id.btnRechgrsocschedule)) {
             onTestRechgrsocscheduleCommon(1, "80", "rechgrsocschedule1.req");
 //            onTestRechgrsocschedule();
         } else if (Objects.equals(getId, R.id.btnTestChangeElecMode2)) {
-            onTestChangeElecModeCommon(2, "80", "changeelecmode2.req");
+            onTestChangeElecModeCommon(2, "80", "80", "changeelecmode2.req");
 //            onTestChangeElecMode2();
         } else if (Objects.equals(getId, R.id.btnRechgrsocschedule2)) {
             onTestRechgrsocscheduleCommon(2, "90", "rechgrsocschedule2.req");
 //            onTestRechgrsocschedule2();
         } else if (Objects.equals(getId, R.id.btnTestChangeModeDMCh0) || Objects.equals(getId, R.id.btnTestChangeModeIMCh0)) {
             String type = Objects.equals(getId, R.id.btnTestChangeModeDMCh0) ? "DM" : "IM";
-            onTestChangeModeCommon(type, 1, 85, 55, "changemode1.req");
+            onTestChangeModeCommon(type, 2, 70, 75, "changemode1.req");
 //            onTestChangeMode2(type);
         } else if (Objects.equals(getId, R.id.btnTestWebsocketUrl)) {
             onTestWebSocketUrl();
@@ -360,7 +360,7 @@ public class RemoteTestFragment extends Fragment implements View.OnClickListener
         }
     }
 
-    private void onTestChangeElecModeCommon(int connectorId, String elecValue, String logName) {
+    private void onTestChangeElecModeCommon(int connectorId, String elecValue, String elecValue2, String logName) {
         try {
             String uuid = UUID.randomUUID().toString();
 
@@ -369,12 +369,23 @@ public class RemoteTestFragment extends Fragment implements View.OnClickListener
                     .append("\"connectorId\":").append(connectorId);
 
             for (int hour = 0; hour < 24; hour++) {
-                dataJsonBuilder.append(",")
-                        .append("\"HH")
-                        .append(String.format("%02d", hour))
-                        .append("\":\"")
-                        .append(elecValue)
-                        .append("\"");
+
+
+                if (hour == 15 || hour == 16) {
+                    dataJsonBuilder.append(",")
+                            .append("\"HH")
+                            .append(String.format("%02d", hour))
+                            .append("\":\"")
+                            .append(elecValue2)
+                            .append("\"");
+                } else {
+                    dataJsonBuilder.append(",")
+                            .append("\"HH")
+                            .append(String.format("%02d", hour))
+                            .append("\":\"")
+                            .append(elecValue)
+                            .append("\"");
+                }
             }
 
             dataJsonBuilder.append("}");

@@ -1,28 +1,28 @@
 package com.dongah.dispenser.websocket.socket.handler.handlersend;
 
 import android.annotation.SuppressLint;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Build;
-import android.util.Log;
 
 import androidx.annotation.RequiresApi;
 
 import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.basefunction.ChargerConfiguration;
 import com.dongah.dispenser.basefunction.ChargingCurrentData;
+import com.dongah.dispenser.basefunction.ClassUiProcess;
 import com.dongah.dispenser.basefunction.GlobalVariables;
 import com.dongah.dispenser.basefunction.UiSeq;
+import com.dongah.dispenser.controlboard.RxData;
+import com.dongah.dispenser.controlboard.TxData;
+import com.dongah.dispenser.sqlite.SQLiteHelper;
+import com.dongah.dispenser.sqlite.dto.CpChangeMode;
 import com.dongah.dispenser.websocket.ocpp.core.ChargePointStatus;
 import com.dongah.dispenser.websocket.ocpp.utilities.ZonedDateTimeConvert;
 
-import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
 import java.util.Objects;
 
@@ -41,7 +41,7 @@ public class ChangeModeThread extends Thread {
     @Override
     public void run() {
         logger.info("ChangeModeThread start");
-        processChangeMode(0);    // 충전기 부팅 후 1회 실행
+//        processChgMode(0); // 충전기 부팅 후 1회 실행
         while (!stopped && !isInterrupted()) {
             try {
                 Thread.sleep(1000);
@@ -54,7 +54,7 @@ public class ChangeModeThread extends Thread {
 
                 // 정각일 때 충전 모드 변경
                 if (minute == 0 && second == 0) {
-                    processChangeMode(0);
+                    processChgMode(0);
                 }
             }  catch (InterruptedException e) {
                 // interrupt()로 인해 발생한 예외이므로 종료를 위해 루프를 빠져나가도록 유도
@@ -68,16 +68,24 @@ public class ChangeModeThread extends Thread {
         logger.info("ChangeModeThread terminated");
     }
 
-    // 커넥터 모드 변경
     @RequiresApi(api = Build.VERSION_CODES.O)
-    public static void processChangeMode(int connectorId) {
+    public static void processChgMode(int connectorId) {
         MainActivity activity = (MainActivity) MainActivity.mContext;
+        SQLiteHelper helper = null;
+        SQLiteDatabase sqLiteDatabase;
 
         try {
-            // 1. changeMode 파일 유무 확인
-            File file = new File(GlobalVariables.getRootPath() + File.separator + GlobalVariables.FILE_CHANGE_MODE);
+            helper = SQLiteHelper.getInstance(activity);
+            sqLiteDatabase = helper.getWritableDatabase();
+            CpChangeMode dto = new CpChangeMode();
+            String tableName = dto.getTableName();
 
             int startIndex, endIndex;
+
+            /*
+             * connectorId == 0 이면 전체 커넥터 조회
+             * connectorId != 0 이면 해당 커넥터만 조회
+             */
             if (connectorId == 0) {
                 startIndex = 1;
                 endIndex = GlobalVariables.maxChannel;
@@ -86,207 +94,251 @@ public class ChangeModeThread extends Thread {
                 endIndex = connectorId;
             }
 
-            if (!file.exists()) {
-                // 2. 파일이 없으면 DM(양구) 처리
+            /*
+             * 1. CP_CHG_MODE 테이블 존재 여부 확인
+             *    테이블이 없으면 생성 및 기본값 세팅
+             */
+            if (!helper.isTableExists(helper, tableName)) {
+                logger.warn("processChgMode table not exists : {}", tableName);
+                helper.onCreateTable(sqLiteDatabase, tableName);
                 for (int i = startIndex; i <= endIndex; i++) {
-                    activity.getChargingCurrentData(i-1).setChangeMode("DM");
+                    insertChgMode(helper, i);
+                    updateChgModeStatus(i, "DM");
                 }
-            } else {
-                // 3. 파일이 있는 경우(커넥터 별 모드 갱신)
-                // connectorId 없으면, connectorId 0 상태값 설정
-                // DM(양구), NM(1구), WM(충전대기), IM(충전불가)
-                for (int i = startIndex; i <= endIndex; i++) {
-                    Log.d("ChangeModeThread", "connectorId[" + i + "] changeMode start");
-                    String content = readFile(file, i);
-                    Log.d("ChangeModeThread", "content" + i + ": " + content);
-
-                    // content == null 이면 connectorId에 해당하는 changeMode이 없음
-                    if (content == null) {
-                        // connectorId: 0으로 대체
-                        String content0 = readFile(file, 0);
-                        Log.d("ChangeModeThread", "content0" + content0);
-                        // connectorId: 0에 대한 content가 없으면 "DM"으로 처리
-                        if (content0 == null) {
-                            activity.getChargingCurrentData(i-1).setChangeMode("DM");
-                        }
-                        // connectorId: 0에 대한 content가 있으면 커넥터 모드 갱신
-                        else {
-                            setChangeMode(i, content0);
-                        }
-                    } else {
-                        setChangeMode(i, content);
-                    }
-
-                    // 4. 커넥터 모드에 따른 커넥터 사용 유무 설정 및 화면에 상태 반영
-                    setConnectUse(i);
-
-                    // 5. INIT 화면일 경우만 화면 refresh
-                    if (Objects.equals(activity.getClassUiProcess(i-1).getUiSeq(), UiSeq.INIT)) {
-                        activity.getClassUiProcess(i-1).onHome();
-                    }
-
-                    Log.d("ChangeModeThread", "connectorId[" + i + "] changeMode end");
-                }
-            }
-        } catch (Exception e) {
-            logger.error("processChangeMode error : {}", e.getMessage(), e);
-        }
-    }
-
-    // 충전량 변경
-    public static void setRechgElec(int connectorId) {
-        try {
-            MainActivity activity = (MainActivity) MainActivity.mContext;
-            ChargerConfiguration chargerConfiguration = activity.getChargerConfiguration();
-
-            File file = new File(GlobalVariables.getRootPath() + File.separator + GlobalVariables.FILE_CHANGE_MODE);
-
-            if (!file.exists()) {
-                activity.getControlBoard().getTxData(connectorId-1).setOutPowerLimit((short) chargerConfiguration.getDr());
-                logger.info("setRechgElec file does not exist. connectorId[{}] outPowerLimit : {}",
-                        connectorId,  activity.getControlBoard().getTxData(connectorId-1).getOutPowerLimit());
-            } else {
-                String content = readFile(file, connectorId);
-                logger.info("setRechgElec connectorId[{}] content : {}", connectorId, content);
-
-                if (content == null || content.trim().isEmpty()) {
-                    activity.getControlBoard().getTxData(connectorId-1).setOutPowerLimit((short) chargerConfiguration.getDr());
-                    logger.info("setRechgElec changeMode file content is null. connectorId[{}] outPowerLimit : {}",
-                            connectorId, activity.getControlBoard().getTxData(connectorId-1).getOutPowerLimit());
-                } else {
-                    JSONObject rootJson = new JSONObject(content);
-                    String value = rootJson.optString( "rechgElec", String.valueOf(chargerConfiguration.getDr()));
-                    activity.getControlBoard().getTxData(connectorId-1).setOutPowerLimit((short) Integer.parseInt(value));
-                    logger.info("setRechgElec connectorId[{}] outPowerLimit : {}",
-                            connectorId, activity.getControlBoard().getTxData(connectorId-1).getOutPowerLimit());
-                }
+                return;
             }
 
-            if (Objects.equals(activity.getClassUiProcess(connectorId-1).getUiSeq(), UiSeq.INIT)) {
-                activity.getClassUiProcess(connectorId-1).onHome();
-            }
-        } catch (Exception e) {
-            logger.error("setRechgElec error : {}", e.getMessage(), e);
-        }
-    }
-
-    // SoC 변경
-    public static void setRechgAmt(int connectorId) {
-        try {
-            MainActivity activity = (MainActivity) MainActivity.mContext;
-            ChargerConfiguration chargerConfiguration = activity.getChargerConfiguration();
-            ChargingCurrentData chargingCurrentData = activity.getChargingCurrentData(connectorId-1);
-
-            File file = new File(GlobalVariables.getRootPath() + File.separator + GlobalVariables.FILE_CHANGE_MODE);
-
-            if (!file.exists()) {
-                chargingCurrentData.setLimitSoc(chargerConfiguration.getTargetSoc());
-                logger.info("setRechgAmt file does not exist. connectorId[{}] soc : {}", connectorId, chargingCurrentData.getLimitSoc());
-            } else {
-                String content = readFile(file, connectorId);
-                logger.info("setRechgAmt connectorId[{}] content : {}", connectorId, content);
-
-                if (content == null || content.trim().isEmpty()) {
-                    chargingCurrentData.setLimitSoc(chargerConfiguration.getTargetSoc());
-                    logger.warn("setRechgAmt file content is null");
-                } else {
-                    JSONObject rootJson = new JSONObject(content);
-                    String value = rootJson.optString("rechgAmt", String.valueOf(chargerConfiguration.getTargetSoc()));
-                    chargingCurrentData.setLimitSoc(Integer.parseInt(value) == 0 ?
-                            chargerConfiguration.getTargetSoc() : Integer.parseInt(value));
-
-                    logger.info("setRechgAmt connectorId[{}] soc: {}", connectorId, chargingCurrentData.getLimitSoc());
-                }
-            }
-
-            if (Objects.equals(activity.getClassUiProcess(connectorId-1).getUiSeq(), UiSeq.INIT)) {
-                activity.getClassUiProcess(connectorId-1).onHome();
-            }
-        } catch (Exception e) {
-            logger.error("setRechgAmt error : {}", e.getMessage(), e);
-        }
-    }
-
-
-    @RequiresApi(api = Build.VERSION_CODES.O)
-    private static void setChangeMode(int connectorId, String content) {
-        MainActivity activity = (MainActivity) MainActivity.mContext;
-        ChargingCurrentData chargingCurrentData = activity.getChargingCurrentData(connectorId-1);
-
-        try {
-            JSONObject rootJson = new JSONObject(content);
+            /*
+             * 현재 시간 확인
+             * 시간별 컬럼명 HH00 ~ HH23 생성
+             */
             ZonedDateTime now = new ZonedDateTimeConvert().doGetCurrentTime();
             if (now == null) return;
 
             int hour = now.getHour();
             @SuppressLint("DefaultLocale") String hourKey = String.format("HH%02d", hour);
 
-            // DM(양구), NM(1구), WM(충전대기), IM(충전불가)
-            String value = rootJson.optString(hourKey, "DM");
-            activity.getChargingCurrentData(connectorId-1).setChangeMode(value);
+            for (int i = startIndex; i <= endIndex; i++) {
+                Cursor cursor = null;
+                try {
+                    cursor = helper.select(tableName,"CONNECTOR_ID=?", new String[]{String.valueOf(i)});
+                    // Cursor null 여부 확인, 조회 결과 존재 여부 확인
+                    if (cursor == null || !cursor.moveToFirst()) {
+                        logger.warn("processChgMode {} cursor is null or no data. connectorId : {}", tableName, i);
+                        insertChgMode(helper, i);
+                        updateChgModeStatus(i, "DM");
+                        continue;
+                    }
 
+                    String value = cursor.getString(cursor.getColumnIndexOrThrow(hourKey));
+                    System.out.println("processChgMode " + hourKey + " : " + value);
+
+                    updateChgModeStatus(i, value);
+                    cursor.close();
+                } catch (Exception e) {
+                    logger.error("processChgMode select error : {}", e.getMessage(), e);
+                }
+            }
+        } catch (Exception e) {
+            logger.error("processChgMode error : {}", e.getMessage(), e);
+        }
+    }
+
+    // insert : DM
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    public static void insertChgMode(SQLiteHelper sqLiteHelper, int connectorId) {
+        try {
+            MainActivity activity = (MainActivity) MainActivity.mContext;
+            ChargerConfiguration chargerConfiguration = activity.getChargerConfiguration();
+            ChargingCurrentData chargingCurrentData = activity.getChargingCurrentData(connectorId-1);
+
+            CpChangeMode cpChangeMode = new CpChangeMode();
+            cpChangeMode.connectorId = connectorId;
+            cpChangeMode.rechgAmt = chargerConfiguration.getTargetSoc();
+            cpChangeMode.rechgElec = chargerConfiguration.getDr();
+
+            for (int time = 0; time < 24; time++) {
+                cpChangeMode.hhXX[time] = "DM";
+            }
+
+            ZonedDateTimeConvert zonedDateTimeConvert = new ZonedDateTimeConvert();
+            cpChangeMode.regDt = zonedDateTimeConvert.doGetKstDatetimeAsString();
+            cpChangeMode.modDt = zonedDateTimeConvert.doGetKstDatetimeAsString();
+
+            // insert
+            sqLiteHelper.insert(cpChangeMode);
+
+            chargingCurrentData.setChangeMode("DM");
+            chargingCurrentData.setConnectUse(true);
+
+//            updateChgModeStatus(connectorId, "DM");
+        } catch (Exception e) {
+            logger.error("insertChgMode error : {}", e.getMessage(), e);
+        }
+    }
+
+    // update change mode status
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    public static void updateChgModeStatus(int connectorId, String status) {
+        MainActivity activity = (MainActivity) MainActivity.mContext;
+        ChargerConfiguration chargerConfiguration = activity.getChargerConfiguration();
+
+        try {
+            ChargingCurrentData chargingCurrentData = activity.getChargingCurrentData(connectorId-1);
+            if (Objects.equals(chargingCurrentData.getChangeMode(), status)) return;
+            chargingCurrentData.setChangeMode(status);
+
+            ChargePointStatus currentStatus = chargingCurrentData.getChargePointStatus();
             StatusNotificationReq statusNotificationReq = new StatusNotificationReq(connectorId);
 
-            // StatusNotification
-            if (value.equals("DM") || value.equals("NM")) {
-                if (!Objects.equals(chargingCurrentData.getChargePointStatus(), ChargePointStatus.Available)) {
+            RxData rxData = activity.getControlBoard().getRxData(connectorId-1);
+            int priority = chargerConfiguration.getConnectorPriority();
+            ChargePointStatus targetStatus;
+
+            // 1구 충전 우선순위
+            // priority == 1 : ch0 사용 / ch1 미사용
+            // priority == 2 : ch0 미사용 / ch1 사용
+            if (status.equals("DM")) {
+                targetStatus = ChargePointStatus.Available;
+                if (Objects.equals(currentStatus, ChargePointStatus.Unavailable)) {
                     chargingCurrentData.setChargePointStatus(ChargePointStatus.Available);
                     statusNotificationReq.sendStatusNotification(connectorId, ChargePointStatus.Available);
                 }
+            } else if (status.equals("NM")) {
+                if (priority == 1) {
+                    targetStatus = connectorId != 1
+                            ? ChargePointStatus.Unavailable
+                            : rxData.isCsPilot() ? ChargePointStatus.Preparing : ChargePointStatus.Available;
+                } else {
+                    targetStatus = connectorId != 2
+                            ? ChargePointStatus.Unavailable
+                            : rxData.isCsPilot() ? ChargePointStatus.Preparing : ChargePointStatus.Available;
+                }
+
+                UiSeq uiSeq = activity.getClassUiProcess(connectorId-1).getUiSeq();
+
+                if (!Objects.equals(currentStatus, targetStatus)) {
+                    boolean isCheck = uiSeq.equals(UiSeq.CHARGING) || uiSeq.equals(UiSeq.FINISH_WAIT) || uiSeq.equals(UiSeq.FINISH);
+//                    Objects.equals(currentStatus, ChargePointStatus.Available) || Objects.equals(currentStatus, ChargePointStatus.Unavailable) || Objects.equals(currentStatus, ChargePointStatus.Preparing);
+
+                    if (!isCheck) {
+                        chargingCurrentData.setChargePointStatus(targetStatus);
+                        statusNotificationReq.sendStatusNotification(connectorId, targetStatus);
+                    }
+                }
             } else {
-                if (!Objects.equals(chargingCurrentData.getChargePointStatus(), ChargePointStatus.Unavailable)) {
+                targetStatus = ChargePointStatus.Unavailable;
+                if (Objects.equals(currentStatus, ChargePointStatus.Available)) {
                     chargingCurrentData.setChargePointStatus(ChargePointStatus.Unavailable);
                     statusNotificationReq.sendStatusNotification(connectorId, ChargePointStatus.Unavailable);
                 }
             }
 
-        } catch (Exception e) {
-            logger.error("setChangeMode error : {}", e.getMessage(), e);
-        }
-    }
+            boolean isModeValid = Objects.equals(targetStatus, ChargePointStatus.Unavailable);
+            chargingCurrentData.setConnectUse(!isModeValid);
 
-    private static void setConnectUse(int connectorId) {
-       try {
-           MainActivity activity = ((MainActivity) MainActivity.mContext);
-           String chMode = activity.getChargingCurrentData(connectorId-1).getChangeMode();
-
-           /** 커넥터 모드에 따른 커넥터 사용 유무 설정
-            * DM, NM : 커넥터 사용 가능
-            * WM, IM : 커넥터 사용 불가능
-            * */
-           boolean isModeValid = "DM".equals(chMode) || "NM".equals(chMode);
-           activity.getChargingCurrentData(connectorId-1).setConnectUse(isModeValid);
-       } catch (Exception e) {
-           logger.error("setConnectUse error : {}", e.getMessage(), e);
-       }
-    }
-
-    private static String readFile(File file, int connectorId) throws Exception {
-        StringBuilder stringBuilder = new StringBuilder();
-
-        try (FileInputStream fis = new FileInputStream(file);
-             InputStreamReader isr = new InputStreamReader(fis, StandardCharsets.UTF_8);
-             BufferedReader bufferedReader = new BufferedReader(isr)) {
-
-            String line;
-            while ((line = bufferedReader.readLine()) != null) {
-                stringBuilder.append(line);
+            if (Objects.equals(activity.getClassUiProcess(connectorId-1).getUiSeq(), UiSeq.INIT)) {
+                activity.getClassUiProcess(connectorId-1).onHome();
             }
+        } catch (Exception e) {
+            logger.error("setChgModeStatus error : {}", e.getMessage(), e);
         }
+    }
 
-        // 파일 전체 JSON 파싱
-        JSONObject rootJson = new JSONObject(stringBuilder.toString());
+    // CP_CHANGE_MODE
+    // rechgElec 설정
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    public static void setChgModeElec(int connectorId) {
+        MainActivity activity = (MainActivity) MainActivity.mContext;
+        ChargerConfiguration chargerConfiguration = activity.getChargerConfiguration();
+        SQLiteHelper helper = null;
 
-        String key = String.valueOf(connectorId);
+        try {
+            ClassUiProcess classUiProcess = activity.getClassUiProcess(connectorId-1);
+            helper = SQLiteHelper.getInstance(activity);
+            CpChangeMode dto = new CpChangeMode();
+            String tableName = dto.getTableName();
 
-        // 해당 connectorId 존재 여부 확인
-        if (!rootJson.has(key)) {
-            return null;
+            // Check if the table exists
+            TxData txData = activity.getControlBoard().getTxData(connectorId-1);
+            if (!helper.isTableExists(helper, tableName)) {
+                logger.warn("setChgModeElec {} doesn't exist", tableName);
+                txData.setOutPowerLimit((short) chargerConfiguration.getDr());
+                if (Objects.equals(classUiProcess.getUiSeq(), UiSeq.INIT)) classUiProcess.onHome();
+                return;
+            }
+
+            Cursor cursor = helper.select(tableName,"CONNECTOR_ID=?", new String[]{String.valueOf(connectorId)});
+
+            // Cursor null 여부 확인, 조회 결과 존재 여부 확인
+            if (cursor == null || !cursor.moveToFirst()) {
+                logger.warn("setChgModeElec {} cursor is null or no data. connectorId : {}", tableName, connectorId);
+                txData.setOutPowerLimit((short) chargerConfiguration.getDr());
+                if (Objects.equals(classUiProcess.getUiSeq(), UiSeq.INIT)) classUiProcess.onHome();
+                return;
+            }
+
+            int value = cursor.getInt(cursor.getColumnIndexOrThrow("RECHG_ELEC"));
+            if (value == 0) {
+                txData.setOutPowerLimit((short) chargerConfiguration.getDr());
+            } else {
+                txData.setOutPowerLimit((short) value);
+            }
+
+            logger.info("setChgModeElec connectorId[{}] outPowerLimit : {}", connectorId, txData.getOutPowerLimit());
+            if (Objects.equals(classUiProcess.getUiSeq(), UiSeq.INIT)) classUiProcess.onHome();
+
+            cursor.close();
+        } catch (Exception e) {
+            logger.error("setChgModeElec error : {}", e.getMessage(), e);
         }
+    }
 
-        JSONObject connectorJson = rootJson.getJSONObject(key);
+    // CP_CHANGE_MODE
+    // rechgAmt 변경
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    public static void setChgModeSoc(int connectorId) {
+        MainActivity activity = (MainActivity) MainActivity.mContext;
+        ChargerConfiguration chargerConfiguration = activity.getChargerConfiguration();
+        SQLiteHelper helper = null;
 
-        // 해당 connector 데이터만 문자열로 반환
-        return connectorJson.toString();
+        try {
+            ClassUiProcess classUiProcess = activity.getClassUiProcess(connectorId-1);
+            helper = SQLiteHelper.getInstance(activity);
+            CpChangeMode dto = new CpChangeMode();
+            String tableName = dto.getTableName();
+
+            ChargingCurrentData chargingCurrentData = activity.getChargingCurrentData(connectorId-1);
+            if (!helper.isTableExists(helper, tableName)) {
+                logger.warn("setChgModeSoc {} doesn't exist", tableName);
+                chargingCurrentData.setLimitSoc(chargerConfiguration.getTargetSoc());
+                if (Objects.equals(classUiProcess.getUiSeq(), UiSeq.INIT)) classUiProcess.onHome();
+                return;
+            }
+
+            Cursor cursor = helper.select(tableName,"CONNECTOR_ID=?", new String[]{String.valueOf(connectorId)});
+
+            // Cursor null 여부 확인, 조회 결과 존재 여부 확인
+            if (cursor == null || !cursor.moveToFirst()) {
+                logger.warn("setChgModeSoc {} cursor is null or no data. connectorId : {}", tableName, connectorId);
+                chargingCurrentData.setLimitSoc(chargerConfiguration.getTargetSoc());
+                if (Objects.equals(classUiProcess.getUiSeq(), UiSeq.INIT)) classUiProcess.onHome();
+                return;
+            }
+
+            int value = cursor.getInt(cursor.getColumnIndexOrThrow("RECHG_AMT"));
+            if (value == 0) {
+                chargingCurrentData.setLimitSoc(chargerConfiguration.getTargetSoc());
+            } else {
+                chargingCurrentData.setLimitSoc(value);
+            }
+
+            logger.info("setChgModeSoc connectorId[{}] limitSOc : {}", connectorId, chargingCurrentData.getLimitSoc());
+            if (Objects.equals(classUiProcess.getUiSeq(), UiSeq.INIT)) classUiProcess.onHome();
+
+            cursor.close();
+        } catch (Exception e) {
+            logger.error("setChgModeSoc error : {}", e.getMessage(), e);
+        }
     }
 }

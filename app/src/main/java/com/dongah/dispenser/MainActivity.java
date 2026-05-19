@@ -1,23 +1,15 @@
 package com.dongah.dispenser;
 
-import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.Activity;
-import android.content.ContentValues;
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.ActivityInfo;
-import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.PowerManager;
-import android.provider.Settings;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -28,6 +20,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.graphics.Insets;
@@ -45,16 +38,15 @@ import com.dongah.dispenser.basefunction.FragmentChange;
 import com.dongah.dispenser.basefunction.FragmentCurrent;
 import com.dongah.dispenser.basefunction.GlobalVariables;
 import com.dongah.dispenser.basefunction.UiSeq;
-import com.dongah.dispenser.sqlite.dto.CpSettings;
 import com.dongah.dispenser.utils.ToastPositionMake;
+import com.dongah.dispenser.websocket.ocpp.core.ChargePointStatus;
 import com.dongah.dispenser.websocket.ocpp.core.Reason;
+import com.dongah.dispenser.websocket.ocpp.utilities.ZonedDateTimeConvert;
 import com.dongah.dispenser.websocket.socket.SocketReceiveMessage;
 import com.dongah.dispenser.websocket.socket.SocketState;
-import com.dongah.dispenser.websocket.socket.handler.handlersend.ChangeElecModeThread;
 import com.dongah.dispenser.websocket.socket.handler.handlersend.ChangeModeThread;
 import com.dongah.dispenser.websocket.socket.handler.handlersend.ProcessHandler;
 import com.dongah.dispenser.utils.MonitorHttpServer;
-import com.dongah.dispenser.websocket.socket.handler.handlersend.RechgrsocscheduleThread;
 import com.dongah.dispenser.websocket.tcpsocket.ClientSocket;
 
 import org.slf4j.Logger;
@@ -64,6 +56,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.text.SimpleDateFormat;
+import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Locale;
@@ -161,6 +154,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     @SuppressLint("SetTextI18n")
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -193,7 +187,6 @@ public class MainActivity extends AppCompatActivity {
         sqLiteDatabase = sqLiteHelper.getWritableDatabase();
 //        sqLiteHelper.dropAllTables(sqLiteDatabase);   // delete all tables
 //        sqLiteHelper.onCreate(sqLiteDatabase);          // create all tables
-//        testCrud(); // test data insert
 
         imgNetwork = findViewById(R.id.imageViewNetwork);
         textViewVersion = findViewById(R.id.textViewVersionValue);
@@ -210,6 +203,15 @@ public class MainActivity extends AppCompatActivity {
         // charger operation
         onChargerOperate();
 
+        // charge status
+//        for (int i = 0; i < GlobalVariables.maxChannel; i++) {
+//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+//                ChangeModeThread.processChgMode(i);
+//            }
+//        }
+
+
+
         // 1. charger configuration, ConfigurationKey read
         chargerConfiguration = new ChargerConfiguration();
         chargerConfiguration.onLoadConfiguration();
@@ -219,9 +221,12 @@ public class MainActivity extends AppCompatActivity {
         // 2. fragment change management
         fragmentChange = new FragmentChange();
         fragmentSeq = new UiSeq[GlobalVariables.maxChannel];
+        chargingCurrentData = new ChargingCurrentData[GlobalVariables.maxChannel];
         for (int i = 0; i < GlobalVariables.maxChannel; i++) {
             fragmentChange.onFragmentChange(i, UiSeq.INIT, "INIT", "");
             fragmentChange.onFragmentHeaderChange(i, "Header");
+            chargingCurrentData[i] = new ChargingCurrentData();
+            chargingCurrentData[i].onCurrentDataClear();
         }
 
         // 3. control board
@@ -229,6 +234,27 @@ public class MainActivity extends AppCompatActivity {
 
         // 4. rf card reader : MID = terminal ID
         rfCardReaderReceive = new RfCardReaderReceive(chargerConfiguration.getRfCom());
+
+        /** opMode
+         * 0: test mode
+         * 1: server mode
+         **/
+        if (Objects.equals(chargerConfiguration.getOpMode(), 1)) {
+            onChangeMode(sqLiteHelper); // change mode
+        } else if (Objects.equals(chargerConfiguration.getOpMode(), 0)) {
+            // 전류, SoC 제한 설정
+            for (int i = 0; i <GlobalVariables.maxChannel; i++) {
+                ((MainActivity) MainActivity.mContext).getControlBoard().getTxData(i).setOutPowerLimit((short) chargerConfiguration.getDr());
+                ((MainActivity) MainActivity.mContext).getChargingCurrentData(i).setLimitSoc(chargerConfiguration.getTargetSoc());
+            }
+        }
+
+        // Web Monitor Server
+        if (chargerConfiguration.isControlMonitor()) {
+            monitorHttpServer = new MonitorHttpServer(8080);
+            monitorHttpServer.start();
+        }
+
 
         /**
          *  개발 ocpp 서버 url :
@@ -245,13 +271,11 @@ public class MainActivity extends AppCompatActivity {
         socketReceiveMessage = new SocketReceiveMessage(baseUrl);
 
         // 6. classUiProcess
-        chargingCurrentData = new ChargingCurrentData[GlobalVariables.maxChannel];
         classUiProcess = new ClassUiProcess[GlobalVariables.maxChannel];
         for (int i = 0; i < GlobalVariables.maxChannel; i++) {
             classUiProcess[i] = new ClassUiProcess(i);
             classUiProcess[i].setUiSeq(UiSeq.INIT);
-            chargingCurrentData[i] = new ChargingCurrentData();
-            chargingCurrentData[i].onCurrentDataClear();
+
         }
 
         // 7. handler
@@ -304,20 +328,6 @@ public class MainActivity extends AppCompatActivity {
                 Log.d("TCP", "General recv: "+ message);
             }
         });
-
-        // 9. 전류, SoC 제한 설정
-        if (Objects.equals(chargerConfiguration.getOpMode(), 0)) {
-            for (int i = 0; i <GlobalVariables.maxChannel; i++) {
-                ((MainActivity) MainActivity.mContext).getControlBoard().getTxData(i).setOutPowerLimit((short) chargerConfiguration.getDr());
-                ((MainActivity) MainActivity.mContext).getChargingCurrentData(i).setLimitSoc(chargerConfiguration.getTargetSoc());
-            }
-        }
-
-        // 10. Web Monitor Server
-        if (chargerConfiguration.isControlMonitor()) {
-            monitorHttpServer = new MonitorHttpServer(8080);
-            monitorHttpServer.start();
-        }
     }
 
     @Override
@@ -469,6 +479,63 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private void onChangeMode(SQLiteHelper helper) {
+        try {
+            String tableName = "CP_CHANGE_MODE";
+            if (!helper.isTableExists(helper, tableName)) {
+                helper.onCreateTable(sqLiteDatabase, tableName);
+                for (int i = 1; i <= GlobalVariables.maxChannel; i++) {
+                    ChangeModeThread.insertChgMode(helper, i);
+                }
+            }
+
+            ZonedDateTime now = new ZonedDateTimeConvert().doGetCurrentTime();
+            if (now == null) return;
+
+            int hour = now.getHour();
+            @SuppressLint("DefaultLocale") String hourKey = String.format("HH%02d", hour);
+
+
+            for (int i = 1; i <= GlobalVariables.maxChannel; i++) {
+                Cursor cursor = helper.select(tableName,"CONNECTOR_ID=?", new String[]{String.valueOf(i)});
+                ChargingCurrentData currentData = ((MainActivity) MainActivity.mContext).getChargingCurrentData(i-1);
+
+                if (cursor == null || !cursor.moveToFirst()) {
+                    ChangeModeThread.insertChgMode(helper, i);
+                    continue;
+                }
+
+                String value = cursor.getString(cursor.getColumnIndexOrThrow(hourKey));
+                System.out.println("processChgMode " + hourKey + " : " + value);
+
+                switch (value) {
+                    case "DM":
+                        currentData.setChangeMode(value);
+                        currentData.setConnectUse(true);
+                        break;
+                    case "NM":
+                        currentData.setChangeMode(value);
+                        ChargePointStatus targetStatus;
+                        int priority = chargerConfiguration.getConnectorPriority();
+                        if (priority == 1) {
+                            targetStatus = i != 1 ? ChargePointStatus.Unavailable : ChargePointStatus.Available;
+                        } else {
+                            targetStatus = i != 2 ? ChargePointStatus.Unavailable : ChargePointStatus.Available;
+                        }
+                        currentData.setConnectUse(targetStatus.equals(ChargePointStatus.Available));
+                        break;
+                    default:
+                        currentData.setChangeMode(value);
+                        currentData.setConnectUse(false);
+                        break;
+                }
+            }
+        } catch (Exception e) {
+            logger.error("onChangeMode error : {}", e.getMessage());
+        }
+    }
+
     @Override
     protected void onDestroy() {
 //        inactivityHandler.removeCallbacks(inactivityRunnable);
@@ -499,103 +566,6 @@ public class MainActivity extends AppCompatActivity {
             System.out.println("RSRP not found");
         }
         return "";
-    }
-
-    private void testCrud() {
-        SQLiteHelper helper = SQLiteHelper.getInstance(this);
-
-        // DTO 생성
-        CpSettings settings = new CpSettings();
-        settings.stationId = "ST01";
-        settings.chargerId = "CH01";
-        settings.modelNm = "MD01";
-        settings.vendorNm = "DONGAH";
-        settings.fwVersion = "1.0.0";
-        settings.socLimit = "80";
-        settings.availability = "Operative";
-
-        // insert
-        long rowId = helper.insert(settings);
-
-        System.out.println("INSERT RESULT1 = " + rowId);
-
-        settings.stationId = "ST02";
-        settings.chargerId = "CH02";
-        settings.modelNm = "MD02";
-        settings.vendorNm = "DONGAH";
-        settings.fwVersion = "1.0.1";
-        settings.socLimit = "80";
-        settings.availability = "Operative";
-
-        // insert
-        long rowId2 = helper.insert(settings);
-
-        System.out.println("INSERT RESULT2 = " + rowId2);
-
-        // select all
-        Cursor cursor = helper.selectAll(settings.getTableName());
-        while (cursor.moveToNext()) {
-            System.out.println("SELECT RESULT = " +
-                    "ID: " + cursor.getInt(cursor.getColumnIndexOrThrow("ID")) +
-                    ", STATION_ID: " + cursor.getString(cursor.getColumnIndexOrThrow("STATION_ID")) +
-                    ", CHARGER_ID: " + cursor.getString(cursor.getColumnIndexOrThrow("CHARGER_ID")) +
-                    ", MODEL_NM: " + cursor.getString(cursor.getColumnIndexOrThrow("MODEL_NM")) +
-                    ", VENDOR_NM: " + cursor.getString(cursor.getColumnIndexOrThrow("VENDOR_NM")) +
-                    ", FW_VERSION: " + cursor.getString(cursor.getColumnIndexOrThrow("FW_VERSION")) +
-                    ", SOC_LIMIT: " + cursor.getString(cursor.getColumnIndexOrThrow("SOC_LIMIT")) +
-                    ", AVAILABILITY: " + cursor.getString(cursor.getColumnIndexOrThrow("AVAILABILITY"))
-            );
-        }
-        cursor.close();
-
-        // update
-        ContentValues updateValues = new ContentValues();
-        updateValues.put("MODEL_NM", "MD99");
-        int updated = helper.update(settings.getTableName(), updateValues, "ID=?", new String[]{"2"});
-        System.out.println("UPDATE RESULT = " + updated);
-
-        // select all
-        Cursor cursor2 = helper.selectAll(settings.getTableName());
-        while (cursor2.moveToNext()) {
-            System.out.println("SELECT2 RESULT = " +
-                    "ID: " + cursor2.getInt(cursor2.getColumnIndexOrThrow("ID")) +
-                    ", STATION_ID: " + cursor2.getString(cursor2.getColumnIndexOrThrow("STATION_ID")) +
-                    ", CHARGER_ID: " + cursor2.getString(cursor2.getColumnIndexOrThrow("CHARGER_ID")) +
-                    ", MODEL_NM: " + cursor2.getString(cursor2.getColumnIndexOrThrow("MODEL_NM")) +
-                    ", VENDOR_NM: " + cursor2.getString(cursor2.getColumnIndexOrThrow("VENDOR_NM")) +
-                    ", FW_VERSION: " + cursor2.getString(cursor2.getColumnIndexOrThrow("FW_VERSION")) +
-                    ", SOC_LIMIT: " + cursor2.getString(cursor2.getColumnIndexOrThrow("SOC_LIMIT")) +
-                    ", AVAILABILITY: " + cursor2.getString(cursor2.getColumnIndexOrThrow("AVAILABILITY"))
-            );
-        }
-        cursor2.close();
-
-        // delete
-        int deleted = helper.delete(settings.getTableName(), "ID=?", new String[]{"2"});
-        System.out.println("DELETE RESULT = " + deleted);
-
-        // select with where
-        Cursor cursor3 = helper.select(settings.getTableName(), "ID=?", new String[]{"1"});
-        while (cursor3.moveToNext()) {
-            System.out.println("SELECT3 RESULT = " +
-                    "ID: " + cursor3.getInt(cursor3.getColumnIndexOrThrow("ID")) +
-                    ", STATION_ID: " + cursor3.getString(cursor3.getColumnIndexOrThrow("STATION_ID")) +
-                    ", CHARGER_ID: " + cursor3.getString(cursor3.getColumnIndexOrThrow("CHARGER_ID")) +
-                    ", MODEL_NM: " + cursor3.getString(cursor3.getColumnIndexOrThrow("MODEL_NM")) +
-                    ", VENDOR_NM: " + cursor3.getString(cursor3.getColumnIndexOrThrow("VENDOR_NM")) +
-                    ", FW_VERSION: " + cursor3.getString(cursor3.getColumnIndexOrThrow("FW_VERSION")) +
-                    ", SOC_LIMIT: " + cursor3.getString(cursor3.getColumnIndexOrThrow("SOC_LIMIT")) +
-                    ", AVAILABILITY: " + cursor3.getString(cursor3.getColumnIndexOrThrow("AVAILABILITY"))
-            );
-        }
-        cursor3.close();
-
-        // delete all(테이블 삭제x)
-        int deletedAll = helper.deleteAll(settings.getTableName());
-        System.out.println("DELETE ALL RESULT = " + deletedAll);
-
-        // delete table
-        helper.dropTable(helper.getWritableDatabase(), settings.getTableName());
     }
 
     // 키보드 내리기

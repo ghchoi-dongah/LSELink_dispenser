@@ -101,6 +101,7 @@ public class NotifyFaultCheck {
     private void onFaultDetect(RxData rxData) {
         try {
             boolean disconnected = ((MainActivity) MainActivity.mContext).getControlBoard().isDisconnected();    //true ==> fault 발생
+            int connectorId = getCh() + 1;
 
             if (!Objects.equals(UiDSP.ResultCompare, disconnected)) {
                 UiDSP.setResultCompare(disconnected);
@@ -108,12 +109,12 @@ public class NotifyFaultCheck {
                     //발생
                     chargingCurrentData.setChargePointErrorCode(ChargePointErrorCode.EVCommunicationError);
                     chargingCurrentData.setChargePointStatus(ChargePointStatus.Faulted);
-                    statusNotificationReq.sendStatusNotification();
+                    statusNotificationReq.sendStatusNotification(connectorId, ChargePointStatus.Faulted);
 
                 } else {
                     chargingCurrentData.setChargePointErrorCode(ChargePointErrorCode.NoError);
                     chargingCurrentData.setChargePointStatus(ChargePointStatus.Available);
-                    statusNotificationReq.sendStatusNotification();
+                    statusNotificationReq.sendStatusNotification(connectorId, ChargePointStatus.Available);
                 }
             }
 
@@ -127,16 +128,34 @@ public class NotifyFaultCheck {
                     boolean isPlugStatus = Objects.equals(chargingCurrentData.getChargePointStatus(), ChargePointStatus.Finishing) ||
                             Objects.equals(chargingCurrentData.getChargePointStatus(), ChargePointStatus.Preparing);
 
+
                     if (isPlugStatus) {
                         chargingCurrentData.setChargePointErrorCode(ChargePointErrorCode.NoError);
-                        chargingCurrentData.setChargePointStatus(ChargePointStatus.Available);
+                        if (!chargingCurrentData.isConnectUse() || !GlobalVariables.ChargerOperation[getCh()]) {
+                            chargingCurrentData.setChargePointStatus(ChargePointStatus.Unavailable);
+                        } else {
+                            chargingCurrentData.setChargePointStatus(ChargePointStatus.Available);
+                        }
                         statusNotificationReq.sendStatusNotification();
                     }
+
+//                    if (isPlugStatus) {
+//                        chargingCurrentData.setChargePointErrorCode(ChargePointErrorCode.NoError);
+//                        chargingCurrentData.setChargePointStatus(ChargePointStatus.Available);
+//                        statusNotificationReq.sendStatusNotification();
+//                    }
+
+
                 } else {
                     if (Objects.equals(chargingCurrentData.getChargePointStatus(), ChargePointStatus.Available)) {
                         chargingCurrentData.setChargePointErrorCode(ChargePointErrorCode.NoError);
-                        chargingCurrentData.setChargePointStatus(ChargePointStatus.Preparing);
-                        statusNotificationReq.sendStatusNotification();
+                        if (!chargingCurrentData.isConnectUse()) {
+                            chargingCurrentData.setChargePointStatus(ChargePointStatus.Unavailable);
+                            statusNotificationReq.sendStatusNotification(connectorId, ChargePointStatus.Unavailable);
+                        } else {
+                            chargingCurrentData.setChargePointStatus(ChargePointStatus.Preparing);
+                            statusNotificationReq.sendStatusNotification(connectorId, ChargePointStatus.Preparing);
+                        }
                     }
                 }
             }

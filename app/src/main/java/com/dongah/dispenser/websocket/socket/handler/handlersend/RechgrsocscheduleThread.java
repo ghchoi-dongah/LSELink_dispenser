@@ -1,25 +1,25 @@
 package com.dongah.dispenser.websocket.socket.handler.handlersend;
 
 import android.annotation.SuppressLint;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Build;
 
 import androidx.annotation.RequiresApi;
 
 import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.basefunction.ChargerConfiguration;
+import com.dongah.dispenser.basefunction.ChargingCurrentData;
+import com.dongah.dispenser.basefunction.ClassUiProcess;
 import com.dongah.dispenser.basefunction.GlobalVariables;
 import com.dongah.dispenser.basefunction.UiSeq;
+import com.dongah.dispenser.sqlite.SQLiteHelper;
+import com.dongah.dispenser.sqlite.dto.CpRechgSoc;
 import com.dongah.dispenser.websocket.ocpp.utilities.ZonedDateTimeConvert;
 
-import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.time.DayOfWeek;
 import java.time.ZonedDateTime;
 import java.util.Objects;
@@ -38,7 +38,7 @@ public class RechgrsocscheduleThread extends Thread {
     @Override
     public void run() {
         logger.info("RechgrsocscheduleThread start");
-        processRechgrsoc(0);
+        processRechgSoc(0);
         while (!stopped && !isInterrupted()) {
             try {
                 Thread.sleep(1000);
@@ -51,7 +51,7 @@ public class RechgrsocscheduleThread extends Thread {
 
                 // 정각일 때 실행
                 if (minute == 0 && second == 0) {
-                    processRechgrsoc(0);
+                    processRechgSoc(0);
                 }
             } catch (InterruptedException e) {
                 // interrupt()로 인해 발생한 예외이므로 종료를 위해 루프를 빠져나가도록 유도
@@ -65,14 +65,24 @@ public class RechgrsocscheduleThread extends Thread {
         logger.info("RechgrsocscheduleThread terminated");
     }
 
-    // soc 제한
     @RequiresApi(api = Build.VERSION_CODES.O)
-    public static void processRechgrsoc(int connectorId) {
+    public static void processRechgSoc(int connectorId) {
+        MainActivity activity = (MainActivity) MainActivity.mContext;
+        SQLiteHelper helper = null;
+        SQLiteDatabase sqLiteDatabase;
+
         try {
-            // 1. rechgrsocschedule 파일 유무 확인
-            File file = new File(GlobalVariables.getRootPath() + File.separator + GlobalVariables.FILE_RECHGR_SOC_SCHEDULE);
+            helper = SQLiteHelper.getInstance(activity);
+            sqLiteDatabase = helper.getWritableDatabase();
+            CpRechgSoc dto = new CpRechgSoc();
+            String tableName = dto.getTableName();
 
             int startIndex, endIndex;
+
+            /*
+             * connectorId == 0 이면 전체 커넥터 조회
+             * connectorId != 0 이면 해당 커넥터만 조회
+             */
             if (connectorId == 0) {
                 startIndex = 1;
                 endIndex = GlobalVariables.maxChannel;
@@ -81,40 +91,20 @@ public class RechgrsocscheduleThread extends Thread {
                 endIndex = connectorId;
             }
 
-            if (!file.exists()) {
-                logger.info("processRechgrsoc file doesn't exist. changemode start");
-                // 2. 파일이 없으면 DT(changemode) rechgAmt 확인
+            /*
+             * 1. CP_RECHG_SOC 테이블 존재 여부 확인
+             *    테이블이 없으면 CP_CHANGE_MODE 테이블 확인
+             */
+//            helper.dropTable(sqLiteDatabase, tableName);    // drop table
+            if (!helper.isTableExists(helper, tableName)) {
+                logger.warn("processRechgSoc table not exists : {}", tableName);
                 for (int i = startIndex; i <= endIndex; i++) {
-                    ChangeModeThread.setRechgAmt(i);
+                    ChangeModeThread.setChgModeSoc(i);
                 }
-            } else {
-                // 3. 파일이 있는 경우(채널별 충전량 제한)
-                for (int i = startIndex; i <= endIndex; i++) {
-                    String content = readFile(file, i);
-                    logger.info("processRechgrsoc connectorId[{}] content : {}", i, content);
-
-                    if (content == null) {
-                        logger.info("processRechgrsoc file content is null. changemode start");
-                        // DT(changemode) rechgAmt 조회
-                        ChangeModeThread.setRechgAmt(i);
-                    } else {
-                        setRechgrsoc(i, content);
-                    }
-                }
+                return;
             }
-        } catch (Exception  e) {
-            logger.error("processRechgrsoc error : {}", e.getMessage(), e);
-        }
-    }
 
-
-    @RequiresApi(api = Build.VERSION_CODES.O)
-    private static void setRechgrsoc(int connectorId, String content) {
-        MainActivity activity = (MainActivity) MainActivity.mContext;
-        ChargerConfiguration chargerConfiguration = activity.getChargerConfiguration();
-
-        try {
-            JSONObject rootJson = new JSONObject(content);
+            // DH or WH
             ZonedDateTime now = new ZonedDateTimeConvert().doGetCurrentTime();
             if (now == null) return;
 
@@ -126,46 +116,70 @@ public class RechgrsocscheduleThread extends Thread {
             int hour = now.getHour();
             @SuppressLint("DefaultLocale") String hourKey = String.format("%s%02d", isWeekend ? "WH" : "DH", hour);
 
-            String value = rootJson.optString(hourKey, String.valueOf(chargerConfiguration.getTargetSoc()));
-            activity.getChargingCurrentData(connectorId-1).setLimitSoc(Integer.parseInt(value));
+            for (int i = startIndex; i <= endIndex; i++) {
+                Cursor cursor = null;
+                try {
+                    cursor = helper.select(tableName,"CONNECTOR_ID=?", new String[]{String.valueOf(i)});
+                    // Cursor null 여부 확인, 조회 결과 존재 여부 확인
+                    if (cursor == null || !cursor.moveToFirst()) {
+                        logger.warn("processRechgSoc {} cursor is null or no data. connectorId : {}", tableName, i);
+                        ChangeModeThread.setChgModeSoc(i);
+                        continue;
+                    }
 
-            logger.info("setRechgrsoc connectorId[{}] soc >> {} : {}", connectorId, hourKey, value);
+                    int value = cursor.getInt(cursor.getColumnIndexOrThrow(hourKey));
+                    System.out.println("processRechgSoc " + hourKey + " : " + value);
 
-            if (Objects.equals(activity.getClassUiProcess(connectorId-1).getUiSeq(), UiSeq.INIT)) {
-                activity.getClassUiProcess(connectorId-1).onHome();
+                    ChargingCurrentData chargingCurrentData = activity.getChargingCurrentData(i-1);
+                    chargingCurrentData.setLimitSoc(value);
+
+                    logger.info("processRechgElec connectorId[{}] limitSoc : {}", i, chargingCurrentData.getLimitSoc());
+
+                    if (Objects.equals(activity.getClassUiProcess(connectorId-1).getUiSeq(), UiSeq.INIT)) {
+                        activity.getClassUiProcess(connectorId-1).onHome();
+                    }
+
+                    cursor.close();
+                } catch (Exception e) {
+                    logger.error("processRechgSoc select error : {}", e.getMessage(), e);
+                }
             }
         } catch (Exception e) {
-            logger.error("setRechgrsoc error : {}", e.getMessage(), e);
+            logger.error("processRechgSoc error : {}", e.getMessage(), e);
         }
     }
 
+    // insert : config soc
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    public static void insertRechgSoc(SQLiteHelper sqLiteHelper, int connectorId) {
+        try {
+            MainActivity activity = (MainActivity) MainActivity.mContext;
+            ChargingCurrentData chargingCurrentData = activity.getChargingCurrentData(connectorId-1);
+            ChargerConfiguration chargerConfiguration = activity.getChargerConfiguration();
+            ClassUiProcess classUiProcess = activity.getClassUiProcess(connectorId-1);
 
-    private static String readFile(File file, int connectorId) throws Exception {
-        StringBuilder stringBuilder = new StringBuilder();
+            CpRechgSoc cpRechgSoc = new CpRechgSoc();
+            cpRechgSoc.connectorId = connectorId;
 
-        try (FileInputStream fis = new FileInputStream(file);
-             InputStreamReader isr = new InputStreamReader(fis, StandardCharsets.UTF_8);
-             BufferedReader bufferedReader = new BufferedReader(isr)) {
-
-            String line;
-            while ((line = bufferedReader.readLine()) != null) {
-                stringBuilder.append(line);
+            for (int time = 0; time < 24; time++) {
+                cpRechgSoc.dhXX[time] = chargerConfiguration.getTargetSoc();
+                cpRechgSoc.whXX[time] = chargerConfiguration.getTargetSoc();
             }
+
+            ZonedDateTimeConvert zonedDateTimeConvert = new ZonedDateTimeConvert();
+            cpRechgSoc.regDt = zonedDateTimeConvert.doGetKstDatetimeAsString();
+            cpRechgSoc.modDt = zonedDateTimeConvert.doGetKstDatetimeAsString();
+
+            // insert
+            sqLiteHelper.insert(cpRechgSoc);
+
+            chargingCurrentData.setLimitSoc(chargerConfiguration.getTargetSoc());
+
+            if (Objects.equals(classUiProcess.getUiSeq(), UiSeq.INIT)) {
+                classUiProcess.onHome();
+            }
+        } catch (Exception e) {
+            logger.error("insertRechgSoc error : {}", e.getMessage(), e);
         }
-
-        // 파일 전체 JSON 파싱
-        JSONObject rootJson = new JSONObject(stringBuilder.toString());
-
-        String key = String.valueOf(connectorId);
-
-        // 해당 connectorId 존재 여부 확인
-        if (!rootJson.has(key)) {
-            return null;
-        }
-
-        JSONObject connectorJson = rootJson.getJSONObject(key);
-
-        // 해당 connector 데이터만 문자열로 반환
-        return connectorJson.toString();
     }
 }

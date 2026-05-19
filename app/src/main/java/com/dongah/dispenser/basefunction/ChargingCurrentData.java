@@ -164,7 +164,7 @@ public class ChargingCurrentData {
     public boolean autoStart = true;
 
     public int limitSoc = 0;
-    public int limitDr = 0;
+    public int fullrechgsoc = 100;
 
     public ChargingCurrentData() {
         sampleValueData = new SampleValueData();
@@ -226,6 +226,7 @@ public class ChargingCurrentData {
             setTargetSoc(80);
             setTargetCurrent(0);
             setAuthType("M");
+            setFullrechgsoc(100);
         } catch (Exception e) {
             logger.error("ChargingCurrentData onCurrentDataClear error : {}", e.getMessage(), e);
         }
@@ -895,11 +896,11 @@ public class ChargingCurrentData {
         this.limitSoc = limitSoc;
     }
 
-    public int getLimitDr() {
-        return limitDr;
+    public int getFullrechgsoc() {
+        return fullrechgsoc;
     }
 
-    public void setLimitDr(int limitDr) {
-        this.limitDr = limitDr;
+    public void setFullrechgsoc(int fullrechgsoc) {
+        this.fullrechgsoc = fullrechgsoc;
     }
 }
