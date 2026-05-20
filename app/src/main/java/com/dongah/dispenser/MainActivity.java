@@ -203,15 +203,6 @@ public class MainActivity extends AppCompatActivity {
         // charger operation
         onChargerOperate();
 
-        // charge status
-//        for (int i = 0; i < GlobalVariables.maxChannel; i++) {
-//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-//                ChangeModeThread.processChgMode(i);
-//            }
-//        }
-
-
-
         // 1. charger configuration, ConfigurationKey read
         chargerConfiguration = new ChargerConfiguration();
         chargerConfiguration.onLoadConfiguration();
@@ -235,20 +226,6 @@ public class MainActivity extends AppCompatActivity {
         // 4. rf card reader : MID = terminal ID
         rfCardReaderReceive = new RfCardReaderReceive(chargerConfiguration.getRfCom());
 
-        /** opMode
-         * 0: test mode
-         * 1: server mode
-         **/
-        if (Objects.equals(chargerConfiguration.getOpMode(), 1)) {
-            onChangeMode(sqLiteHelper); // change mode
-        } else if (Objects.equals(chargerConfiguration.getOpMode(), 0)) {
-            // 전류, SoC 제한 설정
-            for (int i = 0; i <GlobalVariables.maxChannel; i++) {
-                ((MainActivity) MainActivity.mContext).getControlBoard().getTxData(i).setOutPowerLimit((short) chargerConfiguration.getDr());
-                ((MainActivity) MainActivity.mContext).getChargingCurrentData(i).setLimitSoc(chargerConfiguration.getTargetSoc());
-            }
-        }
-
         // Web Monitor Server
         if (chargerConfiguration.isControlMonitor()) {
             monitorHttpServer = new MonitorHttpServer(8080);
@@ -266,9 +243,28 @@ public class MainActivity extends AppCompatActivity {
          */
         chargerConfiguration.setSigned(false);
 
+        // 5. socket
 //        String baseUrl = "ws://dongahtest.p-e.kr:5000/v2/DAE000202";
         String baseUrl =  chargerConfiguration.getServerConnectingString() + chargerConfiguration.getChargeBoxSerialNumber() + chargerConfiguration.getChargerId();
         socketReceiveMessage = new SocketReceiveMessage(baseUrl);
+
+        SocketState state = socketReceiveMessage.getSocket().getState();
+
+        /** opMode
+         * 0: test mode
+         * 1: server mode
+         **/
+        if (Objects.equals(chargerConfiguration.getOpMode(), 1)) {
+            onChangeMode(sqLiteHelper); // change mode
+        }
+
+        if (state != SocketState.OPEN || Objects.equals(chargerConfiguration.getOpMode(), 0)) {
+            // 전류, SoC 제한 설정
+            for (int i = 0; i <GlobalVariables.maxChannel; i++) {
+                ((MainActivity) MainActivity.mContext).getControlBoard().getTxData(i).setOutPowerLimit((short) chargerConfiguration.getDr());
+                ((MainActivity) MainActivity.mContext).getChargingCurrentData(i).setLimitSoc(chargerConfiguration.getTargetSoc());
+            }
+        }
 
         // 6. classUiProcess
         classUiProcess = new ClassUiProcess[GlobalVariables.maxChannel];

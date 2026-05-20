@@ -81,7 +81,7 @@ public class NotifyFaultCheck {
                 if (rxData.csEmergency) chargingCurrentData.faultMessage.append("비상정지\n");
                 if (rxData.csPLCComm) chargingCurrentData.faultMessage.append("PLC 통신에러\n");
                 if (rxData.csPowerMeterComm)
-                    chargingCurrentData.faultMessage.append("PowerMerer 에러\n");
+                    chargingCurrentData.faultMessage.append("PowerMeter 에러\n");
                 if (rxData.csChargerLeak) chargingCurrentData.faultMessage.append("충전기 누설\n");
                 if (rxData.csCarLeak) chargingCurrentData.faultMessage.append("차량 누설\n");
                 if (rxData.csOutOVR) chargingCurrentData.faultMessage.append("OVR 에러\n");

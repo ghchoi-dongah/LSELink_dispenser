@@ -135,8 +135,8 @@ public class RechgrsocscheduleThread extends Thread {
 
                     logger.info("processRechgElec connectorId[{}] limitSoc : {}", i, chargingCurrentData.getLimitSoc());
 
-                    if (Objects.equals(activity.getClassUiProcess(connectorId-1).getUiSeq(), UiSeq.INIT)) {
-                        activity.getClassUiProcess(connectorId-1).onHome();
+                    if (Objects.equals(activity.getClassUiProcess(i-1).getUiSeq(), UiSeq.INIT)) {
+                        activity.getClassUiProcess(i-1).onHome();
                     }
 
                     cursor.close();

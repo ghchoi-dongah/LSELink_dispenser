@@ -8,7 +8,9 @@ import android.os.Looper;
 import androidx.annotation.RequiresApi;
 
 import com.dongah.dispenser.MainActivity;
+import com.dongah.dispenser.basefunction.ChargerConfiguration;
 import com.dongah.dispenser.basefunction.ChargingCurrentData;
+import com.dongah.dispenser.basefunction.CsErrorCode;
 import com.dongah.dispenser.basefunction.GlobalVariables;
 import com.dongah.dispenser.controlboard.ControlBoard;
 import com.dongah.dispenser.controlboard.RxData;
@@ -90,6 +92,7 @@ public class StatusNotificationReq {
     private void sendSingleStatusNotification(int connectorId) {
         try {
             MainActivity activity = (MainActivity) MainActivity.mContext;
+            ChargerConfiguration chargerConfiguration = activity.getChargerConfiguration();
             ZonedDateTimeConvert zonedDateTimeConvert = new ZonedDateTimeConvert();
             ZonedDateTime timestamp = zonedDateTimeConvert.doGetCurrentTime();
             StatusNotificationRequest statusNotificationRequest = new StatusNotificationRequest(timestamp);
@@ -112,6 +115,12 @@ public class StatusNotificationReq {
                     !GlobalVariables.ChargerOperation[connectorId]  ? ChargePointStatus.Unavailable :
                             ChargePointStatus.valueOf(status));
 
+            // error code
+            if (rxData.isCsFault()) {
+                statusNotificationRequest.setVendorId(chargerConfiguration.getChargePointVendor());
+                statusNotificationRequest.setVendorErrorCode(String.valueOf(getCsErrorCode(rxData)));
+            }
+
             activity.getSocketReceiveMessage().onSend(
                     connectorId,
                     statusNotificationRequest.getActionName(),
@@ -124,6 +133,46 @@ public class StatusNotificationReq {
         } catch (Exception e) {
             logger.error("sendSingleStatusNotification error : {}", e.getMessage());
         }
+    }
+
+    private int getCsErrorCode(RxData rxData) {
+        if (rxData.csEmergency) {
+            return CsErrorCode.EMERGENCY.value();
+        }
+
+        if (rxData.csPLCComm) {
+            return CsErrorCode.PLCCOMM.value();
+        }
+
+        if (rxData.csPowerMeterComm) {
+            return CsErrorCode.POWERMETERCOMM.value();
+        }
+
+        if (rxData.csChargerLeak) {
+            return CsErrorCode.CHARGERLEAK.value();
+        }
+
+        if (rxData.csCarLeak) {
+            return CsErrorCode.CARLEAK.value();
+        }
+
+        if (rxData.csOutOVR) {
+            return CsErrorCode.OUTOVR.value();
+        }
+
+        if (rxData.csOutOCR) {
+            return CsErrorCode.OUTOCR.value();
+        }
+
+        if (rxData.csCouplerTempSensor) {
+            return CsErrorCode.COUPLERTEMPSENSOR.value();
+        }
+
+        if (rxData.csCouplerOVT) {
+            return CsErrorCode.COUPLEROVT.value();
+        }
+
+        return 0;
     }
 
     public int getConnectorId() {
