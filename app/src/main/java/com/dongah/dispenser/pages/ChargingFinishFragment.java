@@ -163,15 +163,20 @@ public class ChargingFinishFragment extends Fragment implements View.OnClickList
     }
 
     @Override
-    public void onDetach() {
-        super.onDetach();
+    public void onDestroyView() {
+        super.onDestroyView();
         try {
             if (uiCheckHandler != null) {
                 uiCheckHandler.removeCallbacksAndMessages(null);
-                uiCheckHandler.removeMessages(0);
+                uiCheckHandler = null;
             }
         } catch (Exception e) {
-            logger.error("onDetach error : {}", e.getMessage());
+            logger.error("onDestroyView error : {}", e.getMessage(), e);
         }
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
     }
 }
