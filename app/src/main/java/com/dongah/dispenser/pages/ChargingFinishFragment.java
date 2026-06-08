@@ -111,40 +111,22 @@ public class ChargingFinishFragment extends Fragment implements View.OnClickList
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         try {
-            progressCircular.isIndeterminate();
+            progressCircular.setIndeterminate(false);
             mediaPlayer();
 
-            // unplug check 후 초기 화면
-            uiCheckHandler = new Handler();
-            uiCheckHandler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    if (!((MainActivity) MainActivity.mContext).getControlBoard().getRxData(mChannel).isCsPilot()) {
-                        btnCheck.performClick();
-                    }
-                    uiCheckHandler.postDelayed(this, 60000);
-                }
-            }, 60000);
-
             // charging finish info
-            ((MainActivity) MainActivity.mContext).runOnUiThread(new Runnable() {
-                @SuppressLint("SetTextI18n")
-                @Override
-                public void run() {
-                    textViewSocValue.setText(chargingCurrentData.getSoc() + "%");
-                    progressCircular.setProgress(chargingCurrentData.getSoc(), true);
-                    textViewChargingAmtValue.setText(powerFormatter.format(chargingCurrentData.getPowerMeterUse() * 0.01) + "kWh");
-                    textViewChargingTimeValue.setText(chargingCurrentData.getChargingUseTime());
+            textViewSocValue.setText(chargingCurrentData.getSoc() + "%");
+            progressCircular.setProgress(chargingCurrentData.getSoc(), false);
+            textViewChargingAmtValue.setText(powerFormatter.format(chargingCurrentData.getPowerMeterUse() * 0.01) + "kWh");
+            textViewChargingTimeValue.setText(chargingCurrentData.getChargingUseTime());
 
-                    if (Objects.equals(chargerConfiguration.getOpMode(), 1)) {
-                        textViewCarNum.setText(getString(R.string.carNum) + chargingCurrentData.getParentIdTag());
-                    } else {
-                        textViewCarNum.setText(getString(R.string.carNum) + "테스트 모드");
-                    }
-                }
-            });
+            if (Objects.equals(chargerConfiguration.getOpMode(), 1)) {
+                textViewCarNum.setText(getString(R.string.carNum) + chargingCurrentData.getParentIdTag());
+            } else {
+                textViewCarNum.setText(getString(R.string.carNum) + "테스트 모드");
+            }
         } catch (Exception e) {
-            logger.error("ChargingFinishFragment onViewCreated error : {}", e.getMessage(), e);
+            logger.error("onViewCreated error : {}", e.getMessage(), e);
         }
     }
 
@@ -165,7 +147,7 @@ public class ChargingFinishFragment extends Fragment implements View.OnClickList
             mediaPlayer.setOnCompletionListener(me -> releasePlayer());
             mediaPlayer.start();
         } catch (Exception e) {
-            logger.error("ChargingFinishFragment mediaPlayer error : {}", e.getMessage());
+            logger.error("mediaPlayer error : {}", e.getMessage());
         }
     }
 
@@ -174,7 +156,7 @@ public class ChargingFinishFragment extends Fragment implements View.OnClickList
             try {
                 mediaPlayer.release();
             } catch (Exception e) {
-                logger.error("ChargingFinishFragment releasePlayer error : {}", e.getMessage());
+                logger.error("releasePlayer error : {}", e.getMessage());
             }
             mediaPlayer = null;
         }
@@ -189,7 +171,7 @@ public class ChargingFinishFragment extends Fragment implements View.OnClickList
                 uiCheckHandler.removeMessages(0);
             }
         } catch (Exception e) {
-            logger.error("ChargingFinishFragment onDetach error : {}", e.getMessage());
+            logger.error("onDetach error : {}", e.getMessage());
         }
     }
 }

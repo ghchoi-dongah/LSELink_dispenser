@@ -60,36 +60,6 @@ public class ChargingCurrentData {
     long chargingRemainTime = 0;
 
 
-    /**
-     * 신용 카드 결제
-     */
-    String tradeCode;
-    String tradeMethod;
-    int prePayment = 0;
-    int partialCancelPayment = 0;
-    int surtax = 0;
-    int tip = 0;
-    int installment = 0;
-    String approvalNumber = "";
-    String approvalDate = "";
-    String approvalTime = "";
-    String pgTranSeq = "";
-    String creditCardNumber = "";
-    String responseCode = "";       //응답코드
-    String responseMessage = "";    //응답메세지
-    String payId = "";              //충전기에서 30자리로 생성하여 Start Transaction Id로 사용
-    String cancelApprovalNo = "";
-    String cancelApprovalDate = "";
-    String cancelApprovalTime = "";
-    String cancelPgTranSeq = "";
-    String cancelUniqueNo = "";              //취소 거래고유번호
-    String tradeUniqueNumber = "";           //거래고유번호
-    String issuer = "";                      //발급사 정보
-    String buyer = "";                       // 메입사
-    String terminalNumber = "";              //장치제품번호
-    String storeNumber = "";                 //가맹점번호
-
-
     int remaintime = 0;
     String remainTimeStr = "";
 
@@ -174,7 +144,6 @@ public class ChargingCurrentData {
         try {
             sampleValueData.initSampledValues();
             setIdTag("");
-            setPayId("");
             setUserStop(false);
             setPowerMeterStart(0);
             setPowerMeterUse(0);
@@ -184,26 +153,6 @@ public class ChargingCurrentData {
             setOutPutCurrent(0);
             setPowerMeterStop(0);
             setPowerMeterCalculate(0);
-            setTradeCode("");
-            setTradeMethod("");
-            setPrePayment(0);
-            setPartialCancelPayment(0);
-            setApprovalNumber("");
-            setApprovalDate("");
-            setApprovalTime("");
-            setPgTranSeq("");
-            setCreditCardNumber("");
-            setStoreNumber("");
-            setTerminalNumber("");
-            setResponseCode("");
-            setResponseMessage("");
-            setPrePaymentResult(false);
-            setTradeUniqueNumber("");
-            setSurtax(0);
-            setTip(0);
-            setInstallment(0);
-            setIssuer("");
-            setBuyer("");
             setChargingStartTime("");
             setChargingEndTime("");
             setTransactionId(0);
@@ -228,7 +177,7 @@ public class ChargingCurrentData {
             setAuthType("M");
             setFullrechgsoc(100);
         } catch (Exception e) {
-            logger.error("ChargingCurrentData onCurrentDataClear error : {}", e.getMessage(), e);
+            logger.error("onCurrentDataClear error : {}", e.getMessage(), e);
         }
     }
 
@@ -343,54 +292,6 @@ public class ChargingCurrentData {
 
     public void setPowerUnitPrice(double powerUnitPrice) {
         this.powerUnitPrice = powerUnitPrice;
-    }
-
-    public String getTradeCode() {
-        return tradeCode;
-    }
-
-    public void setTradeCode(String tradeCode) {
-        this.tradeCode = tradeCode;
-    }
-
-    public String getTradeMethod() {
-        return tradeMethod;
-    }
-
-    public void setTradeMethod(String tradeMethod) {
-        this.tradeMethod = tradeMethod;
-    }
-
-    public int getPrePayment() {
-        return prePayment;
-    }
-
-    public void setPrePayment(int prePayment) {
-        this.prePayment = prePayment;
-    }
-
-    public int getSurtax() {
-        return surtax;
-    }
-
-    public void setSurtax(int surtax) {
-        this.surtax = surtax;
-    }
-
-    public int getTip() {
-        return tip;
-    }
-
-    public void setTip(int tip) {
-        this.tip = tip;
-    }
-
-    public int getInstallment() {
-        return installment;
-    }
-
-    public void setInstallment(int installment) {
-        this.installment = installment;
     }
 
     public long getChargingTime() {
@@ -520,161 +421,6 @@ public class ChargingCurrentData {
     public void setChargingRemainTime(long chargingRemainTime) {
         this.chargingRemainTime = chargingRemainTime;
     }
-
-    public void setPartialCancelPayment(int partialCancelPayment) {
-        this.partialCancelPayment = partialCancelPayment;
-    }
-
-
-    public int getPartialCancelPayment() {
-        return partialCancelPayment;
-    }
-
-    public String getApprovalNumber() {
-        return approvalNumber;
-    }
-
-    public void setApprovalNumber(String approvalNumber) {
-        this.approvalNumber = approvalNumber;
-    }
-
-    public String getApprovalDate() {
-        return approvalDate;
-    }
-
-    public void setApprovalDate(String approvalDate) {
-        this.approvalDate = approvalDate;
-    }
-
-    public String getApprovalTime() {
-        return approvalTime;
-    }
-
-    public void setApprovalTime(String approvalTime) {
-        this.approvalTime = approvalTime;
-    }
-
-    public String getPgTranSeq() {
-        return pgTranSeq;
-    }
-
-    public void setPgTranSeq(String pgTranSeq) {
-        this.pgTranSeq = pgTranSeq;
-    }
-
-    public String getCreditCardNumber() {
-        return creditCardNumber;
-    }
-
-    public void setCreditCardNumber(String creditCardNumber) {
-        this.creditCardNumber = creditCardNumber;
-    }
-
-
-    public String getResponseCode() {
-        return responseCode;
-    }
-
-    public void setResponseCode(String responseCode) {
-        this.responseCode = responseCode;
-    }
-
-    public String getResponseMessage() {
-        return responseMessage;
-    }
-
-    public void setResponseMessage(String responseMessage) {
-        this.responseMessage = responseMessage;
-    }
-
-    public String getPayId() {
-        return payId;
-    }
-
-    public void setPayId(String payId) {
-        this.payId = payId;
-    }
-
-    public String getCancelApprovalNo() {
-        return cancelApprovalNo;
-    }
-
-    public void setCancelApprovalNo(String cancelApprovalNo) {
-        this.cancelApprovalNo = cancelApprovalNo;
-    }
-
-    public String getCancelApprovalDate() {
-        return cancelApprovalDate;
-    }
-
-    public void setCancelApprovalDate(String cancelApprovalDate) {
-        this.cancelApprovalDate = cancelApprovalDate;
-    }
-
-    public String getCancelApprovalTime() {
-        return cancelApprovalTime;
-    }
-
-    public void setCancelApprovalTime(String cancelApprovalTime) {
-        this.cancelApprovalTime = cancelApprovalTime;
-    }
-
-    public String getCancelPgTranSeq() {
-        return cancelPgTranSeq;
-    }
-
-    public void setCancelPgTranSeq(String cancelPgTranSeq) {
-        this.cancelPgTranSeq = cancelPgTranSeq;
-    }
-
-    public String getCancelUniqueNo() {
-        return cancelUniqueNo;
-    }
-
-    public void setCancelUniqueNo(String cancelUniqueNo) {
-        this.cancelUniqueNo = cancelUniqueNo;
-    }
-
-    public String getTradeUniqueNumber() {
-        return tradeUniqueNumber;
-    }
-
-    public void setTradeUniqueNumber(String tradeUniqueNumber) {
-        this.tradeUniqueNumber = tradeUniqueNumber;
-    }
-
-    public String getIssuer() {
-        return issuer;
-    }
-
-    public void setIssuer(String issuer) {
-        this.issuer = issuer;
-    }
-
-    public String getBuyer() {
-        return buyer;
-    }
-
-    public void setBuyer(String buyer) {
-        this.buyer = buyer;
-    }
-
-    public String getTerminalNumber() {
-        return terminalNumber;
-    }
-
-    public void setTerminalNumber(String terminalNumber) {
-        this.terminalNumber = terminalNumber;
-    }
-
-    public String getStoreNumber() {
-        return storeNumber;
-    }
-
-    public void setStoreNumber(String storeNumber) {
-        this.storeNumber = storeNumber;
-    }
-
     public boolean isPrePaymentResult() {
         return prePaymentResult;
     }

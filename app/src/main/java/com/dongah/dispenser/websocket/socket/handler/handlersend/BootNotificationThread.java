@@ -116,11 +116,10 @@ public class BootNotificationThread extends Thread {
             while ((line = br.readLine()) != null) {
                 processFirmwareLine(line);
             }
-
-            boolean deleted = firmwareFile.delete();
         } catch (Exception e) {
             logger.error("FirmwareStatus file error", e);
         }
+        boolean deleted = firmwareFile.delete();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -146,18 +145,10 @@ public class BootNotificationThread extends Thread {
                 socketReceiveMessage.onSend(100, req.getActionName(), req);
                 chargerConfiguration.setSignedFirmwareStatus(status);
             } else if ("Firmware".equals(resultStatus[0])) {
-
-//                FirmwareStatus status = FirmwareStatus.valueOf(resultStatus[1]);
-//                FirmwareStatusNotificationRequest req =
-//                        new FirmwareStatusNotificationRequest(status);
-//                socketReceiveMessage.onSend(100, req.getActionName(), req);
-//                chargerConfiguration.setFirmwareStatus(status);
-
                 Arrays.fill(GlobalVariables.ChargerOperation, true);
                 onChargerOperateSave();
                 chargerConfiguration.setFirmwareStatus(FirmwareStatus.Idle);
             }
-
 
         } catch (Exception e) {
             logger.error("processFirmwareLine error: {}", line, e);
@@ -170,7 +161,8 @@ public class BootNotificationThread extends Thread {
 
         if (!file.exists()) return "0";
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
-            return br.readLine();
+            String id = br.readLine();
+            return (id != null) ? id : "0";
         } catch (Exception e) {
             logger.error("getSignedRequestId error", e);
         }
@@ -182,7 +174,7 @@ public class BootNotificationThread extends Thread {
             boolean check;
             String rootPath = Environment.getExternalStorageDirectory().toString() + File.separator + "Download";
             File file = new File(rootPath + File.separator + "ChargerOperate");
-            if (file.exists()) check = file.delete();
+            if (file.exists() && !file.delete()) check = file.delete();
 
             FileManagement fileManagement = new FileManagement();
             for (int i = 0; i < GlobalVariables.maxPlugCount; i++) {
