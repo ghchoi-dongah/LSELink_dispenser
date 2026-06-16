@@ -37,6 +37,7 @@ public class HeaderFragment extends Fragment implements View.OnClickListener {
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
+    private static final String CHANNEL = "CHANNEL";
 
     // TODO: Rename and change types of parameters
     private String mParam1;
@@ -47,6 +48,7 @@ public class HeaderFragment extends Fragment implements View.OnClickListener {
     int clickedCnt = 0;
     ImageButton btnLogo;
     TextView textViewChargerId;
+    MainActivity activity;
     ChargerConfiguration chargerConfiguration;
 
     public HeaderFragment() {
@@ -77,6 +79,7 @@ public class HeaderFragment extends Fragment implements View.OnClickListener {
         if (getArguments() != null) {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
+            mChannel = getArguments().getInt(CHANNEL);
         }
     }
 
@@ -85,15 +88,16 @@ public class HeaderFragment extends Fragment implements View.OnClickListener {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_header, container, false);
+        activity = (MainActivity) MainActivity.mContext;
+        chargerConfiguration = activity.getChargerConfiguration();
         btnLogo = view.findViewById(R.id.btnLogo);
         btnLogo.setOnClickListener(this);
         textViewChargerId = view.findViewById(R.id.textViewChargerId);
 
         try {
-            chargerConfiguration = ((MainActivity) MainActivity.mContext).getChargerConfiguration();
             textViewChargerId.setText("| ID-" + chargerConfiguration.getChargerId());
         } catch (Exception e) {
-            logger.error("HeaderFragment onCreateView error : {}", e.getMessage());
+            logger.error("onCreateView error : {}", e.getMessage());
         }
         return view;
     }
@@ -104,7 +108,6 @@ public class HeaderFragment extends Fragment implements View.OnClickListener {
             System.out.println("btnLogo click: " + clickedCnt);
             if (clickedCnt > 8) {
                 try {
-                    MainActivity activity = (MainActivity) MainActivity.mContext;
                     if (activity == null) {
                         System.out.println("btnLogo error: MainActivity.mContext is null");
                         return;
@@ -130,7 +133,7 @@ public class HeaderFragment extends Fragment implements View.OnClickListener {
                     }
                     clickedCnt = 0;
                 } catch (Exception e) {
-                    logger.error("HeaderFragment btnLogo error : {}", e.getMessage());
+                    logger.error("btnLogo error : {}", e.getMessage());
                 }
             }
             clickedCnt++;
