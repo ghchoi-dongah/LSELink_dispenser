@@ -20,6 +20,7 @@ import com.dongah.dispenser.pages.ConfigSettingFragment;
 import com.dongah.dispenser.pages.ConnectionFailedFragment;
 import com.dongah.dispenser.pages.ConnectorCheckFragment;
 import com.dongah.dispenser.pages.ControlDebugFragment;
+import com.dongah.dispenser.pages.DatabaseFragment;
 import com.dongah.dispenser.pages.EnvironmentFragment;
 import com.dongah.dispenser.pages.FaultFragment;
 import com.dongah.dispenser.pages.HeaderFragment;
@@ -284,6 +285,17 @@ public class FragmentChange {
                     transaction.commit();
                 } catch (Exception e) {
                     logger.error("onFragmentChange error : REMOTE_TEST {}", e.getMessage());
+                }
+                break;
+            case DATABASE:
+                try {
+                    onFrameLayoutChange(true);
+                    DatabaseFragment databaseFragment = new DatabaseFragment();
+                    databaseFragment.setArguments(bundle);
+                    transaction.replace(R.id.frameFull, databaseFragment, "DATABASE");
+                    transaction.commit();
+                } catch (Exception e) {
+                    logger.error("onFragmentChange error : DATABASE {}", e.getMessage());
                 }
                 break;
             default:
