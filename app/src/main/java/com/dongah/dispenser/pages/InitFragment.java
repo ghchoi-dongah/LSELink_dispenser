@@ -62,13 +62,11 @@ public class InitFragment extends Fragment implements View.OnClickListener {
     MainActivity activity;
     ChargerConfiguration chargerConfiguration;
     ChargingCurrentData chargingCurrentData;
+    RxData rxData;
     TxData txData;
+
     SharedModel sharedModel;
     String[] requestStrings = new String[1];
-
-    Handler handler;
-    Runnable runnable;
-    RxData rxData;
 
     Handler eventHandler;
     Runnable eventRunnable;
@@ -143,7 +141,7 @@ public class InitFragment extends Fragment implements View.OnClickListener {
                 textViewConnector.setText("2 커넥터");
             }
         } catch (Exception e) {
-            logger.error("InitFragment onCreateView error : {}", e.getMessage(), e);
+            logger.error("onCreateView error : {}", e.getMessage(), e);
         }
 
         return view;
@@ -183,7 +181,7 @@ public class InitFragment extends Fragment implements View.OnClickListener {
             }
 
         } catch (Exception e) {
-            logger.error("InitFragment onViewCreated : {}", e.getMessage(), e);
+            logger.error("onViewCreated error : {}", e.getMessage(), e);
         }
     }
 
@@ -201,11 +199,9 @@ public class InitFragment extends Fragment implements View.OnClickListener {
         try {
             chargingCurrentData.onCurrentDataClear();   // clear
             chargingCurrentData.setConnectorId(mChannel + 1);
-
-            activity.getChargingCurrentData(mChannel).setChargerPointType(ChargerPointType.COMBO);
-            activity.getChargingCurrentData(mChannel).setConnectorId(mChannel + 1);
+            chargingCurrentData.setChargerPointType(ChargerPointType.COMBO);
         } catch (Exception e) {
-            logger.error("InitFragment initData : {}", e.getMessage());
+            logger.error("initData error : {}", e.getMessage());
         }
     }
 
@@ -215,8 +211,8 @@ public class InitFragment extends Fragment implements View.OnClickListener {
 
             if (Objects.equals(chargerConfiguration.getOpMode(), 0)) {
                 // test mode
-                double testPrice = Double.parseDouble(activity.getChargerConfiguration().getTestPrice());
-                activity.getChargingCurrentData(mChannel).setPowerUnitPrice(testPrice);
+                double testPrice = Double.parseDouble(chargerConfiguration.getTestPrice());
+                chargingCurrentData.setPowerUnitPrice(testPrice);
                 activity.getClassUiProcess(mChannel).setUiSeq(UiSeq.PLUG_CHECK);
                 activity.getFragmentChange().onFragmentChange(mChannel, UiSeq.PLUG_CHECK, "PLUG_CHECK", null);
             } else if (Objects.equals(chargerConfiguration.getOpMode(), 1)) {
@@ -225,12 +221,12 @@ public class InitFragment extends Fragment implements View.OnClickListener {
                     switch (chargerConfiguration.getAuthMode()) {
                         case 0:
                         case 2:
-                            activity.getChargingCurrentData(mChannel).setAuthType("M");
+                            chargingCurrentData.setAuthType("M");
                             activity.getClassUiProcess(mChannel).setUiSeq(UiSeq.PLUG_CHECK);
                             activity.getFragmentChange().onFragmentChange(mChannel, UiSeq.PLUG_CHECK, "PLUG_CHECK", null);
                             break;
                         case 1:
-                            activity.getChargingCurrentData(mChannel).setAuthType("C");
+                            chargingCurrentData.setAuthType("C");
                             activity.getClassUiProcess(mChannel).setUiSeq(UiSeq.MEMBER_CARD);
                             activity.getFragmentChange().onFragmentChange(mChannel, UiSeq.MEMBER_CARD, "MEMBER_CARD", null);
                             break;
@@ -261,11 +257,11 @@ public class InitFragment extends Fragment implements View.OnClickListener {
 //                    }
                 } catch (Exception e) {
                     activity.getToastPositionMake().onShowToast(mChannel, "서버 연결 DISCONNECT.\n충전을 할 수 없습니다.");
-                    logger.error("InitFragment server disconnect error : {}", e.getMessage());
+                    logger.error("server disconnect error : {}", e.getMessage());
                 }
             }
         } catch (Exception e) {
-            logger.error("InitFragment changeFragment error : {}", e.getMessage());
+            logger.error("changeFragment error : {}", e.getMessage());
         }
     }
 
@@ -276,17 +272,11 @@ public class InitFragment extends Fragment implements View.OnClickListener {
             requestStrings[0] = String.valueOf(mChannel);
             sharedModel.setMutableLiveData(requestStrings);
 
-            if (handler != null) {
-                handler.removeCallbacks(runnable);
-                handler.removeCallbacksAndMessages(null);
-                handler.removeMessages(0);
-            }
-
             if (eventHandler != null) {
                 eventHandler.removeCallbacks(eventRunnable);
             }
         } catch (Exception e) {
-            logger.error("InitFragment onDetach error : {}", e.getMessage());
+            logger.error("onDetach error : {}", e.getMessage());
         }
     }
 }

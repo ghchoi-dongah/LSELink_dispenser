@@ -475,6 +475,7 @@ public class MainActivity extends AppCompatActivity {
                 Arrays.fill(GlobalVariables.ChargerOperation, true);
             }
         } catch (Exception e) {
+            Arrays.fill(GlobalVariables.ChargerOperation, true);
             logger.error("onChargerOperate error : {}", e.getMessage());
         }
     }
