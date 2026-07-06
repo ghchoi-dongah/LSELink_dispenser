@@ -1,7 +1,6 @@
 package com.dongah.dispenser.basefunction;
 
 import android.annotation.SuppressLint;
-import android.os.Environment;
 import android.text.TextUtils;
 
 import com.dongah.dispenser.utils.FileManagement;
@@ -94,7 +93,7 @@ public class ChargerConfiguration {
     public UploadLogStatus uploadLogStatus = UploadLogStatus.Idle;
 
     public ChargerConfiguration() {
-        setRootPath(Environment.getExternalStorageDirectory().toString() + File.separator + "Download");
+        setRootPath(GlobalVariables.ROOT_PATH);
         fileManagement = new FileManagement();
     }
 
@@ -104,9 +103,6 @@ public class ChargerConfiguration {
             File targetFile = new File(GlobalVariables.ROOT_PATH + File.separator + CONFIG_FILE_NAME);
             String configurationString;
             if (!targetFile.exists()) onSaveConfiguration();
-
-//            targetFile.setReadable(true, false);
-//            targetFile.setWritable(true, false);
 
             // get file context json string
             configurationString = fileManagement.getStringFromFile(GlobalVariables.ROOT_PATH  + File.separator + CONFIG_FILE_NAME);

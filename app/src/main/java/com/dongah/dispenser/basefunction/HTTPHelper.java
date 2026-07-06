@@ -1,7 +1,7 @@
 package com.dongah.dispenser.basefunction;
 
 import android.os.Build;
-import android.os.Environment;
+import com.dongah.dispenser.basefunction.GlobalVariables;
 
 import androidx.annotation.RequiresApi;
 
@@ -26,7 +26,7 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 public class HTTPHelper {
     private static final Logger logger = LoggerFactory.getLogger(HTTPHelper.class);
 
-    private static final String TARGET_FILE_PATH = Environment.getExternalStorageDirectory().toString() +  File.separator + "Download";
+    private static final String TARGET_FILE_PATH = GlobalVariables.ROOT_PATH;
 
     private String location;
     private String urlPath;

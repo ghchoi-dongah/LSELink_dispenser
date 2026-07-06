@@ -3,14 +3,14 @@ package com.dongah.dispenser.basefunction;
 import android.os.Environment;
 
 import com.dongah.dispenser.websocket.ocpp.localauthlist.UpdateStatus;
-import com.dongah.dispenser.websocket.ocpp.security.HashAlgorithm;
 
 import java.io.File;
 
 public class GlobalVariables {
 
-    //storage/emulated/0/download
-    public static String ROOT_PATH = Environment.getExternalStorageDirectory().toString() + File.separator + "Download";
+    //storage/emulated/0/Android/data/com.dongah.dispenser/files
+    public static String ROOT_PATH = Environment.getExternalStorageDirectory().toString() + File.separator + "Android" +
+            File.separator + "data" + File.separator + "com.dongah.dispenser" + File.separator + "files";
 
     public static String VERSION = "1.0.0";
     public static String FW_VERSION = "1.0.1";

@@ -1,7 +1,7 @@
 package com.dongah.dispenser.websocket.socket.handler.handlersend;
 
 import android.os.Build;
-import android.os.Environment;
+import com.dongah.dispenser.basefunction.GlobalVariables;
 
 import androidx.annotation.RequiresApi;
 
@@ -19,7 +19,7 @@ import java.text.DecimalFormat;
 public class DiagnosticsThread extends Thread {
     private static final Logger logger = LoggerFactory.getLogger(DiagnosticsThread.class);
 
-    private static final String FILE_PATH = Environment.getExternalStorageDirectory().toString() + "/Download";
+    private static final String FILE_PATH = GlobalVariables.ROOT_PATH;
     private static final String FILE_NAME = "diagnostics.dongah";
     private volatile boolean stopped = false;
     long delayTime;
