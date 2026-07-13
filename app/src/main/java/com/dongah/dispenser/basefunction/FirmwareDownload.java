@@ -1,5 +1,7 @@
 package com.dongah.dispenser.basefunction;
 
+import android.os.Environment;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,8 +58,7 @@ public class FirmwareDownload {
                 conn.connect();
 
                 if (conn.getResponseCode() == HttpURLConnection.HTTP_OK) {
-
-                    File file = new File(GlobalVariables.getRootPath() + File.separator + fileName);
+                    File file = new File(GlobalVariables.FW_PATH + File.separator + fileName);
                     is = new BufferedInputStream(conn.getInputStream());
                     fos = new FileOutputStream(file);
                     byte[] buffer = new byte[4096];
