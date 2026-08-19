@@ -6,6 +6,7 @@ import androidx.annotation.RequiresApi;
 
 import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.basefunction.ChargingCurrentData;
+import com.dongah.dispenser.basefunction.GlobalVariables;
 import com.dongah.dispenser.basefunction.PaymentType;
 import com.dongah.dispenser.basefunction.UiSeq;
 import com.dongah.dispenser.websocket.ocpp.core.ChargePointStatus;
@@ -71,16 +72,12 @@ public class RemoteStartTransactionHandler implements OcppHandler  {
             );
 
             if (Objects.equals(status, RemoteStartStopStatus.Accepted)) {
+                GlobalVariables.RemoteStart[connectorId-1] = true;
                 chargingCurrentData.setAuthType("C");
 
                 // Authorize
                 AuthorizeReq authorizeReq = new AuthorizeReq(connectorId);
                 authorizeReq.sendAuthorize(chargingCurrentData.getIdTag());
-
-                // StatusNotification
-                chargingCurrentData.setChargePointStatus(ChargePointStatus.Preparing);
-                StatusNotificationReq statusNotificationReq = new StatusNotificationReq(connectorId);
-                statusNotificationReq.sendStatusNotification(connectorId, ChargePointStatus.Preparing);
             }
         } catch (Exception e) {
             logger.error("RemoteStartTransactionHandler sendResponse error : {}", e.getMessage());

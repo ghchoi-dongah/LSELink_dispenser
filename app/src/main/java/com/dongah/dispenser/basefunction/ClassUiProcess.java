@@ -586,7 +586,7 @@ public class ClassUiProcess implements RfCardReaderListener {
                 }
             } else {
                 if (rxData.isCsStop() || !rxData.isCsPilot() || chargingCurrentData.isUserStop() || isSocReached
-                        || !GlobalVariables.ChargerOperation[getCh()+1]) {
+                        || !GlobalVariables.ChargerOperation[getCh()+1] || Objects.equals(chargingCurrentData.getStopReason(), Reason.Remote)) {
                     controlBoard.getTxData(getCh()).setStop(true);
                     controlBoard.getTxData(getCh()).setStart(false);
                     if (!rxData.isCsPilot()) {
@@ -634,6 +634,7 @@ public class ClassUiProcess implements RfCardReaderListener {
                     stopTransactionReq.sendStopTransactionReq();
                 }
 
+                GlobalVariables.RemoteStart[getCh()] = false;
                 setUiSeq(UiSeq.FINISH);
                 fragmentChange.onFragmentChange(getCh(), UiSeq.FINISH, "FINISH", null);
             }, 2000);

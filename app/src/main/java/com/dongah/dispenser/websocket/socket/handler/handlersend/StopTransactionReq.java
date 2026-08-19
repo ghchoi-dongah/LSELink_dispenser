@@ -104,10 +104,15 @@ public class StopTransactionReq {
                                 getConnectorId(),
                                 stopTransactionRequest.getActionName(),
                                 stopTransactionRequest);
+                        // StatusNotification(Finishing)
+                        StatusNotificationReq statusNotificationReq = new StatusNotificationReq(getConnectorId());
+                        statusNotificationReq.sendStatusNotification(getConnectorId(), ChargePointStatus.Finishing);
+                        // StatusNotificationThread reset : 다음 자동 전송 300초 뒤로 밀기
+//                        activity.getProcessHandler().onStatusNotificationStart(300);
                     } catch (OccurenceConstraintException e) {
                         logger.error("StopTransactionRequest send error ", e);
                     }
-                }, 3000);
+                }, 2000);
             } else {
                 String uuid = UUID.randomUUID().toString();
                 saveFullStartTransaction(getConnectorId(), uuid, stopTransactionRequest);
