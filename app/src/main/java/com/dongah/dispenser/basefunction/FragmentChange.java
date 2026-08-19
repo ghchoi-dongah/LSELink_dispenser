@@ -29,7 +29,6 @@ import com.dongah.dispenser.pages.MemberCardFragment;
 import com.dongah.dispenser.pages.MemberCheckFailedFragment;
 import com.dongah.dispenser.pages.MemberCheckWaitFragment;
 import com.dongah.dispenser.pages.OperationStopFragment;
-import com.dongah.dispenser.pages.RemoteTestFragment;
 import com.dongah.dispenser.pages.ScreenSaverFragment;
 import com.dongah.dispenser.pages.WebSocketDebugFragment;
 
@@ -274,17 +273,6 @@ public class FragmentChange {
                     transaction.commit();
                 } catch (Exception e) {
                     logger.error("onFragmentChange error : SCREEN_SAVER {}", e.getMessage());
-                }
-                break;
-            case REMOTE_TEST:
-                try {
-                    onFrameLayoutChange(true);
-                    RemoteTestFragment remoteTestFragment = new RemoteTestFragment();
-                    remoteTestFragment.setArguments(bundle);
-                    transaction.replace(R.id.frameFull, remoteTestFragment, "REMOTE_TEST");
-                    transaction.commit();
-                } catch (Exception e) {
-                    logger.error("onFragmentChange error : REMOTE_TEST {}", e.getMessage());
                 }
                 break;
             case DATABASE:

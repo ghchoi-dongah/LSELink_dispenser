@@ -216,7 +216,7 @@ public class ConnectorCheckFragment extends Fragment implements View.OnClickList
                 }
             });
         } catch (Exception e) {
-            logger.error("ConnectorCheckFragment onViewCreated error : {}", e.getMessage());
+            logger.error("onViewCreated error : {}", e.getMessage());
         }
     }
 
@@ -225,7 +225,7 @@ public class ConnectorCheckFragment extends Fragment implements View.OnClickList
         try {
             return;
         } catch (Exception e) {
-            logger.error("ConnectorCheckFragment onClick error : {}", e.getMessage());
+            logger.error("onClick error : {}", e.getMessage());
         }
     }
 
@@ -363,7 +363,7 @@ public class ConnectorCheckFragment extends Fragment implements View.OnClickList
             classUiProcess.setUiSeq(UiSeq.MEMBER_CHECK_FAILED);
             fragmentChange.onFragmentChange(mChannel, UiSeq.MEMBER_CHECK_FAILED, "MEMBER_CHECK_FAILED", null);
         } catch (Exception e) {
-            logger.error("ConnectorCheckFragment authorizedFailed error : {}", e.getMessage());
+            logger.error("authorizedFailed error : {}", e.getMessage());
         }
     }
 
@@ -394,7 +394,7 @@ public class ConnectorCheckFragment extends Fragment implements View.OnClickList
             countRunnable = null;
 
         } catch (Exception e) {
-            logger.error("ConnectorCheckFragment onDestroyView error : {}", e.getMessage());
+            logger.error("onDestroyView error : {}", e.getMessage());
         }
         super.onDestroyView();
     }
@@ -409,7 +409,7 @@ public class ConnectorCheckFragment extends Fragment implements View.OnClickList
                 countHandler.removeMessages(0);
             }
         } catch (Exception e) {
-            logger.error("ConnectorCheckFragment onDetach error : {}", e.getMessage());
+            logger.error("onDetach error : {}", e.getMessage());
         }
     }
 }

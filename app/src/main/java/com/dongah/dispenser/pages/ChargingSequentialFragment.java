@@ -153,14 +153,14 @@ public class ChargingSequentialFragment extends Fragment {
                         );
 
                     } catch (Exception e) {
-                        logger.error("ChargingSequentialFragment run error : {}", e.getMessage());
+                        logger.error("onViewCreated run error : {}", e.getMessage());
                     }
                     handler.postDelayed(this, 1000);
                 }
             };
             handler.postDelayed(runnable, 1000);
         } catch (Exception e) {
-            logger.error("ChargingSequentialFragment onViewCreated error : {}", e.getMessage());
+            logger.error("onViewCreated error : {}", e.getMessage());
         }
     }
 
@@ -176,7 +176,7 @@ public class ChargingSequentialFragment extends Fragment {
             runnable = null;
             handler = null;
         } catch (Exception e) {
-            logger.error("ChargingSequentialFragment onDestroyView error : {}", e.getMessage());
+            logger.error("onDestroyView error : {}", e.getMessage());
         }
     }
 }

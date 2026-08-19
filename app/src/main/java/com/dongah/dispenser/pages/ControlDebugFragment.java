@@ -137,7 +137,7 @@ public class ControlDebugFragment extends Fragment implements View.OnClickListen
                 }
             });
         } catch (Exception e) {
-            logger.error("ControlDebugFragment onViewCreated error : {}", e.getMessage());
+            logger.error("onViewCreated error : {}", e.getMessage());
         }
     }
 
