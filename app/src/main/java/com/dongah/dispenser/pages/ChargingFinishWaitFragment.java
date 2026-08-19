@@ -109,7 +109,8 @@ public class ChargingFinishWaitFragment extends Fragment {
                 public void run() {
                     cnt++;
                     if (Objects.equals(cnt, TIME_OUT)) {
-                        chargingCurrentData.setChgFinishWait(true);
+                        countHandler.removeCallbacksAndMessages(null);
+                        ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).onHome();
                     } else {
                         countHandler.postDelayed(countRunnable, 1000);
                     }
