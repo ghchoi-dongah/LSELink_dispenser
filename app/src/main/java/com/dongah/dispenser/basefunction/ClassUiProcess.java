@@ -192,7 +192,7 @@ public class ClassUiProcess implements RfCardReaderListener {
                     break;
 
                 case FINISH:
-                    onFinish(rxData);
+                    onFinish();
                     break;
 
                 case FAULT:
@@ -222,14 +222,10 @@ public class ClassUiProcess implements RfCardReaderListener {
     }
 
     /** 충전 완료 */
-    private void onFinish(RxData rxData) {
+    private void onFinish() {
         try {
             if (chargingCurrentData.isReBoot()) {
                 setUiSeq(UiSeq.INIT);
-            }
-
-            if (!rxData.isCsPilot()) {
-                onHome();
             }
         } catch (Exception e) {
             logger.error("ClassUiProcess onFinish error : {}", e.getMessage());
@@ -638,14 +634,9 @@ public class ClassUiProcess implements RfCardReaderListener {
                     stopTransactionReq.sendStopTransactionReq();
                 }
 
-                if (!GlobalVariables.ChargerOperation[getCh()+1]) {
-                    setUiSeq(UiSeq.INIT);
-                    fragmentChange.onFragmentChange(getCh(), UiSeq.INIT, "INIT", null);
-                } else {
-                    setUiSeq(UiSeq.FINISH);
-                    fragmentChange.onFragmentChange(getCh(), UiSeq.FINISH, "FINISH", null);
-                }
-            }, 3000);
+                setUiSeq(UiSeq.FINISH);
+                fragmentChange.onFragmentChange(getCh(), UiSeq.FINISH, "FINISH", null);
+            }, 2000);
         } catch (Exception e) {
             finishWaitScheduled = false;
             logger.error("ClassUiProcess - FINISH_WAIT error : {} ", e.getMessage());

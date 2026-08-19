@@ -14,7 +14,6 @@ import com.dongah.dispenser.basefunction.ChargerConfiguration;
 import com.dongah.dispenser.basefunction.DumpDataSend;
 import com.dongah.dispenser.basefunction.GlobalVariables;
 import com.dongah.dispenser.utils.FileManagement;
-import com.dongah.dispenser.utils.LogDataSave;
 import com.dongah.dispenser.websocket.ocpp.utilities.Base64Util;
 import com.dongah.dispenser.websocket.ocpp.utilities.ZonedDateTimeConvert;
 import com.dongah.dispenser.websocket.socket.handler.handlersend.ProcessHandler;
@@ -121,8 +120,14 @@ public class Socket extends WebSocketListener {
             reconnectingAttempts = 0;
             socketInterface.onOpen(webSocket);
 
+            // dump data send
+            for (int i = 1; i <= GlobalVariables.maxChannel; i++) {
+                GlobalVariables.setDumpSending(i, true);
+                ((MainActivity) MainActivity.mContext).getSocketReceiveMessage().getSocket().getDumpDataSend(i).onDumpSend(i);
+            }
+
             ProcessHandler ph = ((MainActivity) MainActivity.mContext).getProcessHandler();
-            if (ph != null) {
+            if (ph != null && !GlobalVariables.isConnectRetry()) {
                 ph.onBootNotificationStart(5);
             } else {
                 logger.warn("onOpen: ProcessHandler not ready yet");
@@ -510,10 +515,16 @@ public class Socket extends WebSocketListener {
                 }
             }
 
-
             // JSON append 저장
-            LogDataSave logDataSave = new LogDataSave("log");
-            logDataSave.makeLogDate(100,"SOCKET_ERROR", log.toString());
+            fileManagement.stringToFileSave(
+                    GlobalVariables.getRootPath(),
+                    FILE_NAME,
+                    log.toString(),
+                    true
+            );
+
+//            LogDataSave logDataSave = new LogDataSave("log");
+//            logDataSave.makeLogDate(100,"SOCKET_ERROR", log.toString());
 
             logger.error("WebSocket Failure logged : {}", log.toString());
         } catch (Exception e) {

@@ -208,7 +208,6 @@ public class MainActivity extends AppCompatActivity {
         // 1. charger configuration, ConfigurationKey read
         chargerConfiguration = new ChargerConfiguration();
         chargerConfiguration.onLoadConfiguration();
-        chargerConfiguration.setSigned(true);
         textViewVersion.setText("VER-DEVD " + GlobalVariables.VERSION + " | ");
 
         // 2. fragment change management
@@ -220,6 +219,7 @@ public class MainActivity extends AppCompatActivity {
             fragmentChange.onFragmentHeaderChange(i, "Header");
             chargingCurrentData[i] = new ChargingCurrentData();
             chargingCurrentData[i].onCurrentDataClear();
+            chargingCurrentData[i].setConnectorId(i+1);
         }
 
         // 3. control board
@@ -246,7 +246,6 @@ public class MainActivity extends AppCompatActivity {
          *  충전소ID : 000000
          *  충전기ID : 26
          */
-        chargerConfiguration.setSigned(false);
 
         // 5. handler
         processHandler = new ProcessHandler();

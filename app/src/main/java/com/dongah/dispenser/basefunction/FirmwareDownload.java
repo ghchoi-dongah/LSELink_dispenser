@@ -58,7 +58,7 @@ public class FirmwareDownload {
                 conn.connect();
 
                 if (conn.getResponseCode() == HttpURLConnection.HTTP_OK) {
-                    File file = new File(GlobalVariables.FW_PATH + File.separator + fileName);
+                    File file = new File(GlobalVariables.ROOT_PATH + File.separator + fileName);
                     is = new BufferedInputStream(conn.getInputStream());
                     fos = new FileOutputStream(file);
                     byte[] buffer = new byte[4096];

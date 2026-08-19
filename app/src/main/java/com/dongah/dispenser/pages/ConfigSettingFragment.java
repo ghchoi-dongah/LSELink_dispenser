@@ -121,12 +121,13 @@ public class ConfigSettingFragment extends Fragment implements View.OnClickListe
             ArrayAdapter<CharSequence> chargerTypeAdapter = ArrayAdapter.createFromResource(MainActivity.mContext, R.array.chargerType, R.layout.spinner_item);
             chargerTypeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             spinnerChargePointType.setAdapter(chargerTypeAdapter);
-            spinnerChargePointType.setSelection(chargerConfiguration.getChargerPointType() - 1);
+            int typeVal = Math.max(0, Math.min(chargerConfiguration.getChargerPointType(), chargerTypeAdapter.getCount() - 1));
+            spinnerChargePointType.setSelection(typeVal);
             spinnerChargePointType.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
                 public void onItemSelected(AdapterView<?> adapterView, View view, int position, long l) {
-                    spPosition = position + 1;
-                    chargerConfiguration.setChargerPointType(position + 1);
+                    spPosition = position;
+                    chargerConfiguration.setChargerPointType(spPosition);
                 }
 
                 @Override
@@ -140,10 +141,12 @@ public class ConfigSettingFragment extends Fragment implements View.OnClickListe
             ArrayAdapter<CharSequence> mcuTypeAdapter = ArrayAdapter.createFromResource(MainActivity.mContext, R.array.chargerModel, R.layout.spinner_item);
             mcuTypeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             spinnerChargePointModel.setAdapter(mcuTypeAdapter);
-            spinnerChargePointModel.setSelection(chargerConfiguration.getChargerPointModelCode());
+            int modelVal = Math.max(0, Math.min(chargerConfiguration.getChargerPointModelCode(), mcuTypeAdapter.getCount() - 1));
+            spinnerChargePointModel.setSelection(modelVal);
             spinnerChargePointModel.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
                 public void onItemSelected(AdapterView<?> adapterView, View view, int position, long l) {
+                    spChargerPointModelCode = position;
                     chargerConfiguration.setChargerPointModelCode(position);
                     Resources resources = getResources();
                     String[] chargerModel = resources.getStringArray(R.array.chargerModel);
@@ -161,7 +164,8 @@ public class ConfigSettingFragment extends Fragment implements View.OnClickListe
             ArrayAdapter<CharSequence> authAdapter = ArrayAdapter.createFromResource(MainActivity.mContext, R.array.authMode, R.layout.spinner_item);
             authAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             spinnerAuthMode.setAdapter(authAdapter);
-            spinnerAuthMode.setSelection(chargerConfiguration.getAuthMode());
+            int authModeVal = Math.max(0, Math.min(chargerConfiguration.getAuthMode(), authAdapter.getCount() - 1));
+            spinnerAuthMode.setSelection(authModeVal);
             spinnerAuthMode.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -180,7 +184,8 @@ public class ConfigSettingFragment extends Fragment implements View.OnClickListe
             ArrayAdapter<CharSequence> opAdapter = ArrayAdapter.createFromResource(MainActivity.mContext, R.array.opMode, R.layout.spinner_item);
             opAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             spinnerOpMode.setAdapter(opAdapter);
-            spinnerOpMode.setSelection(chargerConfiguration.getOpMode());
+            int opModeVal = Math.max(0, Math.min(chargerConfiguration.getOpMode(), opAdapter.getCount() - 1));
+            spinnerOpMode.setSelection(opModeVal);
             spinnerOpMode.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -199,7 +204,8 @@ public class ConfigSettingFragment extends Fragment implements View.OnClickListe
             ArrayAdapter<CharSequence> startAdapter = ArrayAdapter.createFromResource(MainActivity.mContext, R.array.startMode, R.layout.spinner_item);
             startAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             spinnerStartMode.setAdapter(startAdapter);
-            spinnerStartMode.setSelection(chargerConfiguration.getStartMode());
+            int startModeVal = Math.max(0, Math.min(chargerConfiguration.getStartMode(), startAdapter.getCount() -1 ));
+            spinnerStartMode.setSelection(startModeVal);
             spinnerStartMode.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {

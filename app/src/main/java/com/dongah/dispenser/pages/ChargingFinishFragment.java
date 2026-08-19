@@ -47,6 +47,7 @@ public class ChargingFinishFragment extends Fragment implements View.OnClickList
     private String mParam2;
     private int mChannel;
 
+    private static final long UI_CHECK_INTERVAL_MS = 2 * 60 * 1000; // 2분
     Button btnCheck;
     TextView textViewSocValue, textViewChargingAmtValue, textViewChargingTimeValue, textViewCarNum;
     CircularProgressIndicator progressCircular;
@@ -125,6 +126,18 @@ public class ChargingFinishFragment extends Fragment implements View.OnClickList
             } else {
                 textViewCarNum.setText(getString(R.string.carNum) + "테스트 모드");
             }
+
+            // unplug check 후 초기 화면
+            uiCheckHandler = new Handler();
+            uiCheckHandler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    if (!((MainActivity) MainActivity.mContext).getControlBoard().getRxData(mChannel).isCsPilot()) {
+                        ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).onHome();
+                    }
+                    uiCheckHandler.postDelayed(this, UI_CHECK_INTERVAL_MS);
+                }
+            }, UI_CHECK_INTERVAL_MS);
         } catch (Exception e) {
             logger.error("onViewCreated error : {}", e.getMessage(), e);
         }

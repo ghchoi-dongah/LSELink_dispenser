@@ -53,7 +53,7 @@ public class ChangeAvailabilityHandler implements OcppHandler {
                 isCharging = isCharging || Objects.equals(activity.getClassUiProcess(1).getUiSeq(), UiSeq.CHARGING);
 
                 AvailabilityStatus result =
-                        ((type == AvailabilityType.Inoperative) || (type == AvailabilityType.Maintenance) && isCharging)
+                        (type == AvailabilityType.Inoperative || type == AvailabilityType.Maintenance) && isCharging
                                 ? AvailabilityStatus.Scheduled
                                 : AvailabilityStatus.Accepted;
 

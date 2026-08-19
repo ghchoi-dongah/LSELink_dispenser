@@ -234,27 +234,6 @@ public class InitFragment extends Fragment implements View.OnClickListener {
                             logger.error("InitFragment changeFragment error >> Invalid value");
                             break;
                     }
-                    SocketState socketState = activity.getSocketReceiveMessage().getSocket().getState();
-//                    if (Objects.equals(socketState, SocketState.OPEN)) {
-//                        switch (chargerConfiguration.getAuthMode()) {
-//                            case 0:
-//                            case 2:
-//                                activity.getChargingCurrentData(mChannel).setAuthType("M");
-//                                activity.getClassUiProcess(mChannel).setUiSeq(UiSeq.PLUG_CHECK);
-//                                activity.getFragmentChange().onFragmentChange(mChannel, UiSeq.PLUG_CHECK, "PLUG_CHECK", null);
-//                                break;
-//                            case 1:
-//                                activity.getChargingCurrentData(mChannel).setAuthType("C");
-//                                activity.getClassUiProcess(mChannel).setUiSeq(UiSeq.MEMBER_CARD);
-//                                activity.getFragmentChange().onFragmentChange(mChannel, UiSeq.MEMBER_CARD, "MEMBER_CARD", null);
-//                                break;
-//                            default:
-//                                logger.error("InitFragment changeFragment error >> Invalid value");
-//                                break;
-//                        }
-//                    } else {
-//                        activity.getToastPositionMake().onShowToast(mChannel, "서버 연결 DISCONNECT.\n충전을 할 수 없습니다.");
-//                    }
                 } catch (Exception e) {
                     activity.getToastPositionMake().onShowToast(mChannel, "서버 연결 DISCONNECT.\n충전을 할 수 없습니다.");
                     logger.error("server disconnect error : {}", e.getMessage());
