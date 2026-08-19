@@ -49,7 +49,7 @@ import java.util.Objects;
  * Use the {@link MemberCheckWaitFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class MemberCheckWaitFragment extends Fragment implements View.OnClickListener {
+public class MemberCheckWaitFragment extends Fragment {
 
     private static final Logger logger = LoggerFactory.getLogger(MemberCheckWaitFragment.class);
 
@@ -66,7 +66,6 @@ public class MemberCheckWaitFragment extends Fragment implements View.OnClickLis
 
     int TIME_MAX = 20;
     int cnt = 0;
-    boolean isFlag = false;
     TextView textViewMemberWaitMessage, textViewFailed, textViewConnectorRetryMessage, textViewMemberRegistMessage;
     ImageView imageViewLoading, imageViewMemberFailed;
     AnimationDrawable animationDrawable;
@@ -120,7 +119,6 @@ public class MemberCheckWaitFragment extends Fragment implements View.OnClickLis
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_member_check_wait, container, false);
-        view.setOnClickListener(this);
         imageViewLoading = view.findViewById(R.id.imageViewLoading);
         imageViewLoading.setBackgroundResource(R.drawable.ani_loading);
         animationDrawable = (AnimationDrawable) imageViewLoading.getBackground();
@@ -151,7 +149,6 @@ public class MemberCheckWaitFragment extends Fragment implements View.OnClickLis
         super.onViewCreated(view, savedInstanceState);
         try {
             rxData = activity.getControlBoard().getRxData(mChannel);
-            isFlag = false;
             animationDrawable.start();
             mediaPlayer();   // media player
 
@@ -174,7 +171,7 @@ public class MemberCheckWaitFragment extends Fragment implements View.OnClickLis
                                     countHandler.postDelayed(countRunnable, 1000);
                                 }
                             } catch (Exception e) {
-                                logger.error("MemberCheckWaitFragment run error : {}", e.getMessage());
+                                logger.error("onViewCreated run error : {}", e.getMessage());
                             }
                         }
                     };
@@ -307,17 +304,6 @@ public class MemberCheckWaitFragment extends Fragment implements View.OnClickLis
         }
     }
 
-    @Override
-    public void onClick(View v) {
-        try {
-            return;
-//            if (!isAdded() && !isFlag) return;
-//            activity.getClassUiProcess(mChannel).onHome();
-        } catch (Exception e) {
-            logger.error("MemberCheckWaitFragment onClick error : {}", e.getMessage());
-        }
-    }
-
     private void mediaPlayer() {
         releasePlayer();
         
@@ -340,23 +326,6 @@ public class MemberCheckWaitFragment extends Fragment implements View.OnClickLis
             mediaPlayer = null;
         }
     }
-
-//    private void authorizeFailed() {
-//        try {
-//            if (isFlag) return;
-//            textViewMemberWaitMessage.setText(R.string.memberCheckFailedMessage);
-//            animationDrawable.stop();
-//            imageViewLoading.setVisibility(View.INVISIBLE);
-//            imageViewMemberFailed.setVisibility(View.VISIBLE);
-//            textViewFailed.setVisibility(View.VISIBLE);
-//            textViewConnectorRetryMessage.setVisibility(View.VISIBLE);
-//            textViewMemberRegistMessage.setVisibility(View.VISIBLE);
-//            fadeAnimator.start();
-//            isFlag = true;
-//        } catch (Exception e) {
-//            logger.error("MemberCheckWaitFragment authorizeFailed : {}", e.getMessage());
-//        }
-//    }
 
     @Override
     public void onDestroyView() {

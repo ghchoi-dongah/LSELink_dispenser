@@ -14,6 +14,8 @@ import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -47,10 +49,10 @@ public class MemberCardFragment extends Fragment {
     private String mParam2;
     private int mChannel;
 
-    int timer = 20;
+    int timer = 30;
     TextView textViewTagTimer, textViewMessage;
     ImageView imageViewMemberCard;
-    AnimationDrawable animationDrawable;
+    Animation animation;
     ChargingCurrentData chargingCurrentData;
     Handler countHandler;
     Runnable countRunnable;
@@ -94,8 +96,8 @@ public class MemberCardFragment extends Fragment {
         textViewTagTimer = view.findViewById(R.id.textViewTagTimer);
         textViewMessage = view.findViewById(R.id.textViewMessage);
         imageViewMemberCard = view.findViewById(R.id.imageViewMemberCard);
-        imageViewMemberCard.setBackgroundResource(R.drawable.membercardtagging);
-        animationDrawable = (AnimationDrawable) imageViewMemberCard.getBackground();
+        animation = AnimationUtils.loadAnimation(getContext(), R.anim.translate);
+
         chargingCurrentData = ((MainActivity) MainActivity.mContext).getChargingCurrentData(mChannel);
         String[] requestStrings = new String[1];
         SharedModel sharedModel = new ViewModelProvider(requireActivity()).get(SharedModel.class);
@@ -116,7 +118,7 @@ public class MemberCardFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         try {
-            animationDrawable.start();
+            imageViewMemberCard.startAnimation(animation);
             textViewTagTimer.setText(timer + "초");
 
             countHandler = new Handler();
@@ -134,26 +136,26 @@ public class MemberCardFragment extends Fragment {
             };
             countHandler.postDelayed(countRunnable, 1000);
         } catch (Exception e) {
-            logger.error("MemberCardFragment error: {}", e.getMessage());
+            logger.error("onViewCreated error: {}", e.getMessage());
         }
     }
 
     @Override
     public void onDestroyView() {
         try {
-            if (animationDrawable != null) {
-                animationDrawable.stop();
+            if (animation != null) {
+                imageViewMemberCard.clearAnimation();
+                animation.setAnimationListener(null);
+                animation = null;
             }
 
-            if (imageViewMemberCard != null) {
-                Drawable bg = imageViewMemberCard.getBackground();
-                if (bg instanceof AnimationDrawable) {
-                    ((AnimationDrawable) bg).stop();
-                }
-                imageViewMemberCard.setBackground(null);
+            if (countHandler != null) {
+                countHandler.removeCallbacks(countRunnable);
+                countHandler.removeCallbacksAndMessages(null);
+                countHandler.removeMessages(0);
             }
         } catch (Exception e) {
-            logger.error("MemberCardFragment onDestroyView : {}", e.getMessage());
+            logger.error("onDestroyView : {}", e.getMessage());
         }
         super.onDestroyView();
     }
@@ -161,14 +163,5 @@ public class MemberCardFragment extends Fragment {
     @Override
     public void onDetach() {
         super.onDetach();
-        try {
-            if (countHandler != null) {
-                countHandler.removeCallbacks(countRunnable);
-                countHandler.removeCallbacksAndMessages(null);
-                countHandler.removeMessages(0);
-            }
-        } catch (Exception e) {
-            logger.error("MemberCardFragment onDetach : {}", e.getMessage());
-        }
     }
 }

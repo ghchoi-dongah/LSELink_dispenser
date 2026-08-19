@@ -158,13 +158,8 @@ public class ClassUiProcess implements RfCardReaderListener {
 
                 case MEMBER_CARD:
                 case MEMBER_CHECK_WAIT:
-                    break;
-
                 case CONNECTION_FAILED:
                 case MEMBER_CHECK_FAILED:
-                    if (!rxData.isCsPilot()) {
-                        onHome();
-                    }
                     break;
 
                 case SEQUENTIAL_CHARGING:
@@ -407,7 +402,7 @@ public class ClassUiProcess implements RfCardReaderListener {
                     ChargingCurrentData chargingCurrentData = activity.getChargingCurrentData(ch);
 
                     chargingCurrentData.setAuthType("C");
-                    chargingCurrentData.setIdTag(cardNum);
+                    chargingCurrentData.setIdTag("C" + cardNum);
 
                     activity.getClassUiProcess(ch).setUiSeq(UiSeq.MEMBER_CHECK_WAIT);
                     fragmentChange.onFragmentChange(ch, UiSeq.MEMBER_CHECK_WAIT,"MEMBER_CHECK_WAIT",null);

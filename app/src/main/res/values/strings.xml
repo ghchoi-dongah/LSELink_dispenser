@@ -53,6 +53,7 @@
     <string name="etcInfo">기타정보</string>
     <string name="chargingInfo">충전정보</string>
     <string name="intiInfo">충전량 제한 : %1$d%%\n출력 제한 : %2$dkW</string>
+    <string name="retry"><font color="000">다시 시도해 주세요.</font></string>
 
     <!-- config setting -->
     <string name="chargePointType"><font color="#000">커플러 타입</font></string>

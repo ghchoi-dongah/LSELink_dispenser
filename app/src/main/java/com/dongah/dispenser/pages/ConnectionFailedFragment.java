@@ -4,8 +4,11 @@ import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,6 +17,7 @@ import android.widget.TextView;
 
 import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.R;
+import com.dongah.dispenser.controlboard.RxData;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,8 +41,12 @@ public class ConnectionFailedFragment extends Fragment implements View.OnClickLi
     private String mParam2;
     private int mChannel;
 
-    TextView textViewFailed;
+    private static final long UI_CHECK_INTERVAL_MS = 1 * 60 * 1000; // 1분
+    TextView textViewFailed, textViewRetry;
     ObjectAnimator fadeAnimator;
+    Handler uiCheckHandler;
+    MainActivity activity;
+    RxData rxData;
 
     public ConnectionFailedFragment() {
         // Required empty public constructor
@@ -77,7 +85,13 @@ public class ConnectionFailedFragment extends Fragment implements View.OnClickLi
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_connection_failed, container, false);
         view.setOnClickListener(this);
+        activity = (MainActivity) MainActivity.mContext;
+        rxData = activity.getControlBoard().getRxData(mChannel);
+
         textViewFailed = view.findViewById(R.id.textViewFailed);
+        textViewRetry = view.findViewById(R.id.textViewRetry);
+        textViewRetry.setText(rxData.isCsPilot() ?
+                R.string.connectorRetryMessage : R.string.retry);
 
         // textViewFailed animation
         fadeAnimator = ObjectAnimator.ofFloat(textViewFailed, "alpha", 1f, 0.2f);
@@ -88,6 +102,26 @@ public class ConnectionFailedFragment extends Fragment implements View.OnClickLi
         fadeAnimator.start();
 
         return view;
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        try {
+            // unplug check 후 초기 화면
+            uiCheckHandler = new Handler();
+            uiCheckHandler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    if (!rxData.isCsPilot()) {
+                        activity.getClassUiProcess(mChannel).onHome();
+                    }
+                    uiCheckHandler.postDelayed(this, UI_CHECK_INTERVAL_MS);
+                }
+            }, UI_CHECK_INTERVAL_MS);
+        } catch (Exception e) {
+          logger.error("onViewCreated error : {}", e.getMessage(), e);
+        }
     }
 
     @Override
@@ -105,8 +139,13 @@ public class ConnectionFailedFragment extends Fragment implements View.OnClickLi
                 fadeAnimator.cancel();
                 fadeAnimator = null;
             }
+
+            if (uiCheckHandler != null) {
+                uiCheckHandler.removeCallbacksAndMessages(null);
+                uiCheckHandler = null;
+            }
         } catch (Exception e) {
-            logger.error("ConnectionFailedFragment onDestroyView error : {}", e.getMessage());
+            logger.error("onDestroyView error : {}", e.getMessage());
         }
     }
 }
