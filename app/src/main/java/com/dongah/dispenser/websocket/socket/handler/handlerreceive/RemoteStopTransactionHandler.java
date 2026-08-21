@@ -40,31 +40,36 @@ public class RemoteStopTransactionHandler implements OcppHandler  {
             MainActivity activity = ((MainActivity) MainActivity.mContext);
 
             // RemoteStop을 실행할 transactionId가 있는지 확인
-            boolean found = GlobalVariables.remoteConnectorId.containsValue(transactionId);
-            int rConnectorId = -1;
-            if (found) {
-                // 일치하는 transactionId 있음 → 해당 connectorId도 찾을 수 있음
-                rConnectorId = GlobalVariables.remoteConnectorId.entrySet().stream()
-                        .filter(e -> e.getValue() == transactionId)
-                        .map(Map.Entry::getKey)
-                        .findFirst()
-                        .orElse(-1);
+            boolean result = false;
+            for (int i = 0; i < GlobalVariables.maxChannel; i++) {
+                ChargingCurrentData chargingCurrentData = activity.getChargingCurrentData(i);
+                UiSeq uiSeq = activity.getClassUiProcess(i).getUiSeq();
+                if (Objects.equals(uiSeq, UiSeq.CHARGING) && Objects.equals(chargingCurrentData.getTransactionId(), transactionId)) {
+                    activity.getClassUiProcess(i).onRemoteTransactionStop(i, Reason.Remote);
+                    GlobalVariables.RemoteStart[i] = false;
+                    result = true;
+                    break;
+                }
             }
 
-            boolean result = false;
-            if (rConnectorId != -1) {
-                ChargingCurrentData chargingCurrentData = activity.getChargingCurrentData(rConnectorId-1);
-                UiSeq uiSeq = activity.getClassUiProcess(rConnectorId-1).getUiSeq();
-                if (Objects.equals(uiSeq, UiSeq.CHARGING)) {
+            if (result) {
+                boolean found = GlobalVariables.remoteConnectorId.containsValue(transactionId);
+                int rConnectorId = -1;
+                if (found) {
+                    // 일치하는 transactionId 있음 → 해당 connectorId도 찾을 수 있음
+                    rConnectorId = GlobalVariables.remoteConnectorId.entrySet().stream()
+                            .filter(e -> e.getValue() == transactionId)
+                            .map(Map.Entry::getKey)
+                            .findFirst()
+                            .orElse(-1);
+                }
+
+                if (rConnectorId != -1) {
                     GlobalVariables.remoteConnectorId.remove(rConnectorId);
-                    activity.getClassUiProcess(rConnectorId-1).onRemoteTransactionStop(rConnectorId-1, Reason.Remote);
-                    GlobalVariables.RemoteStart[rConnectorId-1] = false;
-                    result = true;
                 }
             }
 
             RemoteStartStopStatus status = result ? RemoteStartStopStatus.Accepted : RemoteStartStopStatus.Rejected;
-
             RemoteStopTransactionConfirmation remoteStopTransactionConfirmation =
                     new RemoteStopTransactionConfirmation(status);
             activity.getSocketReceiveMessage().onResultSend(
