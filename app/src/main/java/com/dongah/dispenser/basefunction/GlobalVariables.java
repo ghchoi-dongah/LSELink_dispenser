@@ -17,6 +17,8 @@ public class GlobalVariables {
     public static String FW_PATH = Environment.getExternalStorageDirectory().toString() + File.separator + "Download";
     public static String VERSION = "1.0.0";
     public static String FW_VERSION = "1.0.1";
+    public static final String PACKAGE_NAME=  "com.dongah.autoupdates";
+    public static final String PACKAGE_CLASS_NAME = "com.dongah.autoupdates.MainActivity";
 
     // file names
     public static final String UNIT_FILE_NAME = "unitPrice.dongah";
