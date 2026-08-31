@@ -47,7 +47,6 @@ public class HeaderFragment extends Fragment implements View.OnClickListener {
     private final Handler handler = new Handler(Looper.getMainLooper());
     int clickedCnt = 0;
     ImageButton btnLogo;
-    TextView textViewChargerId;
     MainActivity activity;
     ChargerConfiguration chargerConfiguration;
 
@@ -92,13 +91,6 @@ public class HeaderFragment extends Fragment implements View.OnClickListener {
         chargerConfiguration = activity.getChargerConfiguration();
         btnLogo = view.findViewById(R.id.btnLogo);
         btnLogo.setOnClickListener(this);
-        textViewChargerId = view.findViewById(R.id.textViewChargerId);
-
-        try {
-            textViewChargerId.setText("| ID-" + chargerConfiguration.getChargerId());
-        } catch (Exception e) {
-            logger.error("onCreateView error : {}", e.getMessage());
-        }
         return view;
     }
 

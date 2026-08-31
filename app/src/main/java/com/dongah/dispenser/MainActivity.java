@@ -79,7 +79,7 @@ public class MainActivity extends AppCompatActivity {
     Handler handler = new Handler();
     Runnable runnable;
 
-    TextView textViewVersion, textViewTime;
+    TextView textViewVersion, textViewChargerId, textViewTime;
     ImageView imgNetwork;
 
     SQLiteHelper sqLiteHelper;
@@ -194,7 +194,8 @@ public class MainActivity extends AppCompatActivity {
 
         imgNetwork = findViewById(R.id.imageViewNetwork);
         textViewVersion = findViewById(R.id.textViewVersionValue);
-        textViewTime = findViewById(R.id.textViewTime);
+        textViewChargerId = findViewById(R.id.textViewChargerId);
+//        textViewTime = findViewById(R.id.textViewTime);
 
         // fragment current
         fragmentCurrent = new FragmentCurrent();
@@ -210,7 +211,8 @@ public class MainActivity extends AppCompatActivity {
         // 1. charger configuration, ConfigurationKey read
         chargerConfiguration = new ChargerConfiguration();
         chargerConfiguration.onLoadConfiguration();
-        textViewVersion.setText("VER-DEVD " + GlobalVariables.VERSION + " | ");
+        textViewVersion.setText("VER-DEVD " + GlobalVariables.VERSION);
+        textViewChargerId.setText("| ID-" + chargerConfiguration.getChargerId());
 
         // 2. fragment change management
         fragmentChange = new FragmentChange();
@@ -338,7 +340,7 @@ public class MainActivity extends AppCompatActivity {
         runnable = new Runnable() {
             @Override
             public void run() {
-                updateTime();
+//                updateTime();
                 // 1초마다 실행
                 handler.postDelayed(this, 1000);
                 try {
@@ -354,18 +356,18 @@ public class MainActivity extends AppCompatActivity {
         runnable.run();
     }
 
-    private void updateTime() {
-        try {
-            if (textViewTime != null) {
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
-                sdf.setTimeZone(TimeZone.getTimeZone("Asia/Seoul"));
-                String currentTime = sdf.format(new Date());
-                textViewTime.setText(currentTime);
-            }
-        } catch (Exception e) {
-            logger.error("MainActivity updateTime error : {}", e.getMessage());
-        }
-    }
+//    private void updateTime() {
+//        try {
+//            if (textViewTime != null) {
+//                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+//                sdf.setTimeZone(TimeZone.getTimeZone("Asia/Seoul"));
+//                String currentTime = sdf.format(new Date());
+//                textViewTime.setText(currentTime);
+//            }
+//        } catch (Exception e) {
+//            logger.error("MainActivity updateTime error : {}", e.getMessage());
+//        }
+//    }
 
     private void hideNavigationBar() {
         View decorView = getWindow().getDecorView();

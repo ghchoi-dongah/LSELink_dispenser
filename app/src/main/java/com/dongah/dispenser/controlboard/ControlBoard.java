@@ -153,6 +153,20 @@ public class ControlBoard implements Runnable {
                     }
 //                    rxData[currentCh-1].Decode(values);
                     rxData[curCh].Decode(values);
+
+                    // update firmware version
+                    if (curCh == 0) {
+                        short fw = rxData[curCh].getFirmWareVersion();
+                        if (fw > 0) {
+                            String fwVersion = new ControlBoardUtil().parseVersion(fw);
+                            if (fwVersion != null) {
+                                ChargerConfiguration chargerConfiguration = ((MainActivity) MainActivity.mContext).getChargerConfiguration();
+                                chargerConfiguration.setFirmwareVersion(fwVersion);
+                                chargerConfiguration.onSaveConfiguration();
+                                GlobalVariables.FW_VERSION = fwVersion;
+                            }
+                        }
+                    }
                     for (ControlBoardListener listener : listeners) {
                         listener.onControlBoardReceive(rxData);
                     }
