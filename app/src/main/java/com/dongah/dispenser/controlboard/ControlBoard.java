@@ -2,7 +2,10 @@ package com.dongah.dispenser.controlboard;
 
 import android.util.Log;
 
+import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.R;
+import com.dongah.dispenser.basefunction.ChargerConfiguration;
+import com.dongah.dispenser.basefunction.GlobalVariables;
 import com.dongah.dispenser.utils.CRC16;
 
 import org.slf4j.Logger;
@@ -156,7 +159,7 @@ public class ControlBoard implements Runnable {
 
                     // update firmware version
                     if (curCh == 0) {
-                        short fw = rxData[curCh].getFirmWareVersion();
+                        short fw = rxData[curCh].getFirmwareVersion();
                         if (fw > 0) {
                             String fwVersion = new ControlBoardUtil().parseVersion(fw);
                             if (fwVersion != null) {
