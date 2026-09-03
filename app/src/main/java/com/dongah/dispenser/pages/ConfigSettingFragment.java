@@ -428,21 +428,23 @@ public class ConfigSettingFragment extends Fragment implements View.OnClickListe
             checkboxInitInfo = v.findViewById(R.id.checkboxInitInfo);
             checkboxInitInfo.setChecked(chargerConfiguration.isInitInfo());
         } catch (Exception e) {
-            logger.error("ConfigSettingFragment InitializationComponents error : {}",  e.getMessage());
+            logger.error("InitializationComponents error : {}",  e.getMessage());
         }
     }
 
     private void onSaveConfiguration() {
         try {
-            onConfigurationUpdate();
-            chargerConfiguration.onSaveConfiguration();
-            chargerConfiguration.onLoadConfiguration();
+            if (onConfigurationUpdate()) {
+                chargerConfiguration.onSaveConfiguration();
+                chargerConfiguration.onLoadConfiguration();
+            }
         } catch (Exception e) {
-            logger.error("ConfigSettingFragment onSaveConfiguration error : {}",  e.getMessage());
+            logger.error("onSaveConfiguration error : {}",  e.getMessage());
         }
     }
 
-    private void onConfigurationUpdate() {
+    private boolean onConfigurationUpdate() {
+        boolean isResult = true;
         try {
             chargerConfiguration.setChargerPointType(spPosition);
             chargerConfiguration.setChargerPointModelCode(spChargerPointModelCode);
@@ -475,8 +477,10 @@ public class ConfigSettingFragment extends Fragment implements View.OnClickListe
             chargerConfiguration.setControlMonitor(checkboxControlMonitor.isChecked());
             chargerConfiguration.setInitInfo(checkboxInitInfo.isChecked());
         } catch (Exception e) {
-            logger.error("ConfigSettingFragment onConfigurationUpdate error : {}",  e.getMessage());
+            logger.error("onConfigurationUpdate error : {}",  e.getMessage());
+            isResult = false;
         }
+        return isResult;
     }
 
     @Override

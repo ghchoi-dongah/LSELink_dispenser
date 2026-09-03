@@ -53,7 +53,7 @@ import java.util.Objects;
  * Use the {@link ConnectorCheckFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class ConnectorCheckFragment extends Fragment implements View.OnClickListener {
+public class ConnectorCheckFragment extends Fragment {
     private static final Logger logger = LoggerFactory.getLogger(ConnectorCheckFragment.class);
 
     // TODO: Rename parameter arguments, choose names that match
@@ -69,7 +69,7 @@ public class ConnectorCheckFragment extends Fragment implements View.OnClickList
 
 
     int cnt = 0;
-    boolean isFlag = false, isFlagAuthorize = true;
+    boolean isFlagAuthorize = true;
     TextView textViewConnectorCheckMessage, textViewFailed, textViewConnector;
     ImageView imageViewLoading, imageViewConnectionFailed;
     AnimationDrawable animationDrawable;
@@ -122,7 +122,6 @@ public class ConnectorCheckFragment extends Fragment implements View.OnClickList
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_connector_check, container, false);
-        view.setOnClickListener(this);
         textViewConnectorCheckMessage = view.findViewById(R.id.textViewConnectorCheckMessage);
         imageViewLoading = view.findViewById(R.id.imageViewLoading);
         imageViewLoading.setBackgroundResource(R.drawable.ani_loading);
@@ -143,6 +142,9 @@ public class ConnectorCheckFragment extends Fragment implements View.OnClickList
         chargerConfiguration = activity.getChargerConfiguration();
         chargingCurrentData = activity.getChargingCurrentData(mChannel);
         fragmentChange = activity.getFragmentChange();
+        rxData = activity.getControlBoard().getRxData(mChannel);
+        txData = activity.getControlBoard().getTxData(mChannel);
+
         return view;
     }
 
@@ -154,10 +156,8 @@ public class ConnectorCheckFragment extends Fragment implements View.OnClickList
             sharedModel = new ViewModelProvider(requireActivity()).get(SharedModel.class);
             requestStrings[0] = String.valueOf(mChannel);
             sharedModel.setMutableLiveData(requestStrings);
-            rxData = activity.getControlBoard().getRxData(mChannel);
-            txData = activity.getControlBoard().getTxData(mChannel);
+
             cnt = 0;
-            isFlag = false;
             isFlagAuthorize = true;
             animationDrawable.start();
 
@@ -217,15 +217,6 @@ public class ConnectorCheckFragment extends Fragment implements View.OnClickList
             });
         } catch (Exception e) {
             logger.error("onViewCreated error : {}", e.getMessage());
-        }
-    }
-
-    @Override
-    public void onClick(View v) {
-        try {
-            return;
-        } catch (Exception e) {
-            logger.error("onClick error : {}", e.getMessage());
         }
     }
 

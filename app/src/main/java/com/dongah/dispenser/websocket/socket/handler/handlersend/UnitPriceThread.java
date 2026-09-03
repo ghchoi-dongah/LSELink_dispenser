@@ -56,13 +56,13 @@ public class UnitPriceThread extends Thread {
                     processUnitPrice();
                 }
             } catch (InterruptedException e) {
-                logger.info("BootNotificationThread interrupted");
+                logger.info("UnitpriceThread interrupted");
                 break;
             } catch (Exception e) {
-                logger.error("BootNotificationThread error", e);
+                logger.error("UnitpriceThread error", e);
             }
         }
-        logger.info("BootNotificationThread terminated");
+        logger.info("UnitpriceThread terminated");
     }
 
 
