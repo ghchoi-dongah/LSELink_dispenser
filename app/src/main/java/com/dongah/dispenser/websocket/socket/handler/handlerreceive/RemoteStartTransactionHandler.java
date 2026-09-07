@@ -9,12 +9,10 @@ import com.dongah.dispenser.basefunction.ChargingCurrentData;
 import com.dongah.dispenser.basefunction.GlobalVariables;
 import com.dongah.dispenser.basefunction.PaymentType;
 import com.dongah.dispenser.basefunction.UiSeq;
-import com.dongah.dispenser.websocket.ocpp.core.ChargePointStatus;
 import com.dongah.dispenser.websocket.ocpp.core.RemoteStartStopStatus;
 import com.dongah.dispenser.websocket.ocpp.core.RemoteStartTransactionConfirmation;
 import com.dongah.dispenser.websocket.socket.OcppHandler;
 import com.dongah.dispenser.websocket.socket.handler.handlersend.AuthorizeReq;
-import com.dongah.dispenser.websocket.socket.handler.handlersend.StatusNotificationReq;
 
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -72,6 +70,8 @@ public class RemoteStartTransactionHandler implements OcppHandler  {
             );
 
             if (Objects.equals(status, RemoteStartStopStatus.Accepted)) {
+                String idTag = chargingCurrentData.getIdTag();
+                authType(idTag.charAt(0), chargingCurrentData);
                 GlobalVariables.RemoteStart[connectorId-1] = true;
                 chargingCurrentData.setAuthType("C");
 
@@ -81,6 +81,39 @@ public class RemoteStartTransactionHandler implements OcppHandler  {
             }
         } catch (Exception e) {
             logger.error("RemoteStartTransactionHandler sendResponse error : {}", e.getMessage());
+        }
+    }
+
+    private void authType(char type, ChargingCurrentData chargingCurrentData) {
+
+        try {
+            switch (type) {
+                case 'C':
+                    chargingCurrentData.setAuthType("C");
+                    chargingCurrentData.setPaymentType(PaymentType.CORP);
+                    chargingCurrentData.setPowerUnitPrice(GlobalVariables.userTypeC);
+                    break;
+                case 'M':
+                    chargingCurrentData.setAuthType("M");
+                    chargingCurrentData.setPaymentType(PaymentType.MEMBER);
+                    chargingCurrentData.setPowerUnitPrice(GlobalVariables.userTypeM);
+                    break;
+                case 'N':
+                    chargingCurrentData.setAuthType("N");
+                    chargingCurrentData.setPaymentType(PaymentType.CREDIT);
+                    chargingCurrentData.setPowerUnitPrice(GlobalVariables.userTypeN);
+                    break;
+                case 'K':
+                    chargingCurrentData.setAuthType("K");
+                    chargingCurrentData.setPaymentType(PaymentType.MOE);
+                    chargingCurrentData.setPowerUnitPrice(GlobalVariables.userTypeK);
+                    break;
+                default:
+                    logger.error("authType none");
+                    break;
+            }
+        } catch (Exception e) {
+            logger.error("authType error : {}", e.getMessage(), e);
         }
     }
 }

@@ -1,6 +1,7 @@
 package com.dongah.dispenser.pages;
 
 import android.annotation.SuppressLint;
+import android.database.Cursor;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -17,16 +18,19 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.R;
 import com.dongah.dispenser.basefunction.ChargerConfiguration;
 import com.dongah.dispenser.basefunction.ChargerPointType;
 import com.dongah.dispenser.basefunction.ChargingCurrentData;
+import com.dongah.dispenser.basefunction.GlobalVariables;
 import com.dongah.dispenser.basefunction.UiSeq;
 import com.dongah.dispenser.controlboard.ControlBoard;
 import com.dongah.dispenser.controlboard.RxData;
 import com.dongah.dispenser.controlboard.TxData;
+import com.dongah.dispenser.sqlite.SQLiteHelper;
 import com.dongah.dispenser.utils.SharedModel;
 import com.dongah.dispenser.websocket.socket.SocketState;
 
@@ -144,6 +148,7 @@ public class InitFragment extends Fragment implements View.OnClickListener {
             logger.error("onCreateView error : {}", e.getMessage(), e);
         }
 
+        initData();
         return view;
     }
 
@@ -200,6 +205,7 @@ public class InitFragment extends Fragment implements View.OnClickListener {
             chargingCurrentData.onCurrentDataClear();   // clear
             chargingCurrentData.setConnectorId(mChannel + 1);
             chargingCurrentData.setChargerPointType(ChargerPointType.COMBO);
+            chargingCurrentData.setPowerUnitPrice(GlobalVariables.userTypeC);
         } catch (Exception e) {
             logger.error("initData error : {}", e.getMessage());
         }
@@ -207,8 +213,6 @@ public class InitFragment extends Fragment implements View.OnClickListener {
 
     private void changeFragment() {
         try {
-            initData();
-
             if (Objects.equals(chargerConfiguration.getOpMode(), 0)) {
                 // test mode
                 double testPrice = Double.parseDouble(chargerConfiguration.getTestPrice());
@@ -217,6 +221,11 @@ public class InitFragment extends Fragment implements View.OnClickListener {
                 activity.getFragmentChange().onFragmentChange(mChannel, UiSeq.PLUG_CHECK, "PLUG_CHECK", null);
             } else if (Objects.equals(chargerConfiguration.getOpMode(), 1)) {
                 // server mode
+                if (!onUnitPrice()) {
+                    Toast.makeText(getActivity(), "단가 정보가 없습니다. \n잠시 후, 충전하세요!", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
                 try {
                     switch (chargerConfiguration.getAuthMode()) {
                         case 0:
@@ -244,6 +253,20 @@ public class InitFragment extends Fragment implements View.OnClickListener {
         }
     }
 
+    private boolean onUnitPrice() {
+        try {
+            SQLiteHelper helper = SQLiteHelper.getInstance(activity);
+            if (!helper.isTableExists(helper, "CP_UNIT_PRICE")) {
+                return false;
+            }
+
+            Cursor cursor = helper.selectAll("CP_UNIT_PRICE");
+            return cursor != null && cursor.moveToFirst();
+        } catch (Exception e){
+            logger.error("onUnitPrice error : {}", e.getMessage(), e);
+            return false;
+        }
+    }
     @Override
     public void onDetach() {
         super.onDetach();

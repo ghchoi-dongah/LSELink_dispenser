@@ -35,11 +35,6 @@ public class UnitPriceHandler implements OcppHandler  {
             FileManagement fileManagement = new FileManagement();
             fileManagement.stringToFileSave(GlobalVariables.getRootPath(), GlobalVariables.FILE_UNIT, dataStr, false);
 
-//            MainActivity activity = (MainActivity) MainActivity.mContext;
-//            SQLiteHelper helper = SQLiteHelper.getInstance(activity);
-//            SQLiteDatabase sqLiteDatabase = helper.getWritableDatabase();
-//            helper.dropTable(sqLiteDatabase, "CP_UNIT_PRICE");
-
             /* DB update */
             if (connectorId == 0 || connectorId == 100) {
                 for (int i = 1; i <= GlobalVariables.maxChannel; i++) {
@@ -61,6 +56,7 @@ public class UnitPriceHandler implements OcppHandler  {
 
             JSONArray dataArr = new JSONArray(dataStr);
 
+            helper.dropTable(sqLiteDatabase, tableName);
             // 테이블이 없으면 테이블 생성 후 insertUnitPrice
             if (!helper.isTableExists(helper, tableName)) {
                 logger.warn("updateUnitPrice table not exists : {}", tableName);
@@ -110,6 +106,7 @@ public class UnitPriceHandler implements OcppHandler  {
                     logger.info("updateUnitPrice inserted: connectorId={}, userTypeCd={}, id={}",
                             connectorId, userTypeCd, id);
                 }
+                setUnitPriceCd(userTypeCd, unitPrice);
             }
         } catch (Exception e) {
             logger.error("updateUnitPrice error : {}", e.getMessage(), e);
@@ -136,12 +133,32 @@ public class UnitPriceHandler implements OcppHandler  {
                 ZonedDateTimeConvert convert = new ZonedDateTimeConvert();
                 cv.put("REG_DT", convert.doGetKstDatetimeAsString());
 
+                setUnitPriceCd(row.getString("UserTypeCd"), row.getDouble("UnitPrice"));
+
                 long id = db.insert(tableName, null, cv);
                 logger.info("insertUnitPrice inserted: connectorId={}, userTypeCd={}, id={}",
                         connectorId, row.getString("UserTypeCd"), id);
             }
         } catch (Exception e) {
             logger.error("insertUnitPrice error : {}", e.getMessage(), e);
+        }
+    }
+
+    // 회원별 단가 정보 설정
+    private void setUnitPriceCd(String userTypeCd, double unitPrice) {
+        switch (userTypeCd) {
+            case "C":
+                GlobalVariables.userTypeC = unitPrice;
+                break;
+            case "K":
+                GlobalVariables.userTypeK = unitPrice;
+                break;
+            case "M":
+                GlobalVariables.userTypeM = unitPrice;
+                break;
+            case "N":
+                GlobalVariables.userTypeN = unitPrice;
+                break;
         }
     }
 }
