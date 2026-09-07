@@ -225,7 +225,7 @@ public class InitFragment extends Fragment implements View.OnClickListener {
                     Toast.makeText(getActivity(), "단가 정보가 없습니다. \n잠시 후, 충전하세요!", Toast.LENGTH_SHORT).show();
                     return;
                 }
-
+                chargingCurrentData.setPowerUnitPrice(GlobalVariables.userTypeC);
                 try {
                     switch (chargerConfiguration.getAuthMode()) {
                         case 0:
