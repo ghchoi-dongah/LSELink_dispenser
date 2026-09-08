@@ -51,7 +51,7 @@ public class ChargerConfiguration {
      * 0: test
      * 1: server
      * */
-    public int opMode = 0;
+    public int opMode = 1;
     public int opModeId;
 
     /** 시작 모드
@@ -80,8 +80,8 @@ public class ChargerConfiguration {
     public String meterType = "";                       // 충전기의 주전력량계의 타입 포함
     public int connectorPriority = 0;                   // 1구 제어 우선순위
     public String testPrice = "313.0";                  // 테스트 단가
-    public int targetSoc = 80;                          // SoC
-    public int dr = 0;                                  // 전류 제한
+    public int targetSoc = 100;                         // SoC
+    public int dr = 100;                                // 전류 제한
 
     public boolean StopConfirm;
     public boolean signed = true ;

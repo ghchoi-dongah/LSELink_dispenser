@@ -38,6 +38,7 @@ public class MeterValuesReq {
     private boolean isMeterRunning = false;
     private int lastIntervalSec = -1;
     private long prevPowerMeter = -1;
+    private long totalSentPowerMeterDiff = 0;
 
 
     public int getConnectorId() {
@@ -85,29 +86,33 @@ public class MeterValuesReq {
         }
     }
 
+    public long getTotalSentPowerMeterDiff() {
+        return totalSentPowerMeterDiff;
+    }
+
+    public long getPrevPowerMeter() {
+        return prevPowerMeter;
+    }
+
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     public void sendMeterValues(int connectorId) throws Exception {
         MainActivity activity = (MainActivity) MainActivity.mContext;
         if (activity == null) return;
-        // 충전 상태가 아니면 중지
-        ChargingCurrentData chargingCurrentData = activity.getChargingCurrentData(connectorId-1);
-//        if (!Objects.equals(chargingCurrentData.getChargePointStatus(), ChargePointStatus.Charging) ||
-//                !GlobalVariables.isTriggerSet()) {
-//            stopMeterValues();
-//            return;
-//        }
 
+        ChargingCurrentData chargingCurrentData = activity.getChargingCurrentData(connectorId-1);
         ZonedDateTimeConvert zonedDateTimeConvert = new ZonedDateTimeConvert();
         ChargerConfiguration chargerConfiguration = activity.getChargerConfiguration();
 
         long currentPowerMeter = chargingCurrentData.getPowerMeter();
+        boolean firstSend = (prevPowerMeter < 0);
         long diffPowerMeter = 0;
-        if (prevPowerMeter >= 0) {
+        if (!firstSend) {
             diffPowerMeter = currentPowerMeter - prevPowerMeter;
         }
         // 다음 비교를 위해 현재값 저장
-        prevPowerMeter = currentPowerMeter;
+        prevPowerMeter = firstSend ? chargingCurrentData.getPowerMeterStart() : currentPowerMeter;
+        totalSentPowerMeterDiff += diffPowerMeter;
 
         //1. meterValuesData 생성
         MeterValuesData meterValuesData = new MeterValuesData();
@@ -120,7 +125,9 @@ public class MeterValuesReq {
         meterValuesData.power = (float) ((chargingCurrentData.getOutPutVoltage() * 10) * (chargingCurrentData.getOutPutCurrent() * 0.001));
         meterValuesData.eps = (int) (chargingCurrentData.getOutPutVoltage() * 10);
         meterValuesData.ecu = (int) (chargingCurrentData.getOutPutCurrent() * 0.001) ;
-        meterValuesData.accWh = (float) (chargingCurrentData.getPowerMeter() * 0.01);
+        meterValuesData.accWh = firstSend
+                ? (float) (chargingCurrentData.getPowerMeterStart() * 0.01)
+                : (float) (chargingCurrentData.getPowerMeter() * 0.01);
         meterValuesData.accTickWh = (float) (diffPowerMeter * 0.01);
         meterValuesData.accTickTime = GlobalVariables.getMeterValueSampleInterval();
         meterValuesData.rechgHr = (int) chargingCurrentData.getChargingTime();

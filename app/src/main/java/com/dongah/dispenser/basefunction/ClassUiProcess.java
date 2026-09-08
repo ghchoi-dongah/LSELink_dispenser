@@ -24,6 +24,7 @@ import com.dongah.dispenser.websocket.socket.SocketReceiveMessage;
 import com.dongah.dispenser.websocket.socket.SocketState;
 import com.dongah.dispenser.websocket.socket.handler.handlersend.ChargingAlarmReq;
 import com.dongah.dispenser.websocket.socket.handler.handlersend.MeterValuesReq;
+import com.dongah.dispenser.websocket.socket.handler.handlersend.MeterValuesStopReq;
 import com.dongah.dispenser.websocket.socket.handler.handlersend.ProcessHandler;
 import com.dongah.dispenser.websocket.socket.handler.handlersend.StartTransactionReq;
 import com.dongah.dispenser.websocket.socket.handler.handlersend.StatusNotificationReq;
@@ -619,6 +620,12 @@ public class ClassUiProcess implements RfCardReaderListener {
         finishWaitScheduled = true;        // 첫 진입 시 잠금
 
         try {
+            // stop MeterValues
+            if (meterValuesReq != null) {
+                new MeterValuesStopReq(chargingCurrentData.getConnectorId()).sendMeterValuesStop(meterValuesReq);
+            }
+            onMeterValueStop();
+
             controlBoard.getTxData(getCh()).setStop(true);
             controlBoard.getTxData(getCh()).setUiSequence((short) 3);
             //사용자 user stop
@@ -627,12 +634,6 @@ public class ClassUiProcess implements RfCardReaderListener {
             chargingCurrentData.setPowerMeterStop(rxData.getPowerMeter()*10);
             chargingCurrentData.setChargingEndTime(zonedDateTimeConvert.getStringCurrentTimeZone());
             chargingCurrentData.setChargePointStatus(ChargePointStatus.Finishing);
-
-            // stop MeterValues
-            if (meterValuesReq != null) {
-                meterValuesReq.sendMeterValues(chargingCurrentData.getConnectorId());
-            }
-            onMeterValueStop();
 
             handler.postDelayed(() -> {
                 finishWaitScheduled = false;   // 완료 후 해제
@@ -646,7 +647,7 @@ public class ClassUiProcess implements RfCardReaderListener {
                 GlobalVariables.RemoteStart[getCh()] = false;
                 setUiSeq(UiSeq.FINISH);
                 fragmentChange.onFragmentChange(getCh(), UiSeq.FINISH, "FINISH", null);
-            }, 2000);
+            }, 300);
         } catch (Exception e) {
             finishWaitScheduled = false;
             logger.error("ClassUiProcess - FINISH_WAIT error : {} ", e.getMessage());
@@ -671,7 +672,9 @@ public class ClassUiProcess implements RfCardReaderListener {
                     chargingCurrentData.setChargePointStatus(ChargePointStatus.Finishing);
 
                     // meter values stop
-                    meterValuesReq.sendMeterValues(chargingCurrentData.getConnectorId());
+                    if (meterValuesReq != null) {
+                        new MeterValuesStopReq(chargingCurrentData.getConnectorId()).sendMeterValuesStop(meterValuesReq);
+                    }
                     onMeterValueStop();
 
                     new Handler(Looper.getMainLooper()).postDelayed(() -> {
@@ -683,7 +686,7 @@ public class ClassUiProcess implements RfCardReaderListener {
                             StopTransactionReq stopTransactionReq = new StopTransactionReq(chargingCurrentData.getConnectorId());
                             stopTransactionReq.sendStopTransactionReq();
                         }
-                    }, 3000);
+                    }, 300);
 
 
                 }

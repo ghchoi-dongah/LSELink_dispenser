@@ -9,7 +9,6 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import android.os.Handler;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -122,7 +121,11 @@ public class ChargingFinishFragment extends Fragment implements View.OnClickList
             textViewChargingTimeValue.setText(chargingCurrentData.getChargingUseTime());
 
             if (Objects.equals(chargerConfiguration.getOpMode(), 1)) {
-                textViewCarNum.setText(getString(R.string.carNum) + chargingCurrentData.getParentIdTag());
+                String parentIdTag = chargingCurrentData.getParentIdTag();
+                textViewCarNum.setText(
+                        getString(R.string.carNum) +
+                                (parentIdTag == null || parentIdTag.trim().isEmpty() ? "미지원" : parentIdTag)
+                );
             } else {
                 textViewCarNum.setText(getString(R.string.carNum) + "테스트 모드");
             }
