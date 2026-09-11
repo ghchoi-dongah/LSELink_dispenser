@@ -24,7 +24,6 @@ import com.dongah.dispenser.websocket.socket.SocketReceiveMessage;
 import com.dongah.dispenser.websocket.socket.SocketState;
 import com.dongah.dispenser.websocket.socket.handler.handlersend.ChargingAlarmReq;
 import com.dongah.dispenser.websocket.socket.handler.handlersend.MeterValuesReq;
-import com.dongah.dispenser.websocket.socket.handler.handlersend.MeterValuesStopReq;
 import com.dongah.dispenser.websocket.socket.handler.handlersend.ProcessHandler;
 import com.dongah.dispenser.websocket.socket.handler.handlersend.StartTransactionReq;
 import com.dongah.dispenser.websocket.socket.handler.handlersend.StatusNotificationReq;
@@ -622,7 +621,7 @@ public class ClassUiProcess implements RfCardReaderListener {
         try {
             // stop MeterValues
             if (meterValuesReq != null) {
-                new MeterValuesStopReq(chargingCurrentData.getConnectorId()).sendMeterValuesStop(meterValuesReq);
+                meterValuesReq.sendMeterValuesStop(chargingCurrentData.getConnectorId());
             }
             onMeterValueStop();
 
@@ -673,7 +672,7 @@ public class ClassUiProcess implements RfCardReaderListener {
 
                     // meter values stop
                     if (meterValuesReq != null) {
-                        new MeterValuesStopReq(chargingCurrentData.getConnectorId()).sendMeterValuesStop(meterValuesReq);
+                        meterValuesReq.sendMeterValuesStop(chargingCurrentData.getConnectorId());
                     }
                     onMeterValueStop();
 

@@ -192,12 +192,14 @@ public class InitFragment extends Fragment implements View.OnClickListener {
 
     @Override
     public void onClick(View v) {
-        if (!Objects.equals(chargerConfiguration.getStartMode(), 0)
-                || !chargingCurrentData.isConnectUse()
-                || (!Objects.equals(v.getId(), R.id.viewCircle) && !rxData.isCsPilot())) {
-            return;
+        if (Objects.equals(v.getId(), R.id.viewCircle)) {
+            if (!chargingCurrentData.isConnectUse()) return;
+            if (Objects.equals(chargerConfiguration.getStartMode(), 1) && !rxData.isCsPilot()) {
+                Toast.makeText(getActivity(), "커플러를 연결 후 자동충전이 시작됩니다.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            changeFragment();
         }
-        changeFragment();
     }
 
     private void initData() {
@@ -226,21 +228,24 @@ public class InitFragment extends Fragment implements View.OnClickListener {
                     return;
                 }
                 chargingCurrentData.setPowerUnitPrice(GlobalVariables.userTypeC);
+                logger.info("단가 정보 : {}", chargingCurrentData.getPowerUnitPrice());
                 try {
                     switch (chargerConfiguration.getAuthMode()) {
                         case 0:
                         case 2:
+                            // mac address
                             chargingCurrentData.setAuthType("M");
                             activity.getClassUiProcess(mChannel).setUiSeq(UiSeq.PLUG_CHECK);
                             activity.getFragmentChange().onFragmentChange(mChannel, UiSeq.PLUG_CHECK, "PLUG_CHECK", null);
                             break;
                         case 1:
+                            // member card
                             chargingCurrentData.setAuthType("C");
                             activity.getClassUiProcess(mChannel).setUiSeq(UiSeq.MEMBER_CARD);
                             activity.getFragmentChange().onFragmentChange(mChannel, UiSeq.MEMBER_CARD, "MEMBER_CARD", null);
                             break;
                         default:
-                            logger.error("InitFragment changeFragment error >> Invalid value");
+                            logger.error("changeFragment error >> Invalid value");
                             break;
                     }
                 } catch (Exception e) {
@@ -260,13 +265,46 @@ public class InitFragment extends Fragment implements View.OnClickListener {
                 return false;
             }
 
-            Cursor cursor = helper.selectAll("CP_UNIT_PRICE");
-            return cursor != null && cursor.moveToFirst();
+            String userType = "C";
+            Double price = getUnitPriceFromDb(helper, userType);
+            if (price == null || price == 0.0) {
+                logger.error("onUnitPrice error >> USER_TYPE_CD={} UNIT_PRICE is invalid", userType);
+                return false;
+            }
+
+            syncGlobalUnitPrice(userType, price);
+            return true;
         } catch (Exception e){
             logger.error("onUnitPrice error : {}", e.getMessage(), e);
             return false;
         }
     }
+
+    private Double getUnitPriceFromDb(SQLiteHelper helper, String userTypeCd) {
+        Cursor cursor = null;
+        try {
+            cursor = helper.select("CP_UNIT_PRICE", "USER_TYPE_CD = ?", new String[]{userTypeCd});
+            if (cursor == null || !cursor.moveToFirst()) return null;
+            int colIdx = cursor.getColumnIndex("UNIT_PRICE");
+            if (colIdx < 0 || cursor.isNull(colIdx)) return null;
+            return cursor.getDouble(colIdx);
+        } catch (Exception e) {
+            logger.error("getUnitPriceFromDb error. userTypeCd={} : {}", userTypeCd, e.getMessage(), e);
+            return null;
+        } finally {
+            if (cursor != null) cursor.close();
+        }
+    }
+
+    private void syncGlobalUnitPrice(String userTypeCd, double price) {
+        switch (userTypeCd) {
+            case "K": GlobalVariables.userTypeK = price; break;
+            case "C": GlobalVariables.userTypeC = price; break;
+            case "N": GlobalVariables.userTypeN = price; break;
+            case "M": GlobalVariables.userTypeM = price; break;
+        }
+    }
+
     @Override
     public void onDetach() {
         super.onDetach();

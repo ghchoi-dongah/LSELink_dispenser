@@ -188,9 +188,14 @@ public class ConnectorCheckFragment extends Fragment {
                                     statusNotificationReq.sendStatusNotification();
                                 }
 
-                                // 통신 실패
-                                classUiProcess.setUiSeq(UiSeq.CONNECTION_FAILED);
-                                fragmentChange.onFragmentChange(mChannel, UiSeq.CONNECTION_FAILED, "CONNECTION_FAILED", null);
+                                if (Objects.equals(chargingCurrentData.authType, "M") && Objects.equals(chargerConfiguration.getAuthMode(), 2)) {
+                                    classUiProcess.setUiSeq(UiSeq.MEMBER_CARD);
+                                    fragmentChange.onFragmentChange(mChannel, UiSeq.MEMBER_CARD, "MEMBER_CARD", null);
+                                } else {
+                                    // 통신 실패
+                                    classUiProcess.setUiSeq(UiSeq.CONNECTION_FAILED);
+                                    fragmentChange.onFragmentChange(mChannel, UiSeq.CONNECTION_FAILED, "CONNECTION_FAILED", null);
+                                }
                             } else {
                                 countHandler.postDelayed(countRunnable, 1000);
                             }

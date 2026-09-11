@@ -39,6 +39,7 @@ public class MeterValuesReq {
     private int lastIntervalSec = -1;
     private long prevPowerMeter = -1;
     private long totalSentPowerMeterDiff = 0;
+    private Gson gson = new Gson();
 
 
     public int getConnectorId() {
@@ -137,7 +138,6 @@ public class MeterValuesReq {
         meterValuesData.crtrUpc = 0.0f;
 
         // 2. JSON 변환
-        Gson gson = new Gson();
         String jsonData = gson.toJson(meterValuesData);
 
         // 3. Request 생성
@@ -157,6 +157,62 @@ public class MeterValuesReq {
             // 통신이 안되면 저장
             String uuid = UUID.randomUUID().toString();
             saveFullMeterValues(getConnectorId(), uuid, meterValuesRequest);
+        }
+    }
+
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    public void sendMeterValuesStop(int connectorId) {
+        try {
+            MainActivity activity = (MainActivity) MainActivity.mContext;
+            if (activity == null) return;
+
+            ChargingCurrentData chargingCurrentData = activity.getChargingCurrentData(connectorId - 1);
+            ChargerConfiguration chargerConfiguration = activity.getChargerConfiguration();
+            ZonedDateTimeConvert zonedDateTimeConvert = new ZonedDateTimeConvert();
+
+            long currentMeter = chargingCurrentData.getPowerMeter();
+            long powerMeterStart = chargingCurrentData.getPowerMeterStart();
+            long remainingWh = (currentMeter - powerMeterStart) - totalSentPowerMeterDiff;
+
+            MeterValuesData meterValuesData = new MeterValuesData();
+            meterValuesData.chargeBoxSerialNumber = chargerConfiguration.getChargeBoxSerialNumber();
+            meterValuesData.chargePointSerialNumber = chargerConfiguration.getChargerId();
+            meterValuesData.connectorId = connectorId;
+            meterValuesData.transactionId = chargingCurrentData.getTransactionId();
+            meterValuesData.idTag = chargingCurrentData.getIdTag();
+            meterValuesData.timestamp = zonedDateTimeConvert.doGetKstDatetimeAsString();
+            meterValuesData.power = (float) ((chargingCurrentData.getOutPutVoltage() * 10) * (chargingCurrentData.getOutPutCurrent() * 0.001));
+            meterValuesData.eps = (int) (chargingCurrentData.getOutPutVoltage() * 10);
+            meterValuesData.ecu = (int) (chargingCurrentData.getOutPutCurrent() * 0.001);
+            meterValuesData.accTickWh = (float) (remainingWh * 0.01);
+            meterValuesData.accWh = (float) ((prevPowerMeter + remainingWh) * 0.01);
+            meterValuesData.accTickTime = GlobalVariables.getMeterValueSampleInterval();
+            meterValuesData.rechgHr = (int) chargingCurrentData.getChargingTime();
+            meterValuesData.remnHr = chargingCurrentData.getRemaintime() / 60;
+            meterValuesData.btrRm = chargingCurrentData.getSoc();
+            meterValuesData.slprcUpc = (float) chargingCurrentData.getPowerUnitPrice();
+            meterValuesData.crtrUpc = 0.0f;
+
+            String jsonData = gson.toJson(meterValuesData);
+
+            MeterValuesRequest meterValuesRequest = new MeterValuesRequest();
+            meterValuesRequest.setVendorId(chargerConfiguration.getChargePointVendor());
+            meterValuesRequest.setMessageId("MeterValues");
+            meterValuesRequest.setData(jsonData);
+
+            SocketState socketState = activity.getSocketReceiveMessage().getSocket().getState();
+            if (socketState.equals(SocketState.OPEN)) {
+                activity.getSocketReceiveMessage().onSend(
+                        connectorId,
+                        meterValuesRequest.getActionName(),
+                        meterValuesRequest);
+            } else {
+                String uuid = UUID.randomUUID().toString();
+                saveFullMeterValues(connectorId, uuid, meterValuesRequest);
+            }
+        } catch (Exception e) {
+            logger.error("sendMeterValuesStop error : {}", e.getMessage(), e);
         }
     }
 
