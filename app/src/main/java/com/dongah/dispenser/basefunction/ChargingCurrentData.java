@@ -56,8 +56,9 @@ public class ChargingCurrentData {
     double targetCurrent = 0f;      // 요청전류
 
     int soc = 0;
-    int targetSoc = 80;
+    int targetSoc = 100;
     long chargingRemainTime = 0;
+    double crtrPrice = 0;
 
 
     int remaintime = 0;
@@ -164,10 +165,11 @@ public class ChargingCurrentData {
             setResReservationId("");
             setRemoteStartSmartCharging(false);
             setSoc(0);
-            setTargetSoc(80);
+            setTargetSoc(100);
             setTargetCurrent(0);
             setAuthType("M");
             setFullrechgsoc(100);
+            setCrtrPrice(0);
         } catch (Exception e) {
             logger.error("onCurrentDataClear error : {}", e.getMessage(), e);
         }
@@ -624,5 +626,13 @@ public class ChargingCurrentData {
 
     public void setFullrechgsoc(int fullrechgsoc) {
         this.fullrechgsoc = fullrechgsoc;
+    }
+
+    public double getCrtrPrice() {
+        return crtrPrice;
+    }
+
+    public void setCrtrPrice(double crtrPrice) {
+        this.crtrPrice = crtrPrice;
     }
 }

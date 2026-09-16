@@ -208,6 +208,7 @@ public class InitFragment extends Fragment implements View.OnClickListener {
             chargingCurrentData.setConnectorId(mChannel + 1);
             chargingCurrentData.setChargerPointType(ChargerPointType.COMBO);
             chargingCurrentData.setPowerUnitPrice(GlobalVariables.userTypeC);
+            chargingCurrentData.setCrtrPrice(GlobalVariables.crtrUnitPriceC);
         } catch (Exception e) {
             logger.error("initData error : {}", e.getMessage());
         }
@@ -228,7 +229,9 @@ public class InitFragment extends Fragment implements View.OnClickListener {
                     return;
                 }
                 chargingCurrentData.setPowerUnitPrice(GlobalVariables.userTypeC);
-                logger.info("단가 정보 : {}", chargingCurrentData.getPowerUnitPrice());
+                chargingCurrentData.setCrtrPrice(GlobalVariables.crtrUnitPriceC);
+                logger.info("단가 정보 : {}, 환경부 단가 정보 : {}",
+                        chargingCurrentData.getPowerUnitPrice(), chargingCurrentData.getCrtrPrice());
                 try {
                     switch (chargerConfiguration.getAuthMode()) {
                         case 0:

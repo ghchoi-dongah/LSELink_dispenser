@@ -135,7 +135,7 @@ public class MeterValuesReq {
         meterValuesData.remnHr = chargingCurrentData.getRemaintime() / 60;
         meterValuesData.btrRm = chargingCurrentData.getSoc();
         meterValuesData.slprcUpc = (float) chargingCurrentData.getPowerUnitPrice();
-        meterValuesData.crtrUpc = 0.0f;
+        meterValuesData.crtrUpc = (float) chargingCurrentData.getCrtrPrice();
 
         // 2. JSON 변환
         String jsonData = gson.toJson(meterValuesData);
@@ -192,7 +192,7 @@ public class MeterValuesReq {
             meterValuesData.remnHr = chargingCurrentData.getRemaintime() / 60;
             meterValuesData.btrRm = chargingCurrentData.getSoc();
             meterValuesData.slprcUpc = (float) chargingCurrentData.getPowerUnitPrice();
-            meterValuesData.crtrUpc = 0.0f;
+            meterValuesData.crtrUpc = (float) chargingCurrentData.getCrtrPrice();
 
             String jsonData = gson.toJson(meterValuesData);
 
