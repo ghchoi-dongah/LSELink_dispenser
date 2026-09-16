@@ -1,9 +1,9 @@
 package com.dongah.dispenser.websocket.socket.handler.handlersend;
 
+import android.annotation.SuppressLint;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Log;
 
 import androidx.annotation.RequiresApi;
 
@@ -28,7 +28,6 @@ import org.slf4j.LoggerFactory;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 public class StopTransactionReq {
@@ -46,6 +45,7 @@ public class StopTransactionReq {
     }
 
 
+    @SuppressLint("DefaultLocale")
     @RequiresApi(api = Build.VERSION_CODES.O)
     public void sendStopTransactionReq() {
         try {
@@ -66,7 +66,7 @@ public class StopTransactionReq {
 
             // 충전 사용량
             SampledValue energy = new SampledValue();
-            energy.setValue(String.valueOf(chargingCurrentData.getPowerMeterUse() * 0.01));
+            energy.setValue(String.format("%.3f", chargingCurrentData.getPowerMeterUse() * 0.01));
             energy.setContext("Transaction.End");
             energy.setFormat(ValueFormat.Raw);
             energy.setMeasurand("Current.Export");
