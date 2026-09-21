@@ -4,6 +4,8 @@ import static android.content.Context.INPUT_METHOD_SERVICE;
 
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import android.os.Handler;
@@ -17,6 +19,7 @@ import android.widget.ToggleButton;
 
 import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.R;
+import com.dongah.dispenser.basefunction.GlobalVariables;
 import com.dongah.dispenser.controlboard.ControlBoard;
 import com.dongah.dispenser.controlboard.RxData;
 
@@ -99,9 +102,7 @@ public class ProductTestTotalLoadFragment extends Fragment implements View.OnCli
         btnKeyBoard.setOnClickListener(this);
 
         voltageFormatter = new DecimalFormat("#,###,##0.0");
-        /** test mode  */
         controlBoard = ((MainActivity) MainActivity.mContext).getControlBoard();
-        controlBoard.getTxData(0).setChargerPointMode((short) 1);
         btnCH1 = view.findViewById(R.id.btnCH1);
         btnCH2 = view.findViewById(R.id.btnCH2);
         btnCH1.setOnClickListener(this);
@@ -120,6 +121,18 @@ public class ProductTestTotalLoadFragment extends Fragment implements View.OnCli
         editDrV1 = view.findViewById(R.id.editDrV1);
         editDrA1 = view.findViewById(R.id.editDrA1);
         return view;
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        try {
+            for (int i = 0; i < GlobalVariables.maxChannel; i++) {
+                controlBoard.getTxData(i).setChargerPointMode((short) 1);
+            }
+        } catch (Exception e) {
+            logger.error("onViewCreated error : {}", e.getMessage(), e);
+        }
     }
 
     private void onDspControlStatus() {
