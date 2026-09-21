@@ -29,6 +29,7 @@ import com.dongah.dispenser.pages.MemberCardFragment;
 import com.dongah.dispenser.pages.MemberCheckFailedFragment;
 import com.dongah.dispenser.pages.MemberCheckWaitFragment;
 import com.dongah.dispenser.pages.OperationStopFragment;
+import com.dongah.dispenser.pages.RfcardTestFragment;
 import com.dongah.dispenser.pages.ScreenSaverFragment;
 import com.dongah.dispenser.pages.WebSocketDebugFragment;
 
@@ -284,6 +285,17 @@ public class FragmentChange {
                     transaction.commit();
                 } catch (Exception e) {
                     logger.error("onFragmentChange error : DATABASE {}", e.getMessage());
+                }
+                break;
+            case RF_CARD:
+                try {
+                    onFrameLayoutChange(true);
+                    RfcardTestFragment rfcardTestFragment = new RfcardTestFragment();
+                    rfcardTestFragment.setArguments(bundle);
+                    transaction.replace(R.id.frameFull, rfcardTestFragment, "RF_CARD");
+                    transaction.commit();
+                } catch (Exception e) {
+                    logger.error("onFragmentChange error : RF_CARD {}", e.getMessage());
                 }
                 break;
             default:

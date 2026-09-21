@@ -13,6 +13,8 @@ import android.widget.Button;
 
 import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.R;
+import com.dongah.dispenser.basefunction.ClassUiProcess;
+import com.dongah.dispenser.basefunction.FragmentChange;
 import com.dongah.dispenser.basefunction.GlobalVariables;
 import com.dongah.dispenser.basefunction.UiSeq;
 
@@ -36,8 +38,12 @@ public class EnvironmentFragment extends Fragment implements View.OnClickListene
     private String mParam2;
     private int mChannel;
 
-    Button btnConfig, btnWebSocket, btnControl, btnDbControl, btnLoadTest, btnUi, btnSystemExit;
+    Button btnConfig, btnWebSocket, btnControl, btnDbControl, btnLoadTest,
+            btnUi, btnSystemExit, btnRf;
     FragmentTransaction transaction;
+    MainActivity activity;
+    ClassUiProcess classUiProcess;
+    FragmentChange fragmentChange;
 
     public EnvironmentFragment() {
         // Required empty public constructor
@@ -75,6 +81,10 @@ public class EnvironmentFragment extends Fragment implements View.OnClickListene
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_environment, container, false);
+        activity = (MainActivity) MainActivity.mContext;
+        classUiProcess = activity.getClassUiProcess(mChannel);
+        fragmentChange = activity.getFragmentChange();
+
         btnConfig = view.findViewById(R.id.btnConfig);
         btnConfig.setOnClickListener(this);
         btnWebSocket = view.findViewById(R.id.btnWebSocket);
@@ -89,6 +99,8 @@ public class EnvironmentFragment extends Fragment implements View.OnClickListene
         btnUi.setOnClickListener(this);
         btnSystemExit = view.findViewById(R.id.btnSystemExit);
         btnSystemExit.setOnClickListener(this);
+        btnRf = view.findViewById(R.id.btnRf);
+        btnRf.setOnClickListener(this);
         return  view;
     }
 
@@ -96,28 +108,28 @@ public class EnvironmentFragment extends Fragment implements View.OnClickListene
     public void onClick(View v) {
         int getId = v.getId();
         if (Objects.equals(getId, R.id.btnConfig)) {
-            ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel, UiSeq.CONFIG_SETTING, "CONFIG_SETTING", null);
+            fragmentChange.onFragmentChange(mChannel, UiSeq.CONFIG_SETTING, "CONFIG_SETTING", null);
         } else if (Objects.equals(getId, R.id.btnWebSocket)) {
-            ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel,UiSeq.WEB_SOCKET, "WEB_SOCKET", null);
+            fragmentChange.onFragmentChange(mChannel,UiSeq.WEB_SOCKET, "WEB_SOCKET", null);
         } else if (Objects.equals(getId, R.id.btnControl)) {
-            ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel,UiSeq.CONTROL_BOARD_DEBUGGING, "CONTROL_BOARD_DEBUGGING", null);
+            fragmentChange.onFragmentChange(mChannel,UiSeq.CONTROL_BOARD_DEBUGGING, "CONTROL_BOARD_DEBUGGING", null);
         } else if (Objects.equals(getId, R.id.btnDbControl)) {
-            ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel,UiSeq.DATABASE, "DATABASE", null);
+            fragmentChange.onFragmentChange(mChannel,UiSeq.DATABASE, "DATABASE", null);
         } else if (Objects.equals(getId, R.id.btnLoadTest)) {
             transaction = ((MainActivity) MainActivity.mContext).getSupportFragmentManager().beginTransaction();
             ProductTestFragment productTestFragment = new ProductTestFragment();
             transaction.replace(R.id.frameFull, productTestFragment);
             transaction.commit();
         } else if (Objects.equals(getId, R.id.btnUi)) {
-            UiSeq uiSeq = ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).getUiSeq();
+            UiSeq uiSeq = classUiProcess.getUiSeq();
             switch (uiSeq) {
                 case CHARGING:
-                    ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.CHARGING);
-                    ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel,UiSeq.CHARGING, "CHARGING", null);
+                    classUiProcess.setUiSeq(UiSeq.CHARGING);
+                    fragmentChange.onFragmentChange(mChannel,UiSeq.CHARGING, "CHARGING", null);
                     break;
                 case FAULT:
-                    ((MainActivity) MainActivity.mContext).getClassUiProcess(mChannel).setUiSeq(UiSeq.FAULT);
-                    ((MainActivity) MainActivity.mContext).getFragmentChange().onFragmentChange(mChannel,UiSeq.FAULT, "FAULT", null);
+                    classUiProcess.setUiSeq(UiSeq.FAULT);
+                    fragmentChange.onFragmentChange(mChannel,UiSeq.FAULT, "FAULT", null);
                     break;
                 default:
                     MainActivity activity = (MainActivity) MainActivity.mContext;
@@ -130,6 +142,8 @@ public class EnvironmentFragment extends Fragment implements View.OnClickListene
         } else if (Objects.equals(getId, R.id.btnSystemExit)) {
             ActivityCompat.finishAffinity((MainActivity) MainActivity.mContext);
             System.exit(0);
+        } else if (Objects.equals(getId, R.id.btnRf)) {
+            fragmentChange.onFragmentChange(mChannel,UiSeq.RF_CARD, "RF_CARD", null);
         }
     }
 }

@@ -388,6 +388,12 @@ public class ClassUiProcess implements RfCardReaderListener {
     @Override
     public void onRfCardDataReceive(int ch, String cardNum, boolean value) {
         try {
+            if (GlobalVariables.rfcardTestMode && GlobalVariables.rfCardTestCallback != null &&
+                    !cardNum.isEmpty() && !Objects.equals(cardNum, "0000000000000000")) {
+                GlobalVariables.rfCardTestCallback.onCardReceived(cardNum);
+                return;
+            }
+
             if (cardNum.isEmpty() || Objects.equals(cardNum,"0000000000000000")) {
                 MainActivity activity = (MainActivity) MainActivity.mContext;
                 setUiSeq(UiSeq.INIT);

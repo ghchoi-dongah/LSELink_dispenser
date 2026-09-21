@@ -111,6 +111,7 @@
     <string name="systemExit">시스템\n종료</string>
     <string name="loadTest">Load Test</string>
     <string name="remoteTest">원격\n테스트</string>
+    <string name="rfTest">RF TEST</string>
 
     <!-- control board -->
     <string name="channelSelect">[채널 선택]</string>
@@ -122,4 +123,9 @@
 
     <!-- web socket -->
     <string name="logDel">로그삭제</string>
+
+    <!--  rfcard test  -->
+    <string name="rfcardTitle">RFCARD TEST</string>
+    <string name="rfcardContent">RF TEST 버튼 클릭 후\n리더기에 카드를 태깅해 주세요.</string>
+    <string name="btnConfigExit">나가기</string>
 </resources>
