@@ -16,6 +16,7 @@ import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.R;
 import com.dongah.dispenser.basefunction.GlobalVariables;
 import com.dongah.dispenser.controlboard.ControlBoard;
+import com.dongah.dispenser.controlboard.ControlBoardListener;
 import com.dongah.dispenser.controlboard.RxData;
 import com.dongah.dispenser.controlboard.TxData;
 
@@ -29,7 +30,7 @@ import java.util.Objects;
  * Use the {@link ProductTestIoFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class ProductTestIoFragment extends Fragment implements View.OnClickListener {
+public class ProductTestIoFragment extends Fragment implements View.OnClickListener, ControlBoardListener {
     private static final Logger logger = LoggerFactory.getLogger(ProductTestIoFragment.class);
 
     // TODO: Rename parameter arguments, choose names that match
@@ -41,14 +42,12 @@ public class ProductTestIoFragment extends Fragment implements View.OnClickListe
     private String mParam1;
     private String mParam2;
 
-    EditText editRy1, editRy2, editRy3, editRy4, editRy5, editRy6,
-            editRy7, editRy8, editRy9, editRy10, editRy11, editRy12;
-    ToggleButton btnRy1, btnRy2, btnRy3, btnRy4, btnRy5, btnRy6,
-            btnRy7, btnRy8, btnRy9, btnRy10, btnRy11, btnRy12;
+    EditText editRy1, editRy2, editRy3, editRy4, editRy5, editRy6;
+    ToggleButton btnRy1, btnRy2, btnRy3, btnRy4, btnRy5, btnRy6;
 
     ControlBoard controlBoard;
-    RxData rxData1, rxData2;
-    TxData txData1, txData2;
+    RxData rxData1;
+    TxData txData1;
 
     public ProductTestIoFragment() {
         // Required empty public constructor
@@ -89,9 +88,7 @@ public class ProductTestIoFragment extends Fragment implements View.OnClickListe
         try {
             controlBoard = ((MainActivity) MainActivity.mContext).getControlBoard();
             rxData1 = controlBoard.getRxData(0);
-            rxData2 = controlBoard.getRxData(1);
             txData1 = controlBoard.getTxData(0);
-            txData2 = controlBoard.getTxData(1);
 
             editRy1 = view.findViewById(R.id.editRy1);
             editRy2 = view.findViewById(R.id.editRy2);
@@ -99,12 +96,6 @@ public class ProductTestIoFragment extends Fragment implements View.OnClickListe
             editRy4 = view.findViewById(R.id.editRy4);
             editRy5 = view.findViewById(R.id.editRy5);
             editRy6 = view.findViewById(R.id.editRy6);
-            editRy7 = view.findViewById(R.id.editRy7);
-            editRy8 = view.findViewById(R.id.editRy8);
-            editRy9 = view.findViewById(R.id.editRy9);
-            editRy10 = view.findViewById(R.id.editRy10);
-            editRy11 = view.findViewById(R.id.editRy11);
-            editRy12 = view.findViewById(R.id.editRy12);
 
             // btnRy 초기화
             btnRy1  = view.findViewById(R.id.btnRy1);
@@ -119,18 +110,6 @@ public class ProductTestIoFragment extends Fragment implements View.OnClickListe
             btnRy5.setOnClickListener(this);
             btnRy6  = view.findViewById(R.id.btnRy6);
             btnRy6.setOnClickListener(this);
-            btnRy7  = view.findViewById(R.id.btnRy7);
-            btnRy7.setOnClickListener(this);
-            btnRy8  = view.findViewById(R.id.btnRy8);
-            btnRy8.setOnClickListener(this);
-            btnRy9  = view.findViewById(R.id.btnRy9);
-            btnRy9.setOnClickListener(this);
-            btnRy10 = view.findViewById(R.id.btnRy10);
-            btnRy10.setOnClickListener(this);
-            btnRy11 = view.findViewById(R.id.btnRy11);
-            btnRy11.setOnClickListener(this);
-            btnRy12 = view.findViewById(R.id.btnRy12);
-            btnRy12.setOnClickListener(this);
         } catch (Exception e) {
             logger.error("onCreateView error : {}", e.getMessage(), e);
         }
@@ -153,12 +132,6 @@ public class ProductTestIoFragment extends Fragment implements View.OnClickListe
             btnRy4.setChecked(txData1.isRelay4());
             btnRy5.setChecked(txData1.isRelay5());
             btnRy6.setChecked(txData1.isRelay6());
-            btnRy7.setChecked(txData2.isRelay1());
-            btnRy8.setChecked(txData2.isRelay2());
-            btnRy9.setChecked(txData2.isRelay3());
-            btnRy10.setChecked(txData2.isRelay4());
-            btnRy11.setChecked(txData2.isRelay5());
-            btnRy12.setChecked(txData2.isRelay6());
 
             editRy1.setText(rxData1.isCsRY1Status() ? "ON" : "OFF");
             editRy2.setText(rxData1.isCsRY2Status() ? "ON" : "OFF");
@@ -166,15 +139,44 @@ public class ProductTestIoFragment extends Fragment implements View.OnClickListe
             editRy4.setText(rxData1.isCsRY4Status() ? "ON" : "OFF");
             editRy5.setText(rxData1.isCsRY5Status() ? "ON" : "OFF");
             editRy6.setText(rxData1.isCsRY6Status() ? "ON" : "OFF");
-            editRy7.setText(rxData2.isCsRY1Status() ? "ON" : "OFF");
-            editRy8.setText(rxData2.isCsRY2Status() ? "ON" : "OFF");
-            editRy9.setText(rxData2.isCsRY3Status() ? "ON" : "OFF");
-            editRy10.setText(rxData2.isCsRY4Status() ? "ON" : "OFF");
-            editRy11.setText(rxData2.isCsRY5Status() ? "ON" : "OFF");
-            editRy12.setText(rxData2.isCsRY6Status() ? "ON" : "OFF");
         } catch (Exception e) {
             logger.error("onViewCreated error : {}", e.getMessage(), e);
         }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (controlBoard != null) {
+            controlBoard.addControlBoardListener(this);
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (controlBoard != null) {
+            controlBoard.removeControlBoardListener(this);
+        }
+    }
+
+    @Override
+    public void onControlBoardReceive(RxData[] rxData) {
+        if (!isAdded()) return;
+        requireActivity().runOnUiThread(() -> {
+            if (!isAdded()) return;
+            editRy1.setText(rxData[0].isCsRY1Status() ? "ON" : "OFF");
+            editRy2.setText(rxData[0].isCsRY2Status() ? "ON" : "OFF");
+            editRy3.setText(rxData[0].isCsRY3Status() ? "ON" : "OFF");
+            editRy4.setText(rxData[0].isCsRY4Status() ? "ON" : "OFF");
+            editRy5.setText(rxData[0].isCsRY5Status() ? "ON" : "OFF");
+            editRy6.setText(rxData[0].isCsRY6Status() ? "ON" : "OFF");
+        });
+    }
+
+    @Override
+    public void onControlBoardSend(TxData[] txData) {
+        // not used
     }
 
     @Override
@@ -183,40 +185,16 @@ public class ProductTestIoFragment extends Fragment implements View.OnClickListe
         try {
             if (Objects.equals(getId, R.id.btnRy1)) {
                 txData1.setRelay1(btnRy1.isChecked());
-                editRy1.setText(rxData1.isCsRY1Status() ? "ON" : "OFF");
             } else if (Objects.equals(getId, R.id.btnRy2)) {
                 txData1.setRelay2(btnRy2.isChecked());
-                editRy2.setText(rxData1.isCsRY2Status() ? "ON" : "OFF");
             } else if (Objects.equals(getId, R.id.btnRy3)) {
                 txData1.setRelay3(btnRy3.isChecked());
-                editRy3.setText(rxData1.isCsRY3Status() ? "ON" : "OFF");
             } else if (Objects.equals(getId, R.id.btnRy4)) {
                 txData1.setRelay4(btnRy4.isChecked());
-                editRy4.setText(rxData1.isCsRY4Status() ? "ON" : "OFF");
             } else if (Objects.equals(getId, R.id.btnRy5)) {
                 txData1.setRelay5(btnRy5.isChecked());
-                editRy5.setText(rxData1.isCsRY5Status() ? "ON" : "OFF");
             } else if (Objects.equals(getId, R.id.btnRy6)) {
                 txData1.setRelay6(btnRy6.isChecked());
-                editRy6.setText(rxData1.isCsRY6Status() ? "ON" : "OFF");
-            } else if (Objects.equals(getId, R.id.btnRy7)) {
-                txData2.setRelay1(btnRy7.isChecked());
-                editRy7.setText(rxData2.isCsRY1Status() ? "ON" : "OFF");
-            } else if (Objects.equals(getId, R.id.btnRy8)) {
-                txData2.setRelay2(btnRy8.isChecked());
-                editRy8.setText(rxData2.isCsRY2Status() ? "ON" : "OFF");
-            } else if (Objects.equals(getId, R.id.btnRy9)) {
-                txData2.setRelay3(btnRy9.isChecked());
-                editRy9.setText(rxData2.isCsRY3Status() ? "ON" : "OFF");
-            } else if (Objects.equals(getId, R.id.btnRy10)) {
-                txData2.setRelay4(btnRy10.isChecked());
-                editRy10.setText(rxData2.isCsRY4Status() ? "ON" : "OFF");
-            } else if (Objects.equals(getId, R.id.btnRy11)) {
-                txData2.setRelay5(btnRy11.isChecked());
-                editRy11.setText(rxData2.isCsRY5Status() ? "ON" : "OFF");
-            } else if (Objects.equals(getId, R.id.btnRy12)) {
-                txData2.setRelay6(btnRy12.isChecked());
-                editRy12.setText(rxData2.isCsRY6Status() ? "ON" : "OFF");
             }
         } catch (Exception e) {
             logger.error("onClick error : {}", e.getMessage(), e);
