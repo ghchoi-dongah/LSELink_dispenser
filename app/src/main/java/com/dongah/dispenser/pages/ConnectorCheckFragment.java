@@ -160,6 +160,7 @@ public class ConnectorCheckFragment extends Fragment {
             cnt = 0;
             isFlagAuthorize = true;
             animationDrawable.start();
+            int timeout = Math.max(GlobalVariables.getConnectionTimeOut(), 60);
 
             // connection time out
             activity.runOnUiThread(new Runnable() {
@@ -170,7 +171,7 @@ public class ConnectorCheckFragment extends Fragment {
                         @Override
                         public void run() {
                             cnt++;
-                            if (cnt >= GlobalVariables.getConnectionTimeOut()) {
+                            if (cnt >= timeout) {
                                 // 충전기 종료
                                 txData.setStart(false);
                                 txData.setStop(true);

@@ -3,6 +3,7 @@
     <string-array name="authMode">
         <item>1. MAC</item>
         <item>2. 회원카드</item>
-        <item>3. MAC + 회원카드</item>
+        <item>3. MAC + 회원카드(기본값)</item>
+        <item>4. MAC + 회원카드(사용자선택)</item>
     </string-array>
 </resources>

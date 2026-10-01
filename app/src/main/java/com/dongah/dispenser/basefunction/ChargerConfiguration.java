@@ -42,7 +42,8 @@ public class ChargerConfiguration {
     /** 회원 인증 모드
      * 0: mac
      * 1: member
-     * 2: mac + member
+     * 2: mac + member (같이 사용)
+     * 3: mac + member (택 1 사용)
      * */
     public int authMode = 2;
     public int authModeId;

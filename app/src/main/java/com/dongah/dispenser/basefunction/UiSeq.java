@@ -3,7 +3,7 @@ package com.dongah.dispenser.basefunction;
 public enum UiSeq {
     NONE(0),
     INIT(1),
-    SEQUENTIAL_CHARGING(2),
+    AUTH_SELECT(2),
     CONNECTION_FAILED(3),
     MEMBER_CHECK_FAILED(4),
     MEMBER_CARD(5),
@@ -13,7 +13,7 @@ public enum UiSeq {
     OP_STOP(9),
     PLUG_CHECK(10),
     CONNECT_CHECK(11),
-    RUN_CHECK(12),
+    SEQUENTIAL_CHARGING(12),
     CHARGING(13),
     FAULT(14),
     FINISH_WAIT(15),

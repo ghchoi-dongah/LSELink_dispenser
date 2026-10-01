@@ -194,10 +194,10 @@ public class InitFragment extends Fragment implements View.OnClickListener {
     public void onClick(View v) {
         if (Objects.equals(v.getId(), R.id.viewCircle)) {
             if (!chargingCurrentData.isConnectUse()) return;
-            if (Objects.equals(chargerConfiguration.getStartMode(), 1) && !rxData.isCsPilot()) {
-                Toast.makeText(getActivity(), "커플러를 연결 후 자동충전이 시작됩니다.", Toast.LENGTH_SHORT).show();
-                return;
-            }
+//            if (Objects.equals(chargerConfiguration.getStartMode(), 1) && !rxData.isCsPilot()) {
+//                Toast.makeText(getActivity(), "커넥터를 연결 후 충전을 시작해 주세요.", Toast.LENGTH_SHORT).show();
+//                return;
+//            }
             changeFragment();
         }
     }
@@ -246,6 +246,10 @@ public class InitFragment extends Fragment implements View.OnClickListener {
                             chargingCurrentData.setAuthType("C");
                             activity.getClassUiProcess(mChannel).setUiSeq(UiSeq.MEMBER_CARD);
                             activity.getFragmentChange().onFragmentChange(mChannel, UiSeq.MEMBER_CARD, "MEMBER_CARD", null);
+                            break;
+                        case 3:
+                            activity.getClassUiProcess(mChannel).setUiSeq(UiSeq.AUTH_SELECT);
+                            activity.getFragmentChange().onFragmentChange(mChannel, UiSeq.AUTH_SELECT, "AUTH_SELECT", null);
                             break;
                         default:
                             logger.error("changeFragment error >> Invalid value");

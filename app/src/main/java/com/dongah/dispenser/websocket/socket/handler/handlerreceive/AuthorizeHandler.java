@@ -123,12 +123,12 @@ public class AuthorizeHandler implements OcppHandler {
                         activity.getControlBoard().getTxData(connectorId-1).setStop(true);
                         activity.getControlBoard().getTxData(connectorId-1).setUiSequence((short) 3);
 
-                        if (Objects.equals(chargerConfiguration.getAuthMode(), 0)) {
-                            activity.getClassUiProcess(connectorId-1).setUiSeq(UiSeq.MEMBER_CHECK_FAILED);
-                            fragmentChange.onFragmentChange(connectorId-1, UiSeq.MEMBER_CHECK_FAILED, "MEMBER_CHECK_FAILED", null);
-                        } else if (Objects.equals(chargerConfiguration.getAuthMode(), 2)) {
+                        if (Objects.equals(chargerConfiguration.getAuthMode(), 2)) {
                             activity.getClassUiProcess(connectorId-1).setUiSeq(UiSeq.MEMBER_CARD);
                             fragmentChange.onFragmentChange(connectorId-1, UiSeq.MEMBER_CARD, "MEMBER_CARD", null);
+                        } else {
+                            activity.getClassUiProcess(connectorId-1).setUiSeq(UiSeq.MEMBER_CHECK_FAILED);
+                            fragmentChange.onFragmentChange(connectorId-1, UiSeq.MEMBER_CHECK_FAILED, "MEMBER_CHECK_FAILED", null);
                         }
                     } else {
                         // 회원 카드 인증 실패

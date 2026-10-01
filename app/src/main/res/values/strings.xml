@@ -54,6 +54,10 @@
     <string name="chargingInfo">충전정보</string>
     <string name="intiInfo">충전량 제한 : %1$d%%\n출력 제한 : %2$dkW</string>
     <string name="retry"><font color="000">다시 시도해 주세요.</font></string>
+    <string name="macAdd">차량번호</string>
+    <string name="macAddMessage">차량번호 인증으로 충전 시작</string>
+    <string name="memberMessage">회원카드</string>
+    <string name="memberInfoMessage">회원 카드로 충전 시작</string>
 
     <!-- config setting -->
     <string name="chargePointType"><font color="#000">커플러 타입</font></string>

@@ -11,6 +11,7 @@ import androidx.fragment.app.FragmentTransaction;
 import com.dongah.dispenser.MainActivity;
 import com.dongah.dispenser.R;
 import com.dongah.dispenser.pages.AdminPasswordFragment;
+import com.dongah.dispenser.pages.AuthSelectFragment;
 import com.dongah.dispenser.pages.ChargingFinishFragment;
 import com.dongah.dispenser.pages.ChargingFinishWaitFragment;
 import com.dongah.dispenser.pages.ChargingFragment;
@@ -62,6 +63,17 @@ public class FragmentChange {
                     transaction.commit();
                 } catch (Exception e) {
                     logger.error("onFragmentChange error : INIT {}", e.getMessage());
+                }
+                break;
+            case AUTH_SELECT:
+                try {
+                    onFrameLayoutChange(false);
+                    AuthSelectFragment authSelectFragment = new AuthSelectFragment();
+                    authSelectFragment.setArguments(bundle);
+                    transaction.replace(frameLayoutId, authSelectFragment, sendText);
+                    transaction.commit();
+                } catch (Exception e) {
+                    logger.error("onFragmentChange error : AUTH_SELECT {}", e.getMessage());
                 }
                 break;
             case MEMBER_CHECK_WAIT:
